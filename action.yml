@@ -1,0 +1,50 @@
+name: Django upgrade report
+description: Which of your dependencies block a Django upgrade, and in which order to upgrade them.
+branding:
+  icon: arrow-up-circle
+  color: green
+
+inputs:
+  path:
+    description: Project directory with a lockfile, requirements*.txt or pyproject.toml.
+    default: "."
+  target:
+    description: "Django version to upgrade to: 'lts', 'latest' or e.g. '5.2'."
+    default: lts
+  fail-on:
+    description: "Fail the step when a package is 'blocked', needs an 'upgrade' or a 'check'. Empty never fails."
+    default: ""
+
+outputs:
+  report:
+    description: Path to the JSON report.
+    value: ${{ steps.report.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        update-environment: false
+      id: python
+    - name: Install django-upgrade-report
+      shell: bash
+      run: |
+        "${{ steps.python.outputs.python-path }}" -m venv "$RUNNER_TEMP/dur"
+        "$RUNNER_TEMP/dur/bin/pip" install --quiet "${{ github.action_path }}"
+    - name: Report
+      id: report
+      shell: bash
+      env:
+        DUR_PATH: ${{ inputs.path }}
+        DUR_TARGET: ${{ inputs.target }}
+        DUR_FAIL_ON: ${{ inputs.fail-on }}
+      run: |
+        bin="$RUNNER_TEMP/dur/bin/django-upgrade-report"
+        "$bin" "$DUR_PATH" --target "$DUR_TARGET" --format markdown >> "$GITHUB_STEP_SUMMARY"
+        "$bin" "$DUR_PATH" --target "$DUR_TARGET" --format json -o "$RUNNER_TEMP/django-upgrade-report.json"
+        echo "report=$RUNNER_TEMP/django-upgrade-report.json" >> "$GITHUB_OUTPUT"
+        args=()
+        if [ -n "$DUR_FAIL_ON" ]; then args+=(--fail-on "$DUR_FAIL_ON"); fi
+        "$bin" "$DUR_PATH" --target "$DUR_TARGET" "${args[@]}"
