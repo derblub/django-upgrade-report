@@ -63,7 +63,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
-      - run: |
+      - shell: bash
+        run: |
           mkdir -p "$RUNNER_TEMP/demo"
           printf 'Django==4.2.7\ndjango-debug-toolbar==4.2.0\ndjango-filter==23.3\n' \
             > "$RUNNER_TEMP/demo/requirements.txt"

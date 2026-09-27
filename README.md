@@ -77,7 +77,7 @@ django-upgrade-report --target 6.1
 ```
 
 <p align="center">
-  <img src="docs/assets/terminal.png" alt="Terminal output for an upgrade from Django 5.2.7 to 6.1: django-celery-beat is blocked, five packages can be upgraded first, three need a manual check, one is ready" width="820">
+  <img src="docs/assets/terminal.png" alt="Terminal output for an upgrade from Django 5.2.7 to 6.1: django-celery-beat is blocked, four packages can be upgraded first, four need a manual check, one is ready" width="820">
 </p>
 
 ## What the statuses mean
