@@ -417,8 +417,24 @@ def test_fail_on_never_passes_when_nothing_was_checked(project, index, capsys):
     (project / "requirements.txt").write_text(MIRRORED)
     assert cli.main([str(project), "--fail-on", "upgrade"]) == 2
     captured = capsys.readouterr()
-    assert "No dependency was checked" in captured.out
+    assert "No Django-related package was checked" in captured.out
     assert "--check-private-on-pypi" in captured.err
+    assert not any("/django-before/" in url for url in index.requests)
+
+
+def test_fail_on_never_passes_when_only_unrelated_packages_were_checked(project, index, capsys):
+    """Regression: one package from PyPI, even an unrelated one, used to disable the guard."""
+    private = 'source = { registry = "https://artifactory.acme.example/simple" }'
+    public = 'source = { registry = "https://pypi.org/simple" }'
+    (project / "uv.lock").write_text(
+        "version = 1\n"
+        f'[[package]]\nname = "django"\nversion = "4.2.7"\n{public}\n'
+        f'[[package]]\nname = "django-before"\nversion = "1.0"\n{private}\n'
+        f'[[package]]\nname = "requests"\nversion = "2.31.0"\n{public}\n'
+    )
+    assert cli.main([str(project), "--fail-on", "upgrade"]) == 2
+    captured = capsys.readouterr()
+    assert "No Django-related package was checked" in captured.out
     assert not any("/django-before/" in url for url in index.requests)
 
 

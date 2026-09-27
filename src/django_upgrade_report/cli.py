@@ -9,7 +9,7 @@ import threading
 from pathlib import Path
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, sources
-from django_upgrade_report.analysis import Status, analyse
+from django_upgrade_report.analysis import Status, analyse, from_other_index
 from django_upgrade_report.pypi import PyPI, PyPIError, default_cache_dir
 from django_upgrade_report.render import html, json, markdown, text
 
@@ -162,10 +162,11 @@ def _run(args: argparse.Namespace) -> int:
         sys.stdout.write(output)
         sys.stdout.flush()
 
-    if args.fail_on and progress.total == 0 and _from_other_index(report):
+    if args.fail_on and not report.packages and _from_other_index(report):
         raise Error(
-            "--fail-on: no dependency was checked, they all come from another index. If it "
-            "mirrors PyPI, pass --check-private-on-pypi; else pass its JSON API with --index-url"
+            "--fail-on: no Django-related package was checked, they come from another index. "
+            "If it mirrors PyPI, pass --check-private-on-pypi; else pass its JSON API with "
+            "--index-url"
         )
     if args.fail_on and any(p.status in _FAIL_ON[args.fail_on] for p in report.packages):
         return 1
@@ -173,7 +174,7 @@ def _run(args: argparse.Namespace) -> int:
 
 
 def _from_other_index(report) -> bool:
-    return any(where.startswith("index ") for _, where in report.external)
+    return any(from_other_index(where) for _, where in report.external)
 
 
 def _write(path: Path, output: str) -> None:

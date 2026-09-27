@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-27
+
+First release on PyPI.
+
 ### Added
 
 - `--target auto`, the new default: the newest LTS above your Django, or the newest release when no LTS is above it.
@@ -46,10 +50,11 @@ All notable changes to this project are documented here. The format follows [Kee
 - The progress counter never reached its total.
 - The action failed on Windows runners, and a second use in one job overwrote the first JSON report.
 - The action and CI used Node 20 actions, which GitHub runners no longer run.
+- `--fail-on` passed when every Django-related package came from another index, as soon as one unrelated package came from PyPI.
 
 ## [0.1.0]
 
-First release.
+Preview, not published on PyPI.
 
 ### Added
 
@@ -61,5 +66,6 @@ First release.
 - GitHub Action that writes the report to the job summary.
 - 24 hour cache for PyPI responses.
 
-[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/derblub/django-upgrade-report/releases/tag/v0.1.0
+[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/derblub/django-upgrade-report/releases/tag/v0.2.0
+[0.1.0]: https://github.com/derblub/django-upgrade-report/commit/35e1e97

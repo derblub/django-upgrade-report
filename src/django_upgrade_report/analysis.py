@@ -531,11 +531,6 @@ def analyse(
         if not checked(d) and d.external and d.name != "django"
     )
     others = [d for name, d in sorted(deps.dependencies.items()) if name != "django" and checked(d)]
-    if not others and any(where.startswith("index ") for _, where in external):
-        notes.append(
-            "No dependency was checked: they all come from another index. If it mirrors PyPI, "
-            "pass --check-private-on-pypi"
-        )
     pinned = {
         name: Version(d.version)
         for name, d in deps.dependencies.items()
@@ -557,6 +552,11 @@ def analyse(
         results = list(package_pool.map(check, others))
 
     packages = [r for r in results if isinstance(r, PackageReport)]
+    if not packages and any(from_other_index(where) for _, where in external):
+        notes.append(
+            "No Django-related package was checked: they come from another index. If it "
+            "mirrors PyPI, pass --check-private-on-pypi"
+        )
     _plan_order(packages, checker, (today or goal).python)
     missing = [r for r in results if isinstance(r, str)]
     skipped = sum(1 for r in results if r is None)
@@ -577,6 +577,11 @@ def analyse(
         project_python=project_python,
         target_released=goal.released,
     )
+
+
+def from_other_index(where: str) -> bool:
+    """A package that another index, or no index at all, serves instead of PyPI."""
+    return where.startswith("index ") or where == "local files (no index)"
 
 
 def _plan_order(packages: list[PackageReport], checker: _Checker, python: str | None) -> None:
