@@ -115,4 +115,4 @@ The tests use an in-memory package index and never touch the network.
 
 ---
 
-MIT licensed. Made in Vienna by [Daniel Kurdoghlian](https://pushingpixels.at). If you want a second pair of eyes on a larger upgrade, I do [fixed-price Django upgrade audits](https://pushingpixels.at/creates/django-upgrades).
+MIT licensed. Made in Vienna by Daniel Kurdoghlian at [Pushing Pixels](https://pushingpixels.at). If you want a second pair of eyes on a larger upgrade, I do [fixed-price Django upgrade audits](https://pushingpixels.at/creates/django-upgrades).

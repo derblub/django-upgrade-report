@@ -1,4 +1,5 @@
 name: Django upgrade report
+author: Daniel Kurdoghlian, Pushing Pixels
 description: Which of your dependencies block a Django upgrade, and in which order to upgrade them.
 branding:
   icon: arrow-up-circle

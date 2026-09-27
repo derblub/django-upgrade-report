@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import json
 
-from django_upgrade_report import __version__
+from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, __version__
 from django_upgrade_report.analysis import Report
 
 
 def as_dict(report: Report) -> dict:
     return {
-        "tool": {"name": "django-upgrade-report", "version": __version__},
+        "tool": {
+            "name": "django-upgrade-report",
+            "version": __version__,
+            "author": f"{AUTHOR}, {COMPANY} ({COMPANY_URL})",
+        },
         "generated": report.generated.isoformat(),
         "target": report.target,
         "current_django": report.current_django,

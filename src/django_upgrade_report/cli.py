@@ -5,7 +5,7 @@ import os
 import sys
 from pathlib import Path
 
-from django_upgrade_report import __version__, sources
+from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, __version__, sources
 from django_upgrade_report.analysis import Status, analyse
 from django_upgrade_report.pypi import PyPI, default_cache_dir
 from django_upgrade_report.render import html, json, markdown, text
@@ -24,6 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
             "Find out which of your dependencies block a Django upgrade, "
             "and in which order to upgrade them."
         ),
+        epilog=f"Made by {AUTHOR}, {COMPANY} ({COMPANY_URL}).",
     )
     parser.add_argument(
         "project",
@@ -63,7 +64,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--index-url", default="https://pypi.org/pypi", help="PyPI JSON API base URL"
     )
     parser.add_argument("--no-cache", action="store_true", help="do not cache PyPI responses")
-    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__} by {AUTHOR}, {COMPANY}",
+    )
     return parser
 
 

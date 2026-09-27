@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from html import escape
 
-from django_upgrade_report import __version__
+from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__
 from django_upgrade_report.analysis import Report, Status
 from django_upgrade_report.render import headline, sections, version_cell
 
@@ -141,8 +141,9 @@ def render(report: Report) -> str:
         )
     meta.append(
         f"Generated {report.generated:%Y-%m-%d %H:%M} UTC by "
-        f'<a href="https://github.com/derblub/django-upgrade-report">django-upgrade-report</a> '
-        f"{__version__}, from the metadata packages publish on PyPI. "
+        f'<a href="{REPO_URL}">django-upgrade-report</a> {__version__} '
+        f'by {AUTHOR}, <a href="{COMPANY_URL}">{COMPANY}</a>, '
+        "from the metadata packages publish on PyPI. "
         "A green row means the maintainers declare support, not that your tests pass."
     )
 

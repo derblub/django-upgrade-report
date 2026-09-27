@@ -57,3 +57,17 @@ def test_html_to_file(project, tmp_path):
 def test_missing_project(tmp_path, capsys):
     assert cli.main([str(tmp_path / "nope")]) == 2
     assert "error:" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("fmt", ["markdown", "html", "json"])
+def test_attribution(project, capsys, fmt):
+    cli.main([str(project), "--format", fmt])
+    out = capsys.readouterr().out
+    assert "Daniel Kurdoghlian" in out
+    assert "Pushing Pixels" in out
+
+
+def test_version_names_the_author(capsys):
+    with pytest.raises(SystemExit):
+        cli.main(["--version"])
+    assert "Daniel Kurdoghlian, Pushing Pixels" in capsys.readouterr().out

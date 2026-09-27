@@ -9,7 +9,8 @@ description = "Find out which of your dependencies block a Django upgrade, and i
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "Daniel Kurdoghlian" }]
+authors = [{ name = "Daniel Kurdoghlian", email = "daniel@pushingpixels.at" }]
+maintainers = [{ name = "Daniel Kurdoghlian", email = "daniel@pushingpixels.at" }]
 requires-python = ">=3.10"
 dependencies = [
   "packaging>=23",
@@ -34,6 +35,8 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/derblub/django-upgrade-report"
 Issues = "https://github.com/derblub/django-upgrade-report/issues"
+"Pushing Pixels" = "https://pushingpixels.at"
+"Django upgrade audit" = "https://pushingpixels.at/creates/django-upgrades"
 
 [project.scripts]
 django-upgrade-report = "django_upgrade_report.cli:main"
