@@ -9,7 +9,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - `--target auto`, the new default: the newest LTS above your Django, or the newest release when no LTS is above it.
 - `--from` sets the Django version you run when your requirements only give a range.
 - The project's Python is read from `.python-version`, `uv.lock`, `pyproject.toml` or `Pipfile.lock`. The report warns when the target Django needs a newer Python.
-- Packages from git, local paths, URLs or a private index are listed as "Not from PyPI, not checked" and their names are never sent to PyPI. `--check-private-on-pypi` looks them up anyway, for an index that mirrors PyPI.
+- Packages from git, local paths, URLs or a private index are listed as "Not from PyPI, not checked" and their names are never sent to PyPI. `--check-private-on-pypi` looks them up anyway, for an index that mirrors PyPI. A project-wide index counts too: `--index-url` or `--no-index` in requirement files, `[tool.uv]` and PDM index settings, and the pip and uv index environment variables.
 - Warnings when the target skips an LTS, when your Django requirement excludes the target, and when Django is not pinned.
 - Notes when a release needs a newer patch of your current Django, or a newer version of another package you pin. Upgrades that depend on one going with Django go with Django, too.
 - Packages marked `Development Status :: 7 - Inactive` are flagged. Packages built only on Wagtail or django CMS are included, with a note.

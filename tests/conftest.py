@@ -9,6 +9,20 @@ import pytest
 
 from django_upgrade_report.pypi import PyPI
 
+
+@pytest.fixture(autouse=True)
+def _no_index_from_the_environment(monkeypatch):
+    """A developer's PIP_INDEX_URL must not change what the tests see."""
+    for variable in (
+        "UV_NO_INDEX",
+        "PIP_NO_INDEX",
+        "UV_DEFAULT_INDEX",
+        "UV_INDEX_URL",
+        "PIP_INDEX_URL",
+    ):
+        monkeypatch.delenv(variable, raising=False)
+
+
 BASE = "https://pypi.test/pypi"
 
 

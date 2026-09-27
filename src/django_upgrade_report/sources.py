@@ -6,6 +6,7 @@ import codecs
 import configparser
 import functools
 import json
+import os
 import re
 import subprocess
 import sys
@@ -87,7 +88,10 @@ def load(project: Path, python: str | None = None) -> DependencySet:
     for name in LOCKFILES:
         path = project / name
         if path.is_file():
-            return _dependency_set(name, _load_lockfile(path, py), py, py_source)
+            deps = _load_lockfile(path, py)
+            if name == "pdm.lock":  # the lock records no index URLs, pyproject.toml does
+                _apply_project_index(deps, _pdm_index(project))
+            return _dependency_set(name, deps, py, py_source)
 
     found: dict[str, Dependency] = {}
     used: list[str] = []
@@ -104,6 +108,7 @@ def load(project: Path, python: str | None = None) -> DependencySet:
             _merge(found, deps)
     if not found:
         raise NoDependenciesFound(f"No {SUPPORTED} dependencies found in {project}")
+    _apply_project_index(found, _environment_index() or _pyproject_index(project))
     return _dependency_set(", ".join(used), found, py, py_source)
 
 
@@ -117,6 +122,10 @@ def _load_file(path: Path) -> DependencySet:
         deps = parse_requirements(path, python=py)
     else:
         raise NoDependenciesFound(f"Cannot read dependencies from {path}: expected {SUPPORTED}")
+    if path.name == "pdm.lock":
+        _apply_project_index(deps, _pdm_index(path.parent))
+    elif path.name not in LOCKFILES:
+        _apply_project_index(deps, _environment_index() or _pyproject_index(path.parent))
     if not deps:
         raise NoDependenciesFound(f"No dependencies found in {path}")
     return _dependency_set(str(path), deps, py, py_source)
@@ -212,6 +221,57 @@ def _all_from_index(deps: dict[str, Dependency], index_url: str) -> None:
     for name, dep in deps.items():
         if dep.external is None and name != "django":
             deps[name] = replace(dep, external=where)
+
+
+NO_INDEX = "no index"
+"""Marks a project that installs without any index, from local files and links only."""
+
+
+def _apply_project_index(deps: dict[str, Dependency], index: str | None) -> None:
+    if index == NO_INDEX:
+        for name, dep in deps.items():
+            if dep.external is None and name != "django":
+                deps[name] = replace(dep, external="local files (no index)")
+    elif index:
+        _all_from_index(deps, index)
+
+
+def _environment_index() -> str | None:
+    """pip and uv read their index from the environment when the project does not set one."""
+    for flag in ("UV_NO_INDEX", "PIP_NO_INDEX"):
+        if os.environ.get(flag, "").strip().lower() in ("1", "true", "yes", "on"):
+            return NO_INDEX
+    for variable in ("UV_DEFAULT_INDEX", "UV_INDEX_URL", "PIP_INDEX_URL"):
+        value = os.environ.get(variable, "").strip()
+        if value:
+            return value
+    return None
+
+
+def _pyproject_index(directory: Path) -> str | None:
+    """An index that replaces PyPI for the whole project, from ``pyproject.toml``."""
+    path = directory / "pyproject.toml"
+    if not path.is_file():
+        return None
+    tool = _table(_read_toml(path).get("tool"))
+    uv = _table(tool.get("uv"))
+    if uv.get("no-index") is True:
+        return NO_INDEX
+    if isinstance(uv.get("index-url"), str):  # uv's older spelling of a default index
+        return uv["index-url"]
+    return _pdm_index(directory)
+
+
+def _pdm_index(directory: Path) -> str | None:
+    """PDM replaces PyPI with a ``[[tool.pdm.source]]`` named "pypi"."""
+    path = directory / "pyproject.toml"
+    if not path.is_file():
+        return None
+    pdm = _table(_table(_read_toml(path).get("tool")).get("pdm"))
+    for source in _tables(pdm.get("source")):
+        if source.get("name") == "pypi" and isinstance(source.get("url"), str):
+            return source["url"]
+    return None
 
 
 # --- reading files -----------------------------------------------------------
@@ -660,7 +720,9 @@ def parse_requirements(
     for name, dep in deps.items():
         if name in constraints:
             deps[name] = _combine(dep, constraints[name])
-    if indexes:  # like pip, the last --index-url wins, whichever file it is in
+    if NO_INDEX in indexes:  # --no-index wins over any --index-url
+        _apply_project_index(deps, NO_INDEX)
+    elif indexes:  # like pip, the last --index-url wins, whichever file it is in
         _all_from_index(deps, indexes[-1])
     return deps
 
@@ -683,6 +745,9 @@ def _parse_requirement_file(
         index = re.match(r"^(-i|--index-url)(?:\s*=\s*|\s*)(\S+)", line)
         if index is not None:
             indexes.append(index.group(2))
+            continue
+        if re.match(r"^--no-index\b", line):
+            indexes.append(NO_INDEX)
             continue
         include = re.match(r"^(-r|--requirement|-c|--constraint)(?:\s*=\s*|\s*)(\S+)", line)
         if include is None:

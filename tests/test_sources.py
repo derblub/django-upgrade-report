@@ -1005,3 +1005,88 @@ def test_environment_with_a_distribution_without_name(tmp_path):
         tmp_path, f'PYTHONPATH={tmp_path}/site exec {sys.executable} -W error "$@"'
     )
     assert sources.from_environment(python).dependencies["django"].version == "4.2.7"
+
+
+# --- project-wide indexes -----------------------------------------------------
+
+PRIVATE = "index https://pkgs.example.com/simple"
+
+
+def origins(ds: sources.DependencySet) -> dict[str, str | None]:
+    return {name: d.external for name, d in ds.dependencies.items()}
+
+
+def test_requirements_no_index_keeps_every_name_off_pypi(tmp_path):
+    write(
+        tmp_path / "requirements.txt",
+        "--no-index\n--find-links ./wheels\nDjango==4.2.7\nacme==1.0\n",
+    )
+    ds = sources.load(tmp_path)
+    assert origins(ds) == {"django": None, "acme": "local files (no index)"}
+
+
+def test_pip_index_url_from_the_environment(tmp_path, monkeypatch):
+    monkeypatch.setenv("PIP_INDEX_URL", "https://pkgs.example.com/simple")
+    write(tmp_path / "requirements.txt", "Django==4.2.7\nacme==1.0\n")
+    assert origins(sources.load(tmp_path))["acme"] == PRIVATE
+
+
+def test_uv_default_index_from_the_environment_wins_over_pip(tmp_path, monkeypatch):
+    monkeypatch.setenv("PIP_INDEX_URL", "https://pypi.org/simple")
+    monkeypatch.setenv("UV_DEFAULT_INDEX", "https://pkgs.example.com/simple")
+    write(tmp_path / "requirements.txt", "acme==1.0\n")
+    assert origins(sources.load(tmp_path))["acme"] == PRIVATE
+
+
+def test_no_index_flag_from_the_environment(tmp_path, monkeypatch):
+    monkeypatch.setenv("UV_NO_INDEX", "1")
+    write(tmp_path / "requirements.txt", "acme==1.0\n")
+    assert origins(sources.load(tmp_path))["acme"] == "local files (no index)"
+
+
+def test_environment_index_does_not_override_a_lockfile(tmp_path, monkeypatch):
+    """uv.lock records where each package comes from; the environment does not change that."""
+    monkeypatch.setenv("PIP_INDEX_URL", "https://pkgs.example.com/simple")
+    write(
+        tmp_path / "uv.lock",
+        'version = 1\n[[package]]\nname = "acme"\nversion = "1.0"\n'
+        'source = { registry = "https://pypi.org/simple" }\n',
+    )
+    assert origins(sources.load(tmp_path)) == {"acme": None}
+
+
+def test_legacy_uv_index_url_in_pyproject(tmp_path):
+    write(
+        tmp_path / "pyproject.toml",
+        '[project]\ndependencies = ["acme==1.0"]\n'
+        '[tool.uv]\nindex-url = "https://pkgs.example.com/simple"\n',
+    )
+    assert origins(sources.load(tmp_path))["acme"] == PRIVATE
+
+
+def test_uv_no_index_in_pyproject(tmp_path):
+    write(
+        tmp_path / "pyproject.toml",
+        '[project]\ndependencies = ["acme==1.0"]\n[tool.uv]\nno-index = true\n',
+    )
+    assert origins(sources.load(tmp_path))["acme"] == "local files (no index)"
+
+
+def test_pdm_source_named_pypi_replaces_pypi_for_the_lockfile(tmp_path):
+    write(
+        tmp_path / "pyproject.toml",
+        '[project]\ndependencies = ["acme"]\n'
+        '[[tool.pdm.source]]\nname = "pypi"\nurl = "https://pkgs.example.com/simple"\n',
+    )
+    write(
+        tmp_path / "pdm.lock",
+        '[[package]]\nname = "django"\nversion = "4.2.7"\n\n'
+        '[[package]]\nname = "acme"\nversion = "1.0"\n',
+    )
+    assert origins(sources.load(tmp_path)) == {"django": None, "acme": PRIVATE}
+
+
+def test_a_public_mirror_in_the_environment_still_counts_as_pypi(tmp_path, monkeypatch):
+    monkeypatch.setenv("PIP_INDEX_URL", "https://pypi.org/simple")
+    write(tmp_path / "requirements.txt", "acme==1.0\n")
+    assert origins(sources.load(tmp_path)) == {"acme": None}

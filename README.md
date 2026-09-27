@@ -167,7 +167,7 @@ Markers are evaluated for CPython on Linux, where Django apps are deployed, neve
 
 ### Packages not from PyPI
 
-Packages from git, a local path, a URL or a private index are listed as "Not from PyPI, not checked", with where they come from, and their names are never sent to PyPI. This covers `git+https://...`, `-e` and local path lines in requirement files, `name @ url` requirements, git, path and URL sources in lockfiles, `--index-url` in requirement files, and a private default index in uv, Poetry or Pipenv. Credentials in those URLs are removed before anything is shown.
+Packages from git, a local path, a URL or a private index are listed as "Not from PyPI, not checked", with where they come from, and their names are never sent to PyPI. This covers `git+https://...`, `-e` and local path lines in requirement files, `name @ url` requirements, git, path and URL sources in lockfiles, `--index-url` and `--no-index` in requirement files, a private default index or `no-index` in uv, Poetry, PDM or Pipenv, and the `PIP_INDEX_URL`, `UV_INDEX_URL`, `UV_DEFAULT_INDEX`, `PIP_NO_INDEX` and `UV_NO_INDEX` environment variables (lockfiles keep the index they record). Credentials in those URLs are removed before anything is shown.
 
 To check packages from a private index, point `--index-url` at its PyPI JSON API. If the index only mirrors PyPI, pass `--check-private-on-pypi` instead. Packages the index does not know at all are listed as "Not on the package index".
 
