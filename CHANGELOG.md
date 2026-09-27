@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-09-28
+
+### Fixed
+
+- The logo and the Pushing Pixels signature were nearly invisible on the PyPI page in dark mode.
+
 ## [0.2.1] - 2026-09-28
 
 ### Changed
@@ -82,7 +88,8 @@ Preview, not published on PyPI.
 - GitHub Action that writes the report to the job summary.
 - 24 hour cache for PyPI responses.
 
-[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/derblub/django-upgrade-report/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/derblub/django-upgrade-report/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/derblub/django-upgrade-report/releases/tag/v0.2.0
 [0.1.0]: https://github.com/derblub/django-upgrade-report/commit/35e1e97
