@@ -3,7 +3,8 @@
 <a href="https://pushingpixels.at">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
-    <img src="docs/assets/logo-light.svg" alt="Pushing Pixels" width="96">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo-light.svg">
+    <img src="docs/assets/logo.svg" alt="Pushing Pixels" width="96">
   </picture>
 </a>
 
@@ -300,7 +301,8 @@ Bug reports with a real lockfile are the most useful contribution. See [CONTRIBU
   <a href="https://pushingpixels.at">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="docs/assets/pushing-pixels-dark.svg">
-      <img src="docs/assets/pushing-pixels-light.svg" alt="Pushing Pixels" width="320">
+      <source media="(prefers-color-scheme: light)" srcset="docs/assets/pushing-pixels-light.svg">
+      <img src="docs/assets/pushing-pixels.svg" alt="Pushing Pixels" width="320">
     </picture>
   </a>
   <p>Built and maintained by <a href="https://pushingpixels.at">Daniel Kurdoghlian</a> at <a href="https://pushingpixels.at">Pushing Pixels</a> in Vienna.<br>
