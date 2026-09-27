@@ -1090,3 +1090,14 @@ def test_a_public_mirror_in_the_environment_still_counts_as_pypi(tmp_path, monke
     monkeypatch.setenv("PIP_INDEX_URL", "https://pypi.org/simple")
     write(tmp_path / "requirements.txt", "acme==1.0\n")
     assert origins(sources.load(tmp_path)) == {"acme": None}
+
+
+def test_download_link_without_a_package_name_is_listed_under_its_url(tmp_path):
+    write(
+        tmp_path / "requirements.txt",
+        "https://x.example/download?id=3\nhttps://x.example/pkg-1.0.zip\n",
+    )
+    deps = sources.load(tmp_path).dependencies
+    assert deps["pkg"].external == "url https://x.example/pkg-1.0.zip"
+    assert deps["https://x.example/download"].external == "url https://x.example/download"
+    assert "download" not in deps

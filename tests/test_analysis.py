@@ -908,3 +908,88 @@ def test_unpinned_search_stays_as_high_as_possible():
     releases += [release("pkg", f"3.{i}", ">=6.0", uploaded="2020-01-01") for i in range(20)]
     _, p = check_one(status_index(pkg=releases), Dependency("pkg", None, ">=2.0"))
     assert (p.status, p.target_version) == (Status.CHECK, "2.19")
+
+
+def test_search_for_the_first_declaring_release_bisects():
+    """100 releases within a year of 5.2, the classifier arrives at 1.60: no linear scan."""
+    releases = [release("pkg", f"1.{i}", ">=4.2", ["4.2"], "2025-01-01") for i in range(60)]
+    releases += [
+        release("pkg", f"1.{i}", ">=4.2", ["4.2", "5.2"], "2025-05-01") for i in range(60, 100)
+    ]
+    index = status_index(pkg=releases)
+    _, p = check_one(index, pinned("pkg", "1.0"))
+    assert (p.status, p.target_version, p.phase) == (Status.UPGRADE, "1.60", Phase.BEFORE)
+    assert len(per_release_requests(index, "pkg")) <= 20
+
+
+def test_first_declaring_release_survives_a_dropped_classifier():
+    """A release that lost the classifier and got it back must not hide the earlier one."""
+    releases = [release("pkg", f"1.{i}", ">=4.2", ["4.2"], "2025-01-01") for i in range(20)]
+    releases += [release("pkg", "1.20", ">=4.2", ["4.2", "5.2"], "2025-05-01")]
+    releases += [release("pkg", "1.21", ">=4.2", ["4.2"], "2025-05-02")]  # classifier dropped
+    releases += [
+        release("pkg", f"1.{i}", ">=4.2", ["4.2", "5.2"], "2025-06-01") for i in range(22, 40)
+    ]
+    _, p = check_one(status_index(pkg=releases), pinned("pkg", "1.0"))
+    assert p.target_version == "1.20"
+
+
+# --- fitting the upgrades to each other -----------------------------------------
+
+
+def plan_index(**extra):
+    return status_index(
+        pkg_a=[
+            release("pkg-a", "1.0", ">=3.2", ["4.2"]),
+            release("pkg-a", "2.0", ">=4.2", ["4.2", "5.2"], extra=extra.get("a", [])),
+        ],
+        pkg_b=[
+            release("pkg-b", "1.0", ">=3.2", ["4.2"]),
+            release("pkg-b", "2.0", ">=4.2", ["4.2", "5.2"], extra=extra.get("b", [])),
+        ],
+    )
+
+
+def plan(index, **pins):
+    deps_ = {"django": Dependency("django", "4.2.7")}
+    deps_.update({n.replace("_", "-"): pinned(n.replace("_", "-"), v) for n, v in pins.items()})
+    return analyse(DependencySet("test", deps_), index, target="5.2")
+
+
+def test_upgrade_first_is_in_the_order_the_notes_require():
+    report = plan(plan_index(a=["pkg-b>=2.0"]), pkg_a="1.0", pkg_b="1.0")
+    assert [p.name for p in report.by_status(Status.UPGRADE)] == ["pkg-b", "pkg-a"]
+
+
+def test_upgrades_that_need_each_other_go_together():
+    report = plan(plan_index(a=["pkg-b>=2.0"], b=["pkg-a>=2.0"]), pkg_a="1.0", pkg_b="1.0")
+    a, b = by_name(report, "pkg-a"), by_name(report, "pkg-b")
+    assert "upgrade together with pkg-b" in a.notes
+    assert "upgrade together with pkg-a" in b.notes
+    assert not any(n.endswith(" first") for n in a.notes + b.notes)
+
+
+def test_upgrade_that_an_installed_package_forbids_needs_a_check():
+    index = plan_index()
+    index.packages["keeper"] = [release("keeper", "1.0", ">=3.2", ["4.2", "5.2"], ["pkg-a<2"])]
+    p = by_name(plan(index, pkg_a="1.0", keeper="1.0"), "pkg-a")
+    assert (p.status, p.target_version, p.phase) == (Status.CHECK, "2.0", None)
+    assert "keeper 1.0 requires pkg-a<2, which excludes 2.0" in p.notes
+
+
+# --- broken or stale indexes ------------------------------------------------------
+
+
+def test_metadata_with_non_strings_is_ignored_not_a_crash():
+    weird = release("weird", "1.0", ">=3.2", ["4.2", "5.2"])
+    weird["classifiers"].append(5)
+    weird["requires_dist"].insert(0, None)
+    _, p = check_one(status_index(weird=[weird]), pinned("weird", "1.0"))
+    assert p.status is Status.READY
+
+
+def test_index_that_does_not_know_the_projects_django_series_is_an_error():
+    index = status_index()
+    index.packages["django"] = [release("Django", "4.1", uploaded="2022-08-03")]
+    with pytest.raises(ValueError, match="knows no Django newer than 4.1"):
+        analyse(deps(django="4.2.7"), index)

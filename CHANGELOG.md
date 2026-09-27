@@ -4,6 +4,20 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- "Upgrade first" lists packages in the order their notes require: an upgrade that needs another one first comes after it.
+- The search for the first release that declares the target bisects instead of scanning, so long release histories cost far fewer requests.
+
+### Fixed
+
+- Upgrades that each need the other first told you to upgrade either one first. They are now marked as going together, in the same change.
+- An upgrade that another installed package forbids stayed under "Upgrade first". It is now "Check manually", with the conflict in the notes.
+- Planning the upgrades re-read every requirement of every installed package for each upgrade, which made large projects slow.
+- Index metadata with values that are not text crashed the run.
+- A package index that knows no Django as new as your project's (a mirror that stopped syncing) gave contradictory warnings. It is now an error that says so.
+- A download link that does not name its package was listed under a guessed name. It is now listed under its URL.
+
 ## [0.2.0] - 2026-09-27
 
 First release on PyPI.

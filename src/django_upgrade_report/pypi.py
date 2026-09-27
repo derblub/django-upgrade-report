@@ -300,10 +300,21 @@ def _release_info(data: dict) -> ReleaseInfo:
     return ReleaseInfo(
         name=info["name"],
         version=info["version"],
-        classifiers=tuple(info.get("classifiers") or ()),
-        requires_dist=tuple(info.get("requires_dist") or ()),
-        requires_python=info.get("requires_python") or None,
+        classifiers=_strings(info.get("classifiers")),
+        requires_dist=_strings(info.get("requires_dist")),
+        requires_python=_string(info.get("requires_python")),
     )
+
+
+def _strings(value: object) -> tuple[str, ...]:
+    """A list of strings from index metadata; anything else in it is ignored."""
+    if not isinstance(value, (list, tuple)):
+        return ()
+    return tuple(item for item in value if isinstance(item, str))
+
+
+def _string(value: object) -> str | None:
+    return value if isinstance(value, str) and value else None
 
 
 def _slim(data: dict) -> dict:

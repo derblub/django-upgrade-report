@@ -796,7 +796,11 @@ def _parse_line(line: str, path: Path, python: str | None) -> Dependency | None:
     line = re.split(r"\s+--?[A-Za-z]", line)[0].strip()  # per-line options such as --hash
     if re.match(r"^(git|hg|svn|bzr)\+|^[a-z]+://|^file:", line):
         name = _egg_name(line) or _url_name(line)
-        return _dep(name, external=_describe_url(line)) if name else None
+        if name:
+            return _dep(name, external=_describe_url(line))
+        # The package name is not in the URL: list it under the URL, never guess.
+        where = _describe_url(line)
+        return Dependency(where.split(" ", 1)[-1], None, "", where)
     if re.match(r"^(\.{1,2}|~)?[/\\]|^\.$|^\.\.$|^[A-Za-z]:[/\\]", line):
         return _local(line, path)
     return _parse_requirement(line, python)
@@ -810,7 +814,11 @@ def _egg_name(url: str) -> str | None:
 def _url_name(url: str) -> str | None:
     """``https://x/pkg-1.0.zip`` is ``pkg``, ``git+https://x/y.git@v1`` is ``y``."""
     path = urlsplit(re.sub(r"^(git|hg|svn|bzr)\+", "", url)).path.split("@")[0]
-    last = path.rstrip("/").rsplit("/", 1)[-1].removesuffix(".git")
+    last = path.rstrip("/").rsplit("/", 1)[-1]
+    vcs = re.match(r"^(git|hg|svn|bzr)\+", url) is not None
+    if not vcs and not re.search(r"\.(tar\.gz|tar\.bz2|tgz|zip|whl)$", last):
+        return None  # a download link such as .../download?id=3 does not name the package
+    last = last.removesuffix(".git")
     match = re.match(r"[A-Za-z0-9][A-Za-z0-9._-]*?(?=-\d|\.tar|\.zip|\.whl|\.tgz|$)", last)
     return match.group(0) if match else None
 

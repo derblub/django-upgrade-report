@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import enum
+import functools
 import re
 import sys
 import threading
@@ -186,13 +187,20 @@ def django_requirement(info: ReleaseInfo, python: str | None = None) -> Specifie
 
 
 def _requirements(info: ReleaseInfo, name: str) -> Iterable[Requirement]:
-    for line in info.requires_dist:
+    return _parsed(info.requires_dist).get(name, ())
+
+
+@functools.lru_cache(maxsize=4096)
+def _parsed(requires_dist: tuple[str, ...]) -> dict[str, tuple[Requirement, ...]]:
+    """Requirement lines by canonical package name, parsed once per release."""
+    by_name: dict[str, list[Requirement]] = {}
+    for line in requires_dist:
         try:
             req = Requirement(line)
-        except InvalidRequirement:
+        except (InvalidRequirement, TypeError):
             continue
-        if canonicalize_name(req.name) == name:
-            yield req
+        by_name.setdefault(canonicalize_name(req.name), []).append(req)
+    return {name: tuple(reqs) for name, reqs in by_name.items()}
 
 
 def _needed(req: Requirement) -> bool:
@@ -511,6 +519,7 @@ def analyse(
         raise RuntimeError("Could not read Django's release history from the package index")
     current_dep = deps.dependencies.get("django")
     current_django, notes = _current_django(django, current_dep, current)
+    _check_index_knows(django, current_django)
     current_minor = _minor(current_django)
     project_python = deps.python
 
@@ -562,7 +571,8 @@ def analyse(
     skipped = sum(1 for r in results if r is None)
 
     order = {Status.BLOCKED: 0, Status.UPGRADE: 1, Status.CHECK: 2, Status.READY: 3}
-    packages.sort(key=lambda p: (order[p.status], p.phase is Phase.WITH, p.name))
+    rank = _upgrade_rank(packages, checker.links)
+    packages.sort(key=lambda p: (order[p.status], p.phase is Phase.WITH, rank[p.name], p.name))
 
     return Report(
         target=goal.label,
@@ -577,6 +587,22 @@ def analyse(
         project_python=project_python,
         target_released=goal.released,
     )
+
+
+def _check_index_knows(django: Project, current: str | None) -> None:
+    """A mirror that stopped syncing knows no Django as new as the project's: say so.
+
+    A missing patch release is fine (mirrors lag a little); a missing series is not.
+    """
+    if not current or not _is_version(current):
+        return
+    stable = [r.version for r in django.stable_releases()]
+    series = Version(current).release[:2]
+    if stable and series > max(stable).release[:2]:
+        raise ValueError(
+            f"Your project uses Django {current}, but the package index knows no Django newer "
+            f"than {max(stable)}. Is --index-url a complete, up-to-date mirror of PyPI?"
+        )
 
 
 def from_other_index(where: str) -> bool:
@@ -609,6 +635,9 @@ def _plan_order(packages: list[PackageReport], checker: _Checker, python: str | 
                     checker.link(p.name, other)
                     p.notes.append(f"{needed}: upgrade {info.name} to {later} first")
                 else:
+                    # Nothing planned lifts the conflict: installing it needs a decision.
+                    p.status = Status.CHECK
+                    p.phase = None
                     p.notes.append(f"{needed}, which excludes {version}")
 
     changed = True
@@ -626,6 +655,76 @@ def _plan_order(packages: list[PackageReport], checker: _Checker, python: str | 
                 p.phase = Phase.WITH
                 p.notes.append(f"goes with {', '.join(waits)}")
                 changed = True
+
+    _merge_cycles(packages, checker.links)
+
+
+def _merge_cycles(packages: list[PackageReport], links: dict[str, set[str]]) -> None:
+    """Upgrades that each need the other first can only land together: say so."""
+    upgrades = {p.name: p for p in packages if p.status is Status.UPGRADE}
+    for group in _cycles(upgrades, links):
+        for name in group:
+            p = upgrades[name]
+            others = [upgrades[o].display_name for o in sorted(group) if o != name]
+            p.notes = [
+                note.removesuffix(" first") + " in the same change"
+                if note.endswith(" first") and any(f"upgrade {o} " in note for o in others)
+                else note
+                for note in p.notes
+            ]
+            p.notes.append(f"upgrade together with {', '.join(others)}")
+
+
+def _cycles(nodes: dict[str, PackageReport], links: dict[str, set[str]]) -> list[set[str]]:
+    """Groups of upgrades that need each other (strongly connected, more than one)."""
+    edges = {n: {m for m in links.get(n, ()) if m in nodes} for n in nodes}
+
+    def reachable(start: str) -> set[str]:
+        seen, todo = set(), [start]
+        while todo:
+            for m in edges[todo.pop()]:
+                if m not in seen:
+                    seen.add(m)
+                    todo.append(m)
+        return seen
+
+    reach = {n: reachable(n) for n in nodes}
+    groups: list[set[str]] = []
+    for n in sorted(nodes):
+        if n in reach[n] and not any(n in g for g in groups):
+            groups.append({n} | {m for m in reach[n] if n in reach[m]})
+    return groups
+
+
+def _upgrade_rank(packages: list[PackageReport], links: dict[str, set[str]]) -> dict[str, int]:
+    """Position of each package so that what an upgrade needs first comes before it.
+
+    Ties keep alphabetical order. Members of a cycle cannot be ordered, so their mutual
+    edges are left out and they stay alphabetical next to each other.
+    """
+    names = sorted(p.name for p in packages)
+    known = set(names)
+    needs = {
+        n: {m for m in links.get(n, ()) if m in known and not _reaches(m, n, links)} for n in names
+    }
+    rank: dict[str, int] = {}
+    while len(rank) < len(names):
+        ready = next(n for n in names if n not in rank and needs[n].issubset(rank))
+        rank[ready] = len(rank)
+    return rank
+
+
+def _reaches(start: str, goal: str, links: dict[str, set[str]]) -> bool:
+    seen, todo = set(), [start]
+    while todo:
+        node = todo.pop()
+        if node == goal:
+            return True
+        for m in links.get(node, ()):
+            if m not in seen:
+                seen.add(m)
+                todo.append(m)
+    return False
 
 
 def _specs_for(info: ReleaseInfo, name: str, env: dict[str, str]) -> list[SpecifierSet]:
@@ -871,6 +970,39 @@ class _Checker:
                     return None
         return None
 
+    def lowest_yes(
+        self, name: str, versions: list[Version], dates: dict[Version, datetime | None]
+    ) -> _Found | None:
+        """The oldest of ``versions`` that declares the target.
+
+        Once a package declares a Django version it keeps declaring it, so a bisection finds
+        the first declaring release in a few requests. The batch just before it is checked
+        too, for the rare release that dropped a classifier and added it back.
+        """
+
+        def declares(version: Version) -> _Found | None:
+            info = self.pypi.release(name, str(version))
+            if info is None:
+                return None
+            support = supports(info, self.target, dates.get(version))
+            return (version, info, support) if support.verdict is Verdict.YES else None
+
+        if len(versions) <= self.batch:
+            return self.find(name, versions, dates, _is_yes)
+        lo, hi, found = 0, len(versions), None
+        while lo < hi:
+            mid = (lo + hi) // 2
+            hit = declares(versions[mid])
+            if hit is not None:
+                found, hi = hit, mid
+            else:
+                lo = mid + 1
+        if found is None:
+            return None
+        start = versions.index(found[0])
+        earlier = self.find(name, versions[max(0, start - self.batch) : start], dates, _is_yes)
+        return earlier or found
+
     def search(
         self,
         name: str,
@@ -972,7 +1104,7 @@ class _Package:
             return
 
         newer = self._newer()
-        found = self._find(self._could_declare(newer), _is_yes)
+        found = self._lowest_yes(self._could_declare(newer))
         if found is not None:
             self._upgrade(found)
             return
@@ -998,7 +1130,7 @@ class _Package:
         report.status = Status.CHECK
         report.reason = self._latest_reason()
         report.notes.append(f"installed version {self.dep.version} not found on the index")
-        found = self._find(self._could_declare(self._newer()), _is_yes)
+        found = self._lowest_yes(self._could_declare(self._newer()))
         if found is not None:
             self._check(found)
 
@@ -1026,7 +1158,7 @@ class _Package:
                 self._check(found, note=newest[1])
                 return
 
-        found = self._find(self._could_declare(outside), _is_yes)
+        found = self._lowest_yes(self._could_declare(outside))
         if found is not None:
             self._upgrade(found)
             report.notes.append(f"outside your requirement {self.dep.spec}")
@@ -1068,6 +1200,9 @@ class _Package:
         self, versions: Iterable[Version], accept, newest_first: bool = False
     ) -> _Found | None:
         return self.checker.find(self.dep.name, versions, self.dates, accept, newest_first)
+
+    def _lowest_yes(self, versions: list[Version]) -> _Found | None:
+        return self.checker.lowest_yes(self.dep.name, versions, self.dates)
 
     def _search(self, versions: list[Version], highest: bool = False) -> _Found | None:
         return self.checker.search(self.dep.name, versions, self.dates, highest)
@@ -1131,6 +1266,7 @@ class _Package:
             needed = f"needs {display}{spec}, you have {have}"
             bound = self._needs_newer_django(name, spec, current)
             if bound is None:
+                self.checker.link(self.dep.name, name)
                 self.report.notes.append(f"{needed}: upgrade {display} first")
             else:
                 phase = Phase.WITH
