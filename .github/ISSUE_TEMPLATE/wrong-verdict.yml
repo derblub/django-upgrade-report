@@ -1,0 +1,43 @@
+name: Wrong verdict
+description: A package is reported as blocked, ready or upgradable when it should not be.
+labels: ["verdict"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks! Wrong verdicts usually come from packaging metadata nobody anticipated, so real examples are gold.
+  - type: input
+    id: package
+    attributes:
+      label: Package and version
+      placeholder: django-storages 1.14.2
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: Current Django version and target
+      placeholder: 4.2.7 → 5.2
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What the report says
+      description: Paste the line from the report, or the package's entry from `--format json`.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and why
+      description: A link to the changelog, release notes or PyPI page helps a lot.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: django-upgrade-report version
+      placeholder: output of django-upgrade-report --version
+    validations:
+      required: true

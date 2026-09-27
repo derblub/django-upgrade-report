@@ -1,0 +1,37 @@
+name: Bug
+description: A crash, an unreadable project file or output that looks broken.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      render: console
+      placeholder: $ django-upgrade-report path/to/project --format html
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Error message, traceback or a description of the wrong output.
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: Project files
+      description: The relevant part of your lockfile, requirements.txt or pyproject.toml. Remove anything private.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: django-upgrade-report version
+      placeholder: output of django-upgrade-report --version
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version and operating system
+      placeholder: Python 3.12, macOS 15

@@ -1,12 +1,12 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-fancy-pypi-readme>=22.5"]
 build-backend = "hatchling.build"
 
 [project]
 name = "django-upgrade-report"
 version = "0.1.0"
-description = "Find out which of your dependencies block a Django upgrade, and in which order to upgrade them."
-readme = "README.md"
+description = "Which of your dependencies block a Django upgrade, and in which order to upgrade them."
+dynamic = ["readme"]
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Daniel Kurdoghlian", email = "daniel@pushingpixels.at" }]
@@ -16,12 +16,29 @@ dependencies = [
   "packaging>=23",
   "tomli>=2; python_version < '3.11'",
 ]
-keywords = ["django", "upgrade", "dependencies", "compatibility", "lts", "ci"]
+keywords = [
+  "django",
+  "upgrade",
+  "dependencies",
+  "compatibility",
+  "lts",
+  "migration",
+  "requirements",
+  "lockfile",
+  "ci",
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
   "Framework :: Django",
+  "Framework :: Django :: 4.2",
+  "Framework :: Django :: 5.0",
+  "Framework :: Django :: 5.1",
+  "Framework :: Django :: 5.2",
+  "Framework :: Django :: 6.0",
+  "Framework :: Django :: 6.1",
   "Intended Audience :: Developers",
+  "Natural Language :: English",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
@@ -29,11 +46,16 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Utilities",
 ]
 
 [project.urls]
 Homepage = "https://github.com/derblub/django-upgrade-report"
+Documentation = "https://github.com/derblub/django-upgrade-report#readme"
+Repository = "https://github.com/derblub/django-upgrade-report"
+Changelog = "https://github.com/derblub/django-upgrade-report/blob/main/CHANGELOG.md"
 Issues = "https://github.com/derblub/django-upgrade-report/issues"
 "Pushing Pixels" = "https://pushingpixels.at"
 "Django upgrade audit" = "https://pushingpixels.at/creates/django-upgrades"
@@ -46,6 +68,32 @@ dev = ["pytest>=8", "ruff>=0.6"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/django_upgrade_report"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/docs", "/.github"]
+
+# PyPI renders the README, but cannot resolve paths relative to the repository.
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '(src|srcset)="(?!https?://)([^"]+)"'
+replacement = '\1="https://raw.githubusercontent.com/derblub/django-upgrade-report/main/\2"'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = 'href="#([^"]+)"'
+replacement = 'href="https://github.com/derblub/django-upgrade-report#\1"'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = 'href="(?!https?://|mailto:)([^"]+)"'
+replacement = 'href="https://github.com/derblub/django-upgrade-report/blob/main/\1"'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '\]\((?!https?://|#)([^)]+)\)'
+replacement = '](https://github.com/derblub/django-upgrade-report/blob/main/\1)'
 
 [tool.ruff]
 line-length = 100

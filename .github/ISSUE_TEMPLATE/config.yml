@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue
+    url: https://github.com/derblub/django-upgrade-report/security/advisories/new
+    about: Please report vulnerabilities privately.
+  - name: Professional help with a Django upgrade
+    url: https://pushingpixels.at/creates/django-upgrades
+    about: Fixed-price upgrade audits by the author, Daniel Kurdoghlian (Pushing Pixels).
