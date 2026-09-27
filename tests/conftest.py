@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
 from django_upgrade_report.pypi import PyPI
@@ -28,6 +31,7 @@ class FakePyPI(PyPI):
         super().__init__(BASE, cache_dir=None)
         self.packages = packages
         self.requests: list[str] = []
+        self.no_files: set[tuple[str, str]] = set()
 
     def _fetch(self, url: str):
         self.requests.append(url)
@@ -42,7 +46,9 @@ class FakePyPI(PyPI):
         return {
             "info": _info(releases[-1]),
             "releases": {
-                r["version"]: [{"upload_time_iso_8601": f"{r['uploaded']}T00:00:00Z"}]
+                r["version"]: []
+                if (name, r["version"]) in self.no_files
+                else [{"upload_time_iso_8601": f"{r['uploaded']}T00:00:00Z"}]
                 for r in releases
             },
         }
@@ -102,3 +108,45 @@ def index():
             "requests": [release("requests", "2.31.0", extra=["urllib3>=1.21"])],
         }
     )
+
+
+FIXTURES = Path(__file__).parent / "fixtures" / "pypi"
+
+
+class RecordedPyPI(PyPI):
+    """Real PyPI metadata, recorded by ``fixtures/record.py``."""
+
+    def __init__(self):
+        super().__init__(BASE, cache_dir=None)
+        self.recorded = {
+            path.stem: json.loads(path.read_text()) for path in FIXTURES.glob("*.json")
+        }
+
+    def _fetch(self, url: str):
+        name, *rest = url[len(BASE) + 1 :].split("/")
+        data = self.recorded.get(name)
+        if data is None:
+            return None
+        if len(rest) == 1:  # name/json
+            return {
+                "info": data["info"],
+                "releases": {
+                    version: [{"upload_time_iso_8601": time, "yanked": version in data["yanked"]}]
+                    if time
+                    else []
+                    for version, time in data["uploaded"].items()
+                },
+            }
+        version = rest[0]
+        if version not in data["uploaded"]:
+            return None
+        if version not in data["releases"]:
+            raise LookupError(f"{name} {version} is not recorded, extend fixtures/record.py")
+        return {
+            "info": {"name": data["info"]["name"], "version": version} | data["releases"][version]
+        }
+
+
+@pytest.fixture(scope="session")
+def recorded():
+    return RecordedPyPI()

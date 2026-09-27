@@ -5,8 +5,17 @@ from __future__ import annotations
 from html import escape
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__
-from django_upgrade_report.analysis import Report, Status
-from django_upgrade_report.render import headline, sections, version_cell
+from django_upgrade_report.analysis import PackageReport, Report, Status
+from django_upgrade_report.render import (
+    headline,
+    packages_line,
+    private_index_hint,
+    python_line,
+    sections,
+    skipped_line,
+    split_noted,
+    version_cell,
+)
 
 _CSS = """
 :root {
@@ -61,6 +70,14 @@ td.version { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { background: var(--ready-bg); color: var(--ready); border-radius: 99px;
   padding: 3px 12px; font-size: 13px; font-weight: 500; }
+.warnings { background: var(--upgrade-bg); color: var(--upgrade); border-radius: 10px;
+  padding: 12px 16px; margin: 24px 0 0; }
+.warnings p { margin: 0; } .warnings p + p { margin-top: 6px; }
+.chips + .table { margin-top: 12px; }
+.aside { margin-top: 28px; }
+.aside h3 { font-size: 15px; margin: 0 0 6px; }
+.aside ul { margin: 0; padding-left: 20px; }
+.aside li span { color: var(--muted); }
 .meta { color: var(--muted); font-size: 13px; margin-top: 48px; border-top: 1px solid var(--line);
   padding-top: 16px; }
 .meta a { color: inherit; }
@@ -104,41 +121,43 @@ def render(report: Report) -> str:
             f'{escape(section.title)} <span class="count">{len(section.packages)}</span></h2>'
             f'<p class="hint">{escape(section.hint)}</p>'
         )
+        packages = section.packages
         if section.key == "ready":
-            chips = "".join(
-                f'<span class="chip" title="{escape(p.reason)}">{escape(p.display_name)}</span>'
-                for p in section.packages
-            )
-            body.append(f'<div class="chips">{chips}</div></section>')
-            continue
-        rows = []
-        for p in section.packages:
-            notes = "".join(
-                f'<span class="note{" warn" if n.startswith("no release") else ""}">'
-                f"{escape(n)}</span>"
-                for n in p.notes
-            )
-            rows.append(
-                f'<tr><td class="name">{escape(p.display_name)}</td>'
-                f'<td class="version">{escape(version_cell(p))}</td>'
-                f"<td>{escape(p.reason)}{'<br>' + notes if notes else ''}</td></tr>"
-            )
+            plain, packages = split_noted(packages)
+            if plain:
+                chips = "".join(
+                    f'<span class="chip" title="{escape(p.reason)}">{escape(p.display_name)}</span>'
+                    for p in plain
+                )
+                body.append(f'<div class="chips">{chips}</div>')
+        if packages:
+            body.append(_table(packages))
+        body.append("</section>")
+
+    if report.missing:
+        items = "".join(f"<li>{escape(name)}</li>" for name in report.missing)
         body.append(
-            '<div class="table"><table><thead><tr><th>Package</th><th>Version</th>'
-            f"<th>Why</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div></section>"
+            '<section class="aside" id="missing"><h3>Not on the package index</h3>'
+            f"<ul>{items}</ul></section>"
+        )
+    if report.external:
+        items = "".join(
+            f"<li>{escape(name)} <span>{escape(where)}</span></li>"
+            for name, where in report.external
+        )
+        hint = private_index_hint(report)
+        hint_html = f'<p class="hint">{escape(hint)}.</p>' if hint else ""
+        body.append(
+            '<section class="aside" id="external"><h3>Not from PyPI, not checked</h3>'
+            f"<ul>{items}</ul>{hint_html}</section>"
         )
 
-    meta = [
-        f"Dependencies from <code>{escape(report.source)}</code>.",
-        f"{report.skipped} dependencies without a Django requirement were skipped.",
-    ]
-    if report.missing:
-        meta.append(f"Not on the package index: {escape(', '.join(report.missing))}.")
-    if report.django_requires_python:
-        meta.append(
-            f"Django {escape(report.target)} requires Python "
-            f"<code>{escape(report.django_requires_python)}</code>."
-        )
+    meta = [f"Dependencies from <code>{escape(report.source)}</code>."]
+    if report.skipped:
+        meta.append(f"{escape(skipped_line(report))}.")
+    python = python_line(report)
+    if python:
+        meta.append(f"{escape(python)}.")
     meta.append(
         f"Generated {report.generated:%Y-%m-%d %H:%M} UTC by "
         f'<a href="{REPO_URL}">django-upgrade-report</a> {__version__} '
@@ -146,6 +165,11 @@ def render(report: Report) -> str:
         "from the metadata packages publish on PyPI. "
         "A green row means the maintainers declare support, not that your tests pass."
     )
+
+    warnings = ""
+    if report.warnings:
+        paragraphs = "".join(f"<p>{escape(w)}</p>" for w in report.warnings)
+        warnings = f'<div class="warnings" role="note">{paragraphs}</div>'
 
     return f"""<!doctype html>
 <html lang="en">
@@ -159,12 +183,30 @@ def render(report: Report) -> str:
 <main>
 <header>
 <h1>{escape(start)} <span class="arrow">→</span> {escape(end)}</h1>
-<p>Upgrade report for {len(report.packages)} Django-related packages</p>
+<p>Upgrade report for {packages_line(report)}</p>
 </header>
-<div class="tiles">{tiles}</div>
+{warnings}<div class="tiles">{tiles}</div>
 {"".join(body)}
 <p class="meta">{" ".join(meta)}</p>
 </main>
 </body>
 </html>
 """
+
+
+def _table(packages: list[PackageReport]) -> str:
+    rows = []
+    for p in packages:
+        notes = "".join(
+            f'<span class="note{" warn" if n.startswith("no release") else ""}">{escape(n)}</span>'
+            for n in p.notes
+        )
+        rows.append(
+            f'<tr><td class="name">{escape(p.display_name)}</td>'
+            f'<td class="version">{escape(version_cell(p))}</td>'
+            f"<td>{escape(p.reason)}{'<br>' + notes if notes else ''}</td></tr>"
+        )
+    return (
+        '<div class="table"><table><thead><tr><th>Package</th><th>Version</th>'
+        f"<th>Why</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
+    )

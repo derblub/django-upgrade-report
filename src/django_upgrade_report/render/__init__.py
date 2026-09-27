@@ -17,6 +17,8 @@ class Section:
 
 def sections(report: Report) -> list[Section]:
     upgrades = report.by_status(Status.UPGRADE)
+    ready = report.by_status(Status.READY)
+    unpinned = any(not p.current for p in ready)
     current = _minor_label(report.current_django)
     result = [
         Section(
@@ -54,11 +56,49 @@ def sections(report: Report) -> list[Section]:
         Section(
             "ready",
             "Ready",
-            f"Your version already declares support for Django {report.target}.",
-            report.by_status(Status.READY),
+            f"Your version declares support for Django {report.target}"
+            + (" (unpinned: the newest release your requirement allows)." if unpinned else "."),
+            ready,
         ),
     ]
     return [s for s in result if s.packages]
+
+
+def packages_line(report: Report) -> str:
+    n = len(report.packages)
+    return f"{n} Django-related {'package' if n == 1 else 'packages'}"
+
+
+def private_index_hint(report: Report) -> str | None:
+    """Packages from a private index are not looked up on pypi.org; say how to check them."""
+    if not any(where.startswith("index ") for _, where in report.external):
+        return None
+    return (
+        "If that index mirrors PyPI, pass --check-private-on-pypi. "
+        "To check packages from a private index, pass its JSON API with --index-url"
+    )
+
+
+def split_noted(packages: list[PackageReport]) -> tuple[list[PackageReport], list[PackageReport]]:
+    """Packages without notes, and those whose notes must stay visible (e.g. not pinned)."""
+    return [p for p in packages if not p.notes], [p for p in packages if p.notes]
+
+
+def skipped_line(report: Report) -> str:
+    n = report.skipped
+    return f"{n} {'dependency' if n == 1 else 'dependencies'} without a Django requirement skipped"
+
+
+def python_line(report: Report) -> str | None:
+    parts = []
+    if report.django_requires_python:
+        parts.append(f"Django {report.target} requires Python {report.django_requires_python}")
+    if report.project_python:
+        parts.append(f"your project uses Python {report.project_python}")
+    if not parts:
+        return None
+    line = ", ".join(parts)
+    return line[0].upper() + line[1:]
 
 
 def headline(report: Report) -> str:

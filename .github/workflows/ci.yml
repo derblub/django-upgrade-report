@@ -28,6 +28,16 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
+      - run: uv run --group dev pytest --cov=django_upgrade_report --cov-report=term-missing
+
+  # Catches encoding and path bugs that only show up on Windows.
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
       - run: uv run --group dev pytest
 
   # Builds the package and checks that the README renders on PyPI.
@@ -43,9 +53,14 @@ jobs:
           name: dist
           path: dist/
 
-  # Runs the action against a small project, against the real PyPI.
+  # Runs the action against a small project, against the real PyPI. Windows takes the
+  # Scripts/ and drive-letter paths through the action's bash steps.
   action:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
       - run: |
@@ -53,5 +68,14 @@ jobs:
           printf 'Django==4.2.7\ndjango-debug-toolbar==4.2.0\ndjango-filter==23.3\n' \
             > "$RUNNER_TEMP/demo/requirements.txt"
       - uses: ./
+        id: report
         with:
           path: ${{ runner.temp }}/demo
+      - name: Check the outputs
+        shell: bash
+        env:
+          REPORT: ${{ steps.report.outputs.report }}
+          READY: ${{ steps.report.outputs.ready }}
+        run: |
+          test -s "$REPORT"
+          test -n "$READY"

@@ -31,16 +31,21 @@ $ uvx ruff check .
 $ uvx ruff format .
 ```
 
-The tests use an in-memory package index (`tests/conftest.py`) and never touch the network. Please keep it that way: add the releases you need to the fake index instead of calling PyPI.
+The tests never touch the network. Please keep it that way. There are two package indexes in `tests/conftest.py`:
+
+- a small in-memory index for the rules: add the releases you need to it instead of calling PyPI,
+- real PyPI metadata recorded in `tests/fixtures/pypi/`, for the golden tests in `tests/test_analysis.py`. To add a package, add it to `CASES` in `tests/fixtures/record.py` and run `PYTHONPATH=src python3 tests/fixtures/record.py`. Re-recording changes the facts the golden tests assert, so check them against the new data.
+
+CI also measures coverage: `uv run --group dev pytest --cov=django_upgrade_report`.
 
 ## Where things live
 
 | File | What it does |
 | --- | --- |
-| `src/django_upgrade_report/sources.py` | Reads lockfiles, requirement files, `pyproject.toml` and environments into `Dependency` objects |
-| `src/django_upgrade_report/pypi.py` | Cached client for the PyPI JSON API |
-| `src/django_upgrade_report/analysis.py` | The verdict rules (`supports()`) and the per-package status |
-| `src/django_upgrade_report/render/` | Text, Markdown, JSON and HTML output |
+| `src/django_upgrade_report/sources.py` | Reads lockfiles, requirement files, `pyproject.toml` and environments into `Dependency` objects, and finds the project's Python |
+| `src/django_upgrade_report/pypi.py` | Cached client for the PyPI JSON API, with retries |
+| `src/django_upgrade_report/analysis.py` | The target (`resolve_target()`), the verdict rules (`supports()`) and the per-package status and phase |
+| `src/django_upgrade_report/render/` | Text, Markdown, JSON and HTML output. `render/json.py` documents the JSON fields and `schema_version` |
 | `src/django_upgrade_report/cli.py` | Command line interface |
 | `action.yml` | The GitHub Action |
 

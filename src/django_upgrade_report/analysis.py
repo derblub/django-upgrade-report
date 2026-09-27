@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import enum
 import re
+import sys
+import threading
 from collections.abc import Callable, Iterable
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Executor, ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
+from packaging.markers import Marker
 from packaging.requirements import InvalidRequirement, Requirement
-from packaging.specifiers import SpecifierSet
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.utils import canonicalize_name
 from packaging.version import InvalidVersion, Version
 
@@ -18,17 +21,23 @@ from django_upgrade_report.pypi import Project, PyPI, ReleaseInfo
 from django_upgrade_report.sources import Dependency, DependencySet
 
 _CLASSIFIER = re.compile(r"^Framework :: Django :: (\d+\.\d+)$")
+_MAJOR_CLASSIFIER = re.compile(r"^Framework :: Django :: (\d+)$")
+_INACTIVE = "Development Status :: 7 - Inactive"
 STALE_AFTER_DAYS = 2 * 365
-MAX_RELEASES_SCANNED = 40
+# Nobody declares a Django version long before its first pre-release, so older releases
+# cannot say YES and need not be fetched when looking for one.
+_DECLARE_WINDOW = timedelta(days=365)
+_UPPER_BOUNDS = ("<", "<=", "~=", "==", "===")
+_PINS = ("==", "===")
 
 
 class Verdict(enum.Enum):
     """What one release says about one Django version."""
 
-    YES = "yes"  # declared: classifier for this version, or an upper bound above it
+    YES = "yes"  # declared: classifier, exact pin, or an upper bound set after the release
     LIKELY = "likely"  # allowed by the requirement, but not declared
     UNKNOWN = "unknown"  # no information at all
-    NO = "no"  # excluded by the requirement, or only older Django versions declared
+    NO = "no"  # excluded by the requirement
 
 
 class Status(enum.Enum):
@@ -49,6 +58,39 @@ class Support:
     reason: str
 
 
+@dataclass(frozen=True)
+class Target:
+    """A Django feature version (X.Y), as far as the release history knows it."""
+
+    version: Version
+    """Major and minor only, e.g. ``5.2``."""
+    patches: tuple[Version, ...] = ()
+    """Released versions of the series, e.g. ``5.2``, ``5.2.1``, ..."""
+    ga: datetime | None = None
+    """Upload time of X.Y.0. ``None`` on a released target means unknown: bounds count."""
+    requires_python: str | None = None
+    released: bool = True
+    python: str | None = None
+    """The Python this Django would run on, for environment markers."""
+    future_patches: bool = True
+    """Whether a patch release that does not exist yet counts, too."""
+
+    @classmethod
+    def of(cls, version: Version, python: str | None = None) -> Target:
+        return cls(Version(f"{version.major}.{version.minor}"), python=python)
+
+    @property
+    def label(self) -> str:
+        return f"{self.version.major}.{self.version.minor}"
+
+    def probes(self, spec: SpecifierSet) -> list[Version]:
+        probes = list(self.patches)
+        if self.future_patches:
+            probes += [self.version, Version(f"{self.label}.9999")]
+            probes += [v for v in _spec_versions(spec) if _same_minor(v, self.version)]
+        return probes
+
+
 @dataclass
 class PackageReport:
     name: str
@@ -59,7 +101,7 @@ class PackageReport:
     status: Status
     reason: str
     target_version: str | None = None
-    """The smallest release that declares support for the target, when an upgrade is needed."""
+    """The release to move to: the smallest that declares support, when an upgrade is needed."""
     phase: Phase | None = None
     last_release: datetime | None = None
     notes: list[str] = field(default_factory=list)
@@ -82,6 +124,11 @@ class Report:
     """Dependencies that have nothing to do with Django."""
     missing: list[str]
     """Dependencies not found on the index (private packages, typos)."""
+    external: list[tuple[str, str]] = field(default_factory=list)
+    """Dependencies not resolved from PyPI, as (name, where from). Never looked up."""
+    warnings: list[str] = field(default_factory=list)
+    project_python: str | None = None
+    target_released: bool = True
     generated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def by_status(self, status: Status) -> list[PackageReport]:
@@ -104,60 +151,169 @@ def declared_versions(info: ReleaseInfo) -> list[Version]:
     return sorted(found)
 
 
-def django_requirement(info: ReleaseInfo) -> SpecifierSet | None:
+def declared_majors(info: ReleaseInfo) -> list[int]:
+    """Major-only classifiers such as ``Framework :: Django :: 5``."""
+    return sorted(int(m.group(1)) for c in info.classifiers if (m := _MAJOR_CLASSIFIER.match(c)))
+
+
+def _environment(python: str | None) -> dict[str, str]:
+    """Marker values for a Linux server, independent of the machine running this tool."""
+    if python is None:
+        python = f"{sys.version_info.major}.{sys.version_info.minor}"
+    v = Version(python)
+    return {
+        "extra": "",
+        "python_version": f"{v.major}.{v.minor}",
+        "python_full_version": f"{v.major}.{v.minor}.{v.micro}",
+        "sys_platform": "linux",
+        "platform_system": "Linux",
+        "os_name": "posix",
+        "platform_machine": "x86_64",
+        "implementation_name": "cpython",
+        "platform_python_implementation": "CPython",
+    }
+
+
+def django_requirement(info: ReleaseInfo, python: str | None = None) -> SpecifierSet | None:
+    """All Django requirement lines that apply on ``python``, combined into one."""
+    env = _environment(python)
+    combined = None
+    for req in _requirements(info, "django"):
+        if req.marker is not None and not req.marker.evaluate(env):
+            continue  # another Python, or only needed for an optional extra
+        combined = req.specifier if combined is None else combined & req.specifier
+    return combined
+
+
+def _requirements(info: ReleaseInfo, name: str) -> Iterable[Requirement]:
     for line in info.requires_dist:
         try:
             req = Requirement(line)
         except InvalidRequirement:
             continue
-        if canonicalize_name(req.name) != "django":
-            continue
-        if req.marker is not None and not req.marker.evaluate({"extra": ""}):
-            continue  # only needed for an optional extra
-        return req.specifier
-    return None
+        if canonicalize_name(req.name) == name:
+            yield req
 
 
-def _allows(spec: SpecifierSet, target: Version) -> bool:
-    """True when some patch release of the ``target`` minor version satisfies ``spec``."""
-    probes = [target, Version(f"{target.major}.{target.minor}.99")]
-    return any(spec.contains(probe, prereleases=True) for probe in probes)
+def _needed(req: Requirement) -> bool:
+    """False when the requirement is only needed for an optional extra."""
+    if req.marker is None or "extra" not in str(req.marker):
+        return True
+    return _marker_true_somewhere(req.marker)
 
 
-def _has_upper_bound_above(spec: SpecifierSet, target: Version) -> bool:
+def _marker_true_somewhere(marker: Marker) -> bool:
+    return any(marker.evaluate(_environment(p)) for p in ("3.8", "3.10", "3.12", "3.14"))
+
+
+def _spec_versions(spec: SpecifierSet) -> list[Version]:
+    found = []
     for s in spec:
-        if s.operator in ("<", "<=", "~=", "==") and _allows(SpecifierSet(str(s)), target):
-            return True
-    return False
+        try:
+            found.append(Version(s.version.removesuffix(".*")))
+        except InvalidVersion:
+            continue
+    return found
 
 
-def supports(info: ReleaseInfo, target: Version) -> Support:
-    spec = django_requirement(info)
+def _same_minor(a: Version, b: Version) -> bool:
+    return (a.major, a.minor) == (b.major, b.minor)
+
+
+def _allows(spec: SpecifierSet, target: Target) -> bool:
+    """True when a release of the ``target`` series (or a future patch) satisfies ``spec``."""
+    return any(spec.contains(probe, prereleases=True) for probe in target.probes(spec))
+
+
+def _upper_bounds(spec: SpecifierSet, target: Target) -> list[str]:
+    """Operators of the specifiers that cap Django at or above ``target``."""
+    return [
+        s.operator
+        for s in spec
+        if s.operator in _UPPER_BOUNDS and _allows(SpecifierSet(str(s)), target)
+    ]
+
+
+def excluded_side(info: ReleaseInfo, target: Target) -> int:
+    """Where the releases that allow ``target`` are, when ``info`` excludes it.
+
+    -1: older ones (a lower bound is above the target), 1: newer ones (an upper bound is below
+    it), 0: cannot tell. Bounds only move up from release to release, so this steers searches.
+    """
+    spec = django_requirement(info, target.python)
+    sides = set()
+    for s in spec or ():
+        if _allows(SpecifierSet(str(s)), target):
+            continue
+        if s.operator in (">", ">="):
+            sides.add(-1)
+        elif s.operator in ("<", "<="):
+            sides.add(1)
+        elif s.operator in ("==", "===", "~="):
+            try:
+                bound = Version(s.version.removesuffix(".*"))
+            except InvalidVersion:
+                return 0
+            sides.add(1 if bound < target.version else -1)
+        else:
+            return 0
+    return sides.pop() if len(sides) == 1 else 0
+
+
+def supports(
+    info: ReleaseInfo, target: Target | Version, uploaded: datetime | None = None
+) -> Support:
+    """What ``info``, uploaded at ``uploaded``, says about Django ``target``."""
+    if isinstance(target, Version):
+        target = Target.of(target)
+    spec = django_requirement(info, target.python)
     declared = declared_versions(info)
-    label = f"{target.major}.{target.minor}"
+    majors = declared_majors(info)
+    label = target.label
 
     if spec is not None and str(spec) and not _allows(spec, target):
         return Support(Verdict.NO, f"requires Django{spec}")
-    if target in declared:
+    if target.version in declared:
         return Support(Verdict.YES, f"declares Django {label}")
-    if spec is not None and _has_upper_bound_above(spec, target):
-        return Support(Verdict.YES, f"allows Django{spec}")
+    bounds = _upper_bounds(spec, target) if spec is not None else []
+    if bounds:
+        if _bound_counts(bounds, target, uploaded):
+            return Support(Verdict.YES, f"allows Django{spec}")
+        if not target.released:
+            return Support(Verdict.LIKELY, f"allows Django{spec}, {label} is not released yet")
+        return Support(Verdict.LIKELY, f"allows Django{spec}, released before {label}")
     # Classifiers often lag behind releases, so a missing one is a question, not a blocker.
-    if declared and max(declared) < target:
+    if target.version.major in majors:
+        return Support(Verdict.LIKELY, f"declares Django {target.version.major}, not {label}")
+    if declared and max(declared) < target.version:
         newest = declared[-1]
         return Support(
             Verdict.LIKELY, f"declares Django up to {newest.major}.{newest.minor}, not {label}"
         )
-    if declared and min(declared) > target:
+    if declared and min(declared) > target.version:
         oldest = declared[0]
         return Support(
             Verdict.LIKELY, f"declares Django {oldest.major}.{oldest.minor} and newer, not {label}"
         )
     if declared:
         return Support(Verdict.LIKELY, f"declares Django {_span(declared)}, not {label}")
+    if majors:
+        listed = ", ".join(str(m) for m in majors)
+        return Support(Verdict.LIKELY, f"declares Django {listed}, not {label}")
     if spec is not None and str(spec):
         return Support(Verdict.LIKELY, f"allows Django{spec}, no upper bound")
     return Support(Verdict.UNKNOWN, "declares no Django versions")
+
+
+def _bound_counts(operators: list[str], target: Target, uploaded: datetime | None) -> bool:
+    """An upper bound speaks about ``target`` only when it was set after ``target`` came out."""
+    if not target.released:
+        return False
+    if target.ga is None:
+        return True
+    if uploaded is None:
+        return any(op in _PINS for op in operators)
+    return uploaded >= target.ga
 
 
 def _span(versions: list[Version]) -> str:
@@ -166,75 +322,242 @@ def _span(versions: list[Version]) -> str:
 
 
 def is_django_related(info: ReleaseInfo) -> bool:
-    return django_requirement(info) is not None or any(
-        c.startswith("Framework :: Django") for c in info.classifiers
+    return (
+        any(_needed(req) for req in _requirements(info, "django"))
+        or any(c.startswith("Framework :: Django") for c in info.classifiers)
+        or _framework_note(info) is not None
     )
+
+
+def _framework_note(info: ReleaseInfo) -> str | None:
+    """Packages built on a framework on top of Django need a check against that one, too."""
+    name = canonicalize_name(info.name)
+    if name != "wagtail" and (
+        any(c.startswith("Framework :: Wagtail") for c in info.classifiers)
+        or any(_needed(req) for req in _requirements(info, "wagtail"))
+    ):
+        return "Wagtail package: also check it against your Wagtail version"
+    if name != "django-cms" and any(_needed(req) for req in _requirements(info, "django-cms")):
+        return "django CMS package: also check it against your django CMS version"
+    return None
+
+
+# --- Django's release history ------------------------------------------------
+
+
+def _series(django: Project) -> dict[Version, list[Version]]:
+    """Released Django versions by feature version, oldest first."""
+    series: dict[Version, list[Version]] = {}
+    for release in django.stable_releases():
+        v = release.version
+        series.setdefault(Version(f"{v.major}.{v.minor}"), []).append(v)
+    return series
+
+
+def _next_feature(version: Version) -> Version:
+    """Django counts X.0, X.1, X.2, then (X+1).0."""
+    if version.minor >= 2:
+        return Version(f"{version.major + 1}.0")
+    return Version(f"{version.major}.{version.minor + 1}")
+
+
+def latest_lts(django: Project) -> Version:
+    """Django's LTS releases are the x.2 series."""
+    lts = [v for v in _series(django) if v.minor == 2 and v.major >= 2]
+    if not lts:
+        raise ValueError(
+            "The package index has no Django LTS release (x.2): is --index-url a full PyPI mirror?"
+        )
+    return max(lts)
+
+
+def resolve_target(django: Project, target: str, current: Version | None = None) -> Version:
+    """The feature version to check against; ``current`` is the project's Django (X.Y).
+
+    ``auto`` is the newest LTS above ``current``, else the newest release above it. A named
+    target never goes below ``current``: that shows a health check of ``current`` instead.
+    An explicit version below ``current`` is an error, a downgrade report helps nobody.
+    """
+    released = sorted(_series(django))
+    if target in ("auto", "lts", "latest"):
+        if target == "auto" and current is not None:
+            above = [v for v in released if v > current]
+            lts = [v for v in above if v.minor == 2]
+            named = max(lts or above, default=current)
+        elif target == "latest":
+            named = released[-1]
+        else:
+            named = latest_lts(django)
+        return max(named, current) if current is not None else named
+    try:
+        version = Version(target)
+    except InvalidVersion as exc:
+        raise ValueError(f"Not a Django version: {target!r}") from exc
+    minor = Version(f"{version.major}.{version.minor}")
+    upcoming = _next_feature(released[-1])
+    if minor not in released and minor != upcoming:
+        choices = [str(v) for v in released if v >= Version("4.0")]
+        raise ValueError(
+            f"There is no Django {target}. Use auto, lts, latest, one of "
+            f"{', '.join(choices)}, or {upcoming} (not released yet)"
+        )
+    if current is not None and minor < current:
+        raise ValueError(
+            f"Django {minor} is older than your Django {current}: there is nothing to upgrade. "
+            f"Use auto, latest or a version from {current} on"
+        )
+    return minor
+
+
+def _build_target(
+    django: Project, pypi: PyPI, version: Version, project_python: str | None
+) -> Target:
+    patches = tuple(_series(django).get(version, ()))
+    first = str(patches[0]) if patches else None
+    if first is None:  # not released: a pre-release may already say which Python it needs
+        pre = [r.version for r in django.releases if _same_minor(r.version, version)]
+        first = str(pre[-1]) if pre else None
+    requires_python = _django_python(pypi, first)
+    floor = requires_python
+    if floor is None and not patches:  # no pre-release yet: it needs at least what the last did
+        floor = _django_python(pypi, str(_series(django)[max(_series(django))][0]))
+    return Target(
+        version,
+        patches,
+        ga=_uploaded(django, patches[0]) if patches else None,
+        requires_python=requires_python,
+        released=bool(patches),
+        python=_max_python(project_python, _min_python(floor)),
+    )
+
+
+def _django_python(pypi: PyPI, version: str | None) -> str | None:
+    info = pypi.release("django", version) if version else None
+    return info.requires_python if info else None
+
+
+def _current_target(
+    django: Project, pypi: PyPI, current: str, project_python: str | None
+) -> Target | None:
+    """The exact Django the project runs today, e.g. 4.2.7."""
+    try:
+        exact = Version(current)
+    except InvalidVersion:
+        return None
+    minor = Version(f"{exact.major}.{exact.minor}")
+    python = project_python or _min_python(_django_python(pypi, current))
+    patches = _series(django).get(minor)
+    return Target(
+        minor,
+        (exact,),
+        ga=_uploaded(django, patches[0]) if patches else None,
+        python=python,
+        future_patches=False,
+    )
+
+
+def _uploaded(project: Project, version: Version) -> datetime | None:
+    return next((r.uploaded for r in project.releases if r.version == version), None)
+
+
+def _min_python(requires_python: str | None) -> str | None:
+    """The lowest Python a ``requires_python`` range accepts, as X.Y."""
+    if not requires_python:
+        return None
+    try:
+        spec = SpecifierSet(requires_python)
+    except InvalidSpecifier:
+        return None
+    floors = []
+    for s in spec:
+        if s.operator in (">=", ">", "~=", "=="):
+            try:
+                floors.append(Version(s.version.removesuffix(".*")))
+            except InvalidVersion:
+                continue
+    if not floors:
+        return None
+    low = max(floors)
+    return f"{low.major}.{low.minor}"
+
+
+def _max_python(*pythons: str | None) -> str | None:
+    known = [Version(p) for p in pythons if p]
+    if not known:
+        return None
+    high = max(known)
+    return f"{high.major}.{high.minor}"
 
 
 # --- the whole project -------------------------------------------------------
 
 
-def latest_lts(django: Project) -> Version:
-    """Django's LTS releases are the x.2 series."""
-    stable = [r.version for r in django.stable_releases()]
-    lts = [v for v in stable if v.minor == 2 and v.major >= 2]
-    newest = max(lts)
-    return Version(f"{newest.major}.{newest.minor}")
-
-
-def resolve_target(django: Project, target: str) -> Version:
-    stable = [r.version for r in django.stable_releases()]
-    if target == "lts":
-        return latest_lts(django)
-    if target == "latest":
-        newest = max(stable)
-        return Version(f"{newest.major}.{newest.minor}")
-    try:
-        version = Version(target)
-    except InvalidVersion as exc:
-        raise ValueError(f"Not a Django version: {target!r}") from exc
-    return Version(f"{version.major}.{version.minor}")
-
-
 def analyse(
     deps: DependencySet,
     pypi: PyPI,
-    target: str = "lts",
+    target: str = "auto",
     workers: int = 16,
     progress: Callable[[str], None] | None = None,
+    current: str | None = None,
+    private_index: bool = False,
 ) -> Report:
+    """Judge every Django-related dependency of ``deps`` against ``target``.
+
+    ``current`` overrides the project's Django version (``--from``). With ``private_index``
+    the index is the project's own, so packages from a private index are looked up there.
+    """
     django = pypi.project("django")
     if django is None:
         raise RuntimeError("Could not read Django's release history from the package index")
-    target_version = resolve_target(django, target)
     current_dep = deps.dependencies.get("django")
-    current_django = current_dep.version if current_dep else None
-    current_django_minor = _minor(current_django)
+    current_django, notes = _current_django(django, current_dep, current)
+    current_minor = _minor(current_django)
+    project_python = deps.python
 
-    target_release = _first_release_of(django, target_version)
-    django_python = None
-    if target_release is not None:
-        info = pypi.release("django", str(target_release))
-        django_python = info.requires_python if info else None
+    goal = _build_target(
+        django, pypi, resolve_target(django, target, current_minor), project_python
+    )
+    today = None
+    if current_django and current_minor is not None:
+        today = _current_target(django, pypi, current_django, project_python)
 
-    others = [d for name, d in sorted(deps.dependencies.items()) if name != "django"]
+    def checked(d: Dependency) -> bool:
+        return d.external is None or (private_index and d.external.startswith("index "))
 
-    def check(dep: Dependency) -> PackageReport | str | None:
-        if progress:
-            progress(dep.name)
-        project = pypi.project(dep.name)
-        if project is None:
-            return dep.name
-        if not is_django_related(project.latest):
-            current_info = pypi.release(dep.name, dep.version) if dep.version else None
-            if current_info is None or not is_django_related(current_info):
-                return None
-        return _check_package(dep, project, pypi, target_version, current_django_minor)
+    # Django's release history is always read, so Django itself is never "not checked".
+    external = sorted(
+        (d.name, d.external)
+        for d in deps.dependencies.values()
+        if not checked(d) and d.external and d.name != "django"
+    )
+    others = [d for name, d in sorted(deps.dependencies.items()) if name != "django" and checked(d)]
+    if not others and any(where.startswith("index ") for _, where in external):
+        notes.append(
+            "No dependency was checked: they all come from another index. If it mirrors PyPI, "
+            "pass --check-private-on-pypi"
+        )
+    pinned = {
+        name: Version(d.version)
+        for name, d in deps.dependencies.items()
+        if d.version and _is_version(d.version)
+    }
 
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        results = list(pool.map(check, others))
+    with (
+        ThreadPoolExecutor(max_workers=workers) as release_pool,
+        ThreadPoolExecutor(max_workers=workers) as package_pool,
+    ):
+        private = frozenset(d.name for d in deps.dependencies.values() if not checked(d))
+        checker = _Checker(pypi, goal, today, release_pool, workers, pinned, private)
+
+        def check(dep: Dependency) -> PackageReport | str | None:
+            if progress:
+                progress(dep.name)
+            return checker.check(dep)
+
+        results = list(package_pool.map(check, others))
 
     packages = [r for r in results if isinstance(r, PackageReport)]
+    _plan_order(packages, checker, (today or goal).python)
     missing = [r for r in results if isinstance(r, str)]
     skipped = sum(1 for r in results if r is None)
 
@@ -242,14 +565,200 @@ def analyse(
     packages.sort(key=lambda p: (order[p.status], p.phase is Phase.WITH, p.name))
 
     return Report(
-        target=f"{target_version.major}.{target_version.minor}",
+        target=goal.label,
         current_django=current_django,
-        django_requires_python=django_python,
+        django_requires_python=goal.requires_python,
         source=deps.source,
         packages=packages,
         skipped=skipped,
         missing=missing,
+        external=external,
+        warnings=notes + _warnings(target, goal, django, current_minor, current_django, deps),
+        project_python=project_python,
+        target_released=goal.released,
     )
+
+
+def _plan_order(packages: list[PackageReport], checker: _Checker, python: str | None) -> None:
+    """Fit the upgrades to each other: the installed releases of other packages may forbid
+    a proposed version, and an upgrade that must wait for another one waits for its phase.
+    """
+    env = _environment(python)
+    by_name = {p.name: p for p in packages}
+    for p in packages:
+        if p.status is not Status.UPGRADE or p.target_version is None:
+            continue
+        version = Version(p.target_version)
+        for other, info in sorted(checker.installed.items()):
+            for spec in _specs_for(info, p.name, env):
+                if spec.contains(version, prereleases=True):
+                    continue
+                needed = f"{info.name} {info.version} requires {p.display_name}{spec}"
+                plan = by_name.get(other)
+                later = plan.target_version if plan is not None else None
+                later_info = checker.pypi.release(other, later) if later else None
+                if later_info is not None and all(
+                    s.contains(version, prereleases=True)
+                    for s in _specs_for(later_info, p.name, env)
+                ):
+                    checker.link(p.name, other)
+                    p.notes.append(f"{needed}: upgrade {info.name} to {later} first")
+                else:
+                    p.notes.append(f"{needed}, which excludes {version}")
+
+    changed = True
+    while changed:  # an upgrade that needs one going with Django goes with Django, too
+        changed = False
+        for p in packages:
+            if p.phase is not Phase.BEFORE:
+                continue
+            waits = sorted(
+                by_name[n].display_name
+                for n in checker.links.get(p.name, ())
+                if n in by_name and by_name[n].phase is Phase.WITH
+            )
+            if waits:
+                p.phase = Phase.WITH
+                p.notes.append(f"goes with {', '.join(waits)}")
+                changed = True
+
+
+def _specs_for(info: ReleaseInfo, name: str, env: dict[str, str]) -> list[SpecifierSet]:
+    """What ``info`` requires of ``name``, where the requirement applies."""
+    return [
+        req.specifier
+        for req in _requirements(info, name)
+        if req.marker is None or req.marker.evaluate(env)
+    ]
+
+
+def _current_django(
+    django: Project, dep: Dependency | None, override: str | None
+) -> tuple[str | None, list[str]]:
+    """The project's Django version, and warnings about how it was found."""
+    if override:
+        return _override(django, dep, override)
+    if dep is None or dep.version:
+        return (dep.version if dep else None), []
+    alternatives = spec_sets(dep.spec)
+    requirement = f"Django{dep.spec}" if dep.spec else "Django"
+    capped = alternatives is not None and any(
+        s.operator in _UPPER_BOUNDS or s.version.endswith(".*") for a in alternatives for s in a
+    )
+    if capped:
+        allowed = [
+            r.version
+            for r in django.stable_releases()
+            if any(a.contains(r.version) for a in alternatives)
+        ]
+        if allowed:
+            newest = str(max(allowed))
+            return newest, [
+                f"Django is not pinned: assuming {newest}, the newest release {requirement} "
+                "allows (pass --from to change)"
+            ]
+    return None, [
+        f"Django is not pinned ({requirement}): pass --from with the version you run "
+        "to see which upgrades can come first"
+    ]
+
+
+def _override(django: Project, dep: Dependency | None, override: str) -> tuple[str, list[str]]:
+    """``--from``, checked against what the project itself says."""
+    used = _from_version(django, override)
+    if dep is None:
+        return used, []
+    if dep.version and _is_version(dep.version):
+        pin = Version(dep.version)
+        if len(Version(override).release) <= 2 and _same_minor(pin, Version(used)):
+            return dep.version, []  # --from 4.2 on a 4.2.7 pin: the pin is more precise
+        if pin != Version(used):
+            return used, [f"--from {override}: using Django {used}, but your project pins {pin}"]
+        return used, []
+    alternatives = spec_sets(dep.spec) if dep.spec else None
+    if alternatives and not any(a.contains(Version(used), prereleases=True) for a in alternatives):
+        return used, [
+            f"--from {override}: Django {used} is outside your requirement Django{dep.spec}"
+        ]
+    return used, []
+
+
+def _from_version(django: Project, text: str) -> str:
+    """``--from 4.2`` means the newest 4.2.x; ``--from 4.2.7`` means exactly that."""
+    try:
+        version = Version(text)
+    except InvalidVersion:
+        raise ValueError(f"--from {text!r} is not a Django version") from None
+    if len(version.release) > 2:
+        return str(version)
+    series = _series(django).get(Version(f"{version.major}.{version.minor}"))
+    if not series:
+        raise ValueError(f"--from {text}: there is no released Django {text}")
+    return str(series[-1])
+
+
+def spec_sets(spec: str) -> list[SpecifierSet] | None:
+    """A requirement as alternatives (``||`` from Poetry); ``None`` when it cannot be read."""
+    try:
+        return [SpecifierSet(part.strip()) for part in spec.split("||")]
+    except InvalidSpecifier:
+        return None
+
+
+def _is_version(text: str) -> bool:
+    try:
+        Version(text)
+    except InvalidVersion:
+        return False
+    return True
+
+
+def _warnings(
+    requested: str,
+    goal: Target,
+    django: Project,
+    current_minor: Version | None,
+    current_django: str | None,
+    deps: DependencySet,
+) -> list[str]:
+    warnings = []
+    label = goal.label
+    if not goal.released:
+        warnings.append(
+            f"Django {label} is not released yet: only classifiers count, upper bounds are ignored"
+        )
+    if current_minor is not None and goal.version == current_minor:
+        if requested == "auto":
+            warnings.append(f"Django {label} is already the newest release; showing a health check")
+        elif requested == "lts" and (lts := latest_lts(django)) < current_minor:
+            warnings.append(
+                f"Django {lts}, the newest LTS, is older than your Django {current_django}; "
+                f"showing a health check of Django {label} instead"
+            )
+        else:
+            warnings.append(f"You are already on Django {current_django}; showing a health check")
+    if current_minor is not None and requested in ("auto", "lts", "latest"):
+        skipped = [v for v in _series(django) if v.minor == 2 and current_minor < v < goal.version]
+        if skipped:
+            step = min(skipped)
+            warnings.append(
+                f"This skips Django {', '.join(map(str, sorted(skipped)))} LTS. Upgrading one "
+                f"LTS at a time is easier: run with -t {step} for a smaller first step"
+            )
+    dep = deps.dependencies.get("django")
+    alternatives = spec_sets(dep.spec) if dep and dep.spec and not dep.version else None
+    if alternatives and not any(_allows(a, goal) for a in alternatives):
+        warnings.append(
+            f"Your requirement Django{dep.spec} excludes Django {label}: widen it when you upgrade"
+        )
+    needed = _min_python(goal.requires_python)
+    if deps.python and needed and Version(deps.python) < Version(needed):
+        where = f" (from {deps.python_source})" if deps.python_source else ""
+        warnings.append(
+            f"Django {label} needs Python {goal.requires_python}, "
+            f"your project uses {deps.python}{where}"
+        )
+    return warnings
 
 
 def _minor(version: str | None) -> Version | None:
@@ -262,118 +771,414 @@ def _minor(version: str | None) -> Version | None:
     return Version(f"{v.major}.{v.minor}")
 
 
-def _first_release_of(project: Project, minor: Version) -> Version | None:
-    for release in project.stable_releases():
-        if (release.version.major, release.version.minor) == (minor.major, minor.minor):
-            return release.version
-    return None
+_Found = tuple[Version, ReleaseInfo, Support]
 
 
-def _check_package(
-    dep: Dependency,
-    project: Project,
-    pypi: PyPI,
-    target: Version,
-    current_django: Version | None,
-) -> PackageReport:
-    stable = project.stable_releases()
-    last_release = max((r.uploaded for r in project.releases if r.uploaded), default=None)
-    report = PackageReport(
-        name=dep.name,
-        display_name=project.name,
-        current=dep.version,
-        spec=dep.spec,
-        latest=project.latest.version,
-        status=Status.CHECK,
-        reason="",
-        last_release=last_release,
-    )
-    if report.stale:
-        years = (datetime.now(timezone.utc) - last_release).days // 365
-        report.notes.append(f"no release in {years} years")
-
-    latest_support = supports(project.latest, target)
-
-    current_info = pypi.release(dep.name, dep.version) if dep.version else None
-    if current_info is None:
-        # We only know a range. Judge by the newest release.
-        report.reason = f"latest {project.latest.version} {latest_support.reason}"
-        report.status = {
-            Verdict.YES: Status.READY,
-            Verdict.LIKELY: Status.CHECK,
-            Verdict.UNKNOWN: Status.CHECK,
-            Verdict.NO: Status.BLOCKED,
-        }[latest_support.verdict]
-        if not dep.version:
-            report.notes.append("version not pinned, add a lockfile for exact results")
-        return report
-
-    current_support = supports(current_info, target)
-    if current_support.verdict is Verdict.YES:
-        report.status = Status.READY
-        report.reason = current_support.reason
-        return report
-
-    current_version = Version(dep.version)
-    newer = [r.version for r in stable if r.version > current_version]
-    candidate = _first_supporting(dep.name, newer, pypi, target)
-    if candidate is not None:
-        version, info, support = candidate
-        report.status = Status.UPGRADE
-        report.target_version = str(version)
-        report.reason = f"{version} {support.reason}"
-        if current_django is not None:
-            runs_on_current = supports(info, current_django).verdict is not Verdict.NO
-            report.phase = Phase.BEFORE if runs_on_current else Phase.WITH
-        return report
-
-    if latest_support.verdict is Verdict.NO:
-        report.status = Status.BLOCKED
-        report.reason = f"latest {project.latest.version} {latest_support.reason}"
-        return report
-
-    if current_support.verdict is Verdict.NO:
-        # Nothing declares support, but a newer release at least stops excluding it.
-        candidate = _first_supporting(dep.name, newer, pypi, target, accept=Verdict.LIKELY)
-        if candidate is not None:
-            version, _, support = candidate
-            report.status = Status.CHECK
-            report.target_version = str(version)
-            report.reason = f"{version} {support.reason}"
-            return report
-
-    report.status = Status.CHECK
-    if current_support.verdict is Verdict.LIKELY:
-        report.reason = current_support.reason
-        if project.latest.version != dep.version:
-            report.notes.append(f"latest {project.latest.version} {latest_support.reason}")
-    else:
-        report.reason = f"latest {project.latest.version} {latest_support.reason}"
-    return report
+def _drops(info: ReleaseInfo, uploaded: datetime | None, current: Target) -> bool:
+    """True when ``info`` no longer runs on the current Django series, even its newest patch."""
+    series = Target(current.version, ga=current.ga, python=current.python)
+    support = supports(info, series, uploaded)
+    if support.verdict is Verdict.NO:
+        return True
+    declared = declared_versions(info)
+    return support.verdict is not Verdict.YES and bool(declared) and min(declared) > current.version
 
 
-def _first_supporting(
-    name: str,
-    versions: Iterable[Version],
-    pypi: PyPI,
-    target: Version,
-    accept: Verdict = Verdict.YES,
-) -> tuple[Version, ReleaseInfo, Support] | None:
-    """The oldest of ``versions`` whose verdict for ``target`` is ``accept``.
+def _is_yes(verdict: Verdict) -> bool:
+    return verdict is Verdict.YES
 
-    Newest first would be cheaper, but the smallest step is the useful answer.
-    Releases are checked in parallel batches to keep this quick.
-    """
-    candidates = list(versions)[-MAX_RELEASES_SCANNED:]
-    batch = 8
-    with ThreadPoolExecutor(max_workers=batch) as pool:
-        for start in range(0, len(candidates), batch):
-            chunk = candidates[start : start + batch]
-            infos = list(pool.map(lambda v: pypi.release(name, str(v)), chunk))
+
+def _not_no(verdict: Verdict) -> bool:
+    return verdict is not Verdict.NO
+
+
+class _Checker:
+    """Judges packages against one target, with one shared pool for all release lookups."""
+
+    def __init__(
+        self,
+        pypi: PyPI,
+        target: Target,
+        current: Target | None,
+        pool: Executor,
+        batch: int,
+        pinned: dict[str, Version] | None = None,
+        private: frozenset[str] = frozenset(),
+    ):
+        self.pypi = pypi
+        self.target = target
+        self.current = current
+        self.pool = pool
+        self.batch = batch
+        self.pinned = pinned or {}
+        self.private = private
+        """Packages that must never be looked up on the index (git, paths, private indexes)."""
+        """Exact versions of the project's other packages, to see what a release conflicts with."""
+        self.installed: dict[str, ReleaseInfo] = {}
+        """Metadata of the installed release of every package looked up."""
+        self.links: dict[str, set[str]] = {}
+        """Package -> the packages whose installed release forbids its upgrade."""
+        self._lock = threading.Lock()
+
+    def link(self, name: str, needs: str) -> None:
+        with self._lock:
+            self.links.setdefault(name, set()).add(needs)
+
+    def check(self, dep: Dependency) -> PackageReport | str | None:
+        project = self.pypi.project(dep.name)
+        if project is None:
+            return dep.name
+        current_info = self.pypi.release(dep.name, dep.version) if dep.version else None
+        if current_info is not None:
+            with self._lock:
+                self.installed[dep.name] = current_info
+        if not is_django_related(project.latest) and (
+            current_info is None or not is_django_related(current_info)
+        ):
+            return None
+        return _Package(self, dep, project, current_info).judge()
+
+    def find(
+        self,
+        name: str,
+        versions: Iterable[Version],
+        dates: dict[Version, datetime | None],
+        accept: Callable[[Verdict], bool],
+        newest_first: bool = False,
+    ) -> _Found | None:
+        """The first of ``versions``, in the given order, whose verdict is accepted.
+
+        The scan stops at a release that excludes the target on the side already passed:
+        after it, bounds only move further away.
+        """
+        candidates = list(versions)
+        passed = 1 if newest_first else -1
+        for start in range(0, len(candidates), self.batch):
+            chunk = candidates[start : start + self.batch]
+            infos = list(self.pool.map(lambda v: self.pypi.release(name, str(v)), chunk))
             for version, info in zip(chunk, infos, strict=True):
                 if info is None:
                     continue
-                support = supports(info, target)
-                if support.verdict is accept:
+                support = supports(info, self.target, dates.get(version))
+                if accept(support.verdict):
                     return version, info, support
-    return None
+                if support.verdict is Verdict.NO and excluded_side(info, self.target) == passed:
+                    return None
+        return None
+
+    def search(
+        self,
+        name: str,
+        versions: list[Version],
+        dates: dict[Version, datetime | None],
+        highest: bool = False,
+    ) -> _Found | None:
+        """The lowest (or ``highest``) of ``versions``, oldest first, that allows the target.
+
+        A bisection that follows the Django bounds, so a long release history costs a few
+        requests. Where the bounds do not say which way to go, it falls back to a scan.
+        """
+        lo, hi = 0, len(versions)
+        found = None
+        while lo < hi:
+            mid = (lo + hi) // 2
+            version = versions[mid]
+            info = self.pypi.release(name, str(version))
+            side = 0
+            if info is not None:
+                support = supports(info, self.target, dates.get(version))
+                if support.verdict is not Verdict.NO:
+                    found = version, info, support
+                    lo, hi = (mid + 1, hi) if highest else (lo, mid)
+                    continue
+                side = excluded_side(info, self.target)
+            if side == 1:
+                lo = mid + 1
+            elif side == -1:
+                hi = mid
+            else:
+                rest = versions[lo:hi]
+                scanned = self.find(
+                    name, reversed(rest) if highest else rest, dates, _not_no, newest_first=highest
+                )
+                return scanned or found
+        return found
+
+
+class _Package:
+    """One dependency, judged against the target."""
+
+    def __init__(
+        self,
+        checker: _Checker,
+        dep: Dependency,
+        project: Project,
+        current_info: ReleaseInfo | None,
+    ):
+        self.checker = checker
+        self.target = checker.target
+        self.dep = dep
+        self.project = project
+        self.current_info = current_info
+        self.dates = {r.version: r.uploaded for r in project.releases}
+        self.stable = [r.version for r in project.stable_releases()]
+        if not self.stable:
+            self.stable = [Version(project.latest.version)]
+        self.latest_support = self._supports(project.latest)
+        last_release = max((r.uploaded for r in project.releases if r.uploaded), default=None)
+        self.report = PackageReport(
+            name=dep.name,
+            display_name=project.name,
+            current=dep.version,
+            spec=dep.spec,
+            latest=project.latest.version,
+            status=Status.CHECK,
+            reason="",
+            last_release=last_release,
+        )
+
+    def judge(self) -> PackageReport:
+        report = self.report
+        if report.stale:
+            years = (datetime.now(timezone.utc) - report.last_release).days // 365
+            report.notes.append(f"no release in {years} years")
+        if _INACTIVE in self.project.latest.classifiers:
+            report.notes.append("marked inactive by its maintainers")
+        note = _framework_note(self.current_info or self.project.latest)
+        if note:
+            report.notes.append(note)
+
+        if self.current_info is not None:
+            self._pinned()
+        elif self.dep.version:
+            self._not_on_index()
+        else:
+            self._unpinned()
+        return report
+
+    # --- the three kinds of dependency
+
+    def _pinned(self) -> None:
+        report = self.report
+        current_support = self._supports(self.current_info)
+        if current_support.verdict is Verdict.YES:
+            report.status = Status.READY
+            report.reason = current_support.reason
+            return
+
+        newer = self._newer()
+        found = self._find(self._could_declare(newer), _is_yes)
+        if found is not None:
+            self._upgrade(found)
+            return
+
+        report.status = Status.CHECK
+        if current_support.verdict is not Verdict.NO:
+            report.reason = current_support.reason
+            if self.latest_support.verdict is Verdict.NO:
+                report.notes.append(f"newer releases exclude Django {self.target.label}")
+            elif self.project.latest.version != self.dep.version:
+                report.notes.append(self._latest_reason())
+            return
+
+        found = self._search(newer)
+        if found is not None:
+            self._check(found)
+            return
+        report.status = Status.BLOCKED
+        report.reason = self._latest_reason()
+
+    def _not_on_index(self) -> None:
+        report = self.report
+        report.status = Status.CHECK
+        report.reason = self._latest_reason()
+        report.notes.append(f"installed version {self.dep.version} not found on the index")
+        found = self._find(self._could_declare(self._newer()), _is_yes)
+        if found is not None:
+            self._check(found)
+
+    def _unpinned(self) -> None:
+        report = self.report
+        report.notes.append("version not pinned, add a lockfile for exact results")
+        allowed = self._allowed()
+        outside = [v for v in self.stable if not allowed or v > allowed[-1]]
+        older_allowed = list(reversed(allowed[:-1]))  # newest first: stay as high as possible
+
+        newest = None
+        if allowed:
+            info = self.checker.pypi.release(self.dep.name, str(allowed[-1]))
+            support = self._supports(info) if info else self.latest_support
+            where = (
+                "latest" if str(allowed[-1]) == self.project.latest.version else "newest allowed"
+            )
+            newest = (support, f"{where} {allowed[-1]} {support.reason}")
+            if support.verdict is Verdict.YES:
+                report.status = Status.READY
+                report.reason = newest[1]
+                return
+            found = self._find(self._could_declare(older_allowed), _is_yes, newest_first=True)
+            if found is not None:
+                self._check(found, note=newest[1])
+                return
+
+        found = self._find(self._could_declare(outside), _is_yes)
+        if found is not None:
+            self._upgrade(found)
+            report.notes.append(f"outside your requirement {self.dep.spec}")
+            return
+
+        if newest is not None:
+            if newest[0].verdict is not Verdict.NO:
+                report.status = Status.CHECK
+                report.reason = newest[1]
+                return
+            found = self._search(allowed[:-1], highest=True)
+            if found is not None:
+                self._check(found, note=newest[1])
+                return
+        found = self._search(outside)
+        if found is not None:
+            self._check(found, note=f"outside your requirement {self.dep.spec}")
+            return
+        report.status = Status.BLOCKED
+        report.reason = self._latest_reason()
+
+    # --- helpers
+
+    def _newer(self) -> list[Version]:
+        try:
+            installed = Version(self.dep.version)
+        except InvalidVersion:
+            return []
+        return [v for v in self.stable if v > installed]
+
+    def _supports(self, info: ReleaseInfo, target: Target | None = None) -> Support:
+        try:
+            uploaded = self.dates.get(Version(info.version))
+        except InvalidVersion:
+            uploaded = None
+        return supports(info, target or self.target, uploaded)
+
+    def _find(
+        self, versions: Iterable[Version], accept, newest_first: bool = False
+    ) -> _Found | None:
+        return self.checker.find(self.dep.name, versions, self.dates, accept, newest_first)
+
+    def _search(self, versions: list[Version], highest: bool = False) -> _Found | None:
+        return self.checker.search(self.dep.name, versions, self.dates, highest)
+
+    def _could_declare(self, versions: list[Version]) -> list[Version]:
+        """Leave out releases uploaded too long before the target to declare it.
+
+        An unreleased target is declared only by a classifier, and once a package adds that it
+        keeps it: when the latest release does not declare the target, no older one does.
+        """
+        if not self.target.released and self.latest_support.verdict is not Verdict.YES:
+            return []
+        horizon = (self.target.ga or datetime.now(timezone.utc)) - _DECLARE_WINDOW
+        return [v for v in versions if (d := self.dates.get(v)) is None or d >= horizon]
+
+    def _latest_reason(self) -> str:
+        return f"latest {self.project.latest.version} {self.latest_support.reason}"
+
+    def _check(self, found: _Found, note: str | None = None) -> None:
+        version, _, support = found
+        self.report.status = Status.CHECK
+        self.report.target_version = str(version)
+        self.report.reason = f"{version} {support.reason}"
+        if note:
+            self.report.notes.append(note)
+
+    def _upgrade(self, found: _Found) -> None:
+        version, info, support = found
+        self.report.status = Status.UPGRADE
+        self.report.target_version = str(version)
+        self.report.reason = f"{version} {support.reason}"
+        self._phase(info)
+
+    def _phase(self, info: ReleaseInfo) -> None:
+        """Can ``info`` be installed before Django is upgraded?"""
+        current = self.checker.current
+        if current is None:
+            return
+        support = self._supports(info, current)
+        exact = current.patches[0]
+        series = Target(current.version, ga=current.ga, python=current.python)
+        phase = Phase.BEFORE
+        if support.verdict is Verdict.NO:
+            if self._supports(info, series).verdict is Verdict.NO:
+                phase = Phase.WITH
+            else:  # a newer patch of the current Django is enough
+                self.report.notes.append(
+                    f"{support.reason}, you have {exact}: update Django {current.label} first"
+                )
+        elif support.verdict is not Verdict.YES:
+            declared = declared_versions(info)
+            if declared and min(declared) > current.version:
+                phase = Phase.WITH
+                oldest = declared[0]
+                self.report.notes.append(
+                    f"declares Django {oldest.major}.{oldest.minor} and newer only"
+                )
+            else:
+                self.report.notes.append(f"not declared for Django {exact}")
+        for name, display, spec, have in self._conflicts(info, current.python):
+            needed = f"needs {display}{spec}, you have {have}"
+            bound = self._needs_newer_django(name, spec, current)
+            if bound is None:
+                self.report.notes.append(f"{needed}: upgrade {display} first")
+            else:
+                phase = Phase.WITH
+                self.report.notes.append(
+                    f"{needed}, and {display} {bound} no longer runs on Django {current.label}"
+                )
+        if current.version != self.target.version:  # no phases in a health check
+            self.report.phase = phase
+
+    def _conflicts(
+        self, info: ReleaseInfo, python: str | None
+    ) -> list[tuple[str, str, SpecifierSet, Version]]:
+        """Requirements of ``info`` that the project's other pinned packages do not meet."""
+        env = _environment(python)
+        found = []
+        for line in info.requires_dist:
+            try:
+                req = Requirement(line)
+            except InvalidRequirement:
+                continue
+            name = canonicalize_name(req.name)
+            have = self.checker.pinned.get(name)
+            if name in ("django", self.dep.name) or have is None:
+                continue
+            if req.marker is not None and not req.marker.evaluate(env):
+                continue
+            if not req.specifier.contains(have, prereleases=True):
+                found.append((name, req.name, req.specifier, have))
+        return found
+
+    def _needs_newer_django(self, name: str, spec: SpecifierSet, current: Target) -> str | None:
+        """The first release of ``name`` that meets ``spec``, if it dropped the current Django.
+
+        ``None`` when that release still runs on it, so the package can be upgraded first.
+        """
+        if name in self.checker.private:
+            return None
+        project = self.checker.pypi.project(name)
+        if project is None:
+            return None
+        first = next(
+            (r for r in project.stable_releases() if spec.contains(r.version, prereleases=True)),
+            None,
+        )
+        if first is None:
+            return None
+        info = self.checker.pypi.release(name, str(first.version))
+        if info is None or not _drops(info, first.uploaded, current):
+            return None
+        return str(first.version)
+
+    def _allowed(self) -> list[Version]:
+        alternatives = spec_sets(self.dep.spec) if self.dep.spec else None
+        if alternatives is None:
+            return self.stable
+        return [v for v in self.stable if any(a.contains(v) for a in alternatives)]

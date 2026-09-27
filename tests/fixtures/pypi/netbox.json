@@ -1,0 +1,13 @@
+{
+ "info": {"name":"netbox","version":"4.7.1","classifiers":["Framework :: Django"],"requires_dist":["django==6.1.1"],"requires_python":">=3.12"},
+ "yanked": [],
+ "uploaded": {
+  "4.7.0b1":"2026-08-17T17:44:45.916190Z",
+  "4.7.0b2":"2026-08-26T19:49:10.627202Z",
+  "4.7.0":"2026-09-02T18:50:28.420933Z",
+  "4.7.1":"2026-09-15T18:44:51.513317Z"
+ },
+ "releases": {
+  "4.7.1":{"name":"netbox","version":"4.7.1","classifiers":["Framework :: Django"],"requires_dist":["django==6.1.1"],"requires_python":">=3.12"}
+ }
+}
