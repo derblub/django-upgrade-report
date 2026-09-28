@@ -1,6 +1,6 @@
 """Find out which of your dependencies block a Django upgrade."""
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 __author__ = "Daniel Kurdoghlian"
 
 AUTHOR = __author__

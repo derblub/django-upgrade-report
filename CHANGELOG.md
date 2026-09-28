@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-09-28
+
+### Changed
+
+- A health check (you already run the target Django) says so in the headline, "Django 6.1 · health check" instead of "Django 6.1 → 6.1", and its "Check manually" hint says that these packages already run on your Django and only their metadata lags behind.
+- Why it is a health check is no longer a warning: the JSON report lists it under the new `notices`, and the text report shows it as a quiet line under the headline.
+- Text report: notes go on their own line, aligned under the reason, instead of making the row longer. A note that every package in a section shares is said once for the section. The counts in the summary line are colored by status, and zeros are dimmed.
+
 ## [0.2.3] - 2026-09-28
 
 ### Changed
@@ -99,7 +107,8 @@ Preview, not published on PyPI.
 - GitHub Action that writes the report to the job summary.
 - 24 hour cache for PyPI responses.
 
-[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/derblub/django-upgrade-report/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/derblub/django-upgrade-report/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/derblub/django-upgrade-report/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/derblub/django-upgrade-report/compare/v0.2.0...v0.2.1

@@ -257,7 +257,23 @@ def test_text_lists_ready_packages_with_notes(busy_project, capsys, index):
     out = capsys.readouterr().out
     ready = out[out.index("Ready (2)") :]
     assert ready.splitlines()[1] == "  django-plain"
-    assert re.search(r"✓ django-ready\s+>=1.0\s+.*version not pinned", ready)
+    row, note = ready.splitlines()[2:4]
+    assert re.fullmatch(r"  ✓ django-ready\s+>=1.0\s+latest 1.0 declares Django 5.2", row)
+    assert note.strip() == "version not pinned, add a lockfile for exact results"
+    assert note.index("version") == row.index("latest")  # notes line up under the reason
+
+
+def test_text_says_a_note_every_package_shares_once(project, capsys, index):
+    index.packages["django-plain"] = [release("django-plain", "1.0", ">=4.2", ["5.2"])]
+    (project / "requirements.txt").write_text("Django==4.2.7\ndjango-ready\ndjango-plain\n")
+    cli.main([str(project)])
+    out = capsys.readouterr().out
+    ready = out[out.index("Ready (2)") :].splitlines()
+    assert ready[1:3] == [
+        "  Version not pinned, add a lockfile for exact results.",
+        "  django-plain, django-ready",
+    ]
+    assert out.count("not pinned") == 1
 
 
 def test_markdown_escapes_cells(busy_project, capsys):
@@ -329,7 +345,7 @@ def test_lts_on_a_newer_django_does_not_fail(project, index, capsys):
     (project / "requirements.txt").write_text("Django==6.0\ndjango-new==3.0\n")
     assert cli.main([str(project), "-t", "lts", "--fail-on", "blocked"]) == 0
     out = capsys.readouterr().out
-    assert "Django 6.0 → 6.0" in out
+    assert "Django 6.0 · health check" in out
     assert "the newest LTS, is older than your Django 6.0" in out
     assert "Blocked" not in out
 

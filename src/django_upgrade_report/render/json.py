@@ -15,6 +15,8 @@ Top level (schema_version 1):
 - ``project_python`` (str | null): the project's Python as ``X.Y``, when known.
 - ``source`` (str): where the dependencies were read from.
 - ``warnings`` (list of str): things that make the whole report questionable, show them first.
+- ``notices`` (list of str): good to know, nothing to worry about, e.g. why the report is a
+  health check of the Django the project already runs.
 - ``counts`` (object): number of packages per status (``ready``, ``upgrade``, ``check``,
   ``blocked``).
 - ``packages`` (list): one object per Django-related package, most urgent first:
@@ -56,6 +58,7 @@ def as_dict(report: Report) -> dict:
         "project_python": report.project_python,
         "source": report.source,
         "warnings": report.warnings,
+        "notices": report.notices,
         "counts": {status.value: n for status, n in report.counts.items()},
         "packages": [
             {

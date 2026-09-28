@@ -590,11 +590,13 @@ def test_targets_that_do_not_exist_are_rejected(index, target):
 
 def test_target_warnings(index):
     health = analyse(deps(django="6.0"), index)
-    assert health.warnings == ["Django 6.0 is already the newest release; showing a health check"]
+    assert health.warnings == []
+    assert health.notices == ["Django 6.0 is already the newest release"]
+    assert health.health_check
     lts = analyse(deps(django="6.0"), index, target="lts")
-    assert lts.warnings == [
-        "Django 5.2, the newest LTS, is older than your Django 6.0; "
-        "showing a health check of Django 6.0 instead"
+    assert lts.notices == ["Django 5.2, the newest LTS, is older than your Django 6.0"]
+    assert analyse(deps(django="6.0.1"), index, target="6.0").notices == [
+        "You are already on Django 6.0.1"
     ]
     upcoming = analyse(deps(django="6.0"), index, target="6.1")
     assert not upcoming.target_released
@@ -664,7 +666,8 @@ def test_golden_wagtail_early_upper_bound_is_not_support(recorded, installed):
 def test_golden_prometheus_on_the_newest_django_is_not_blocked(recorded):
     report = golden(recorded, "auto", "6.1.1", pinned("django-prometheus", "2.4.0"))
     assert report.target == "6.1"
-    assert report.warnings == ["Django 6.1 is already the newest release; showing a health check"]
+    assert report.warnings == []
+    assert report.notices == ["Django 6.1 is already the newest release"]
     p = by_name(report, "django-prometheus")
     assert p.status is Status.CHECK
     assert "newer releases exclude Django 6.1" in p.notes

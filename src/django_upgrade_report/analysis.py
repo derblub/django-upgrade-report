@@ -130,12 +130,22 @@ class Report:
     external: list[tuple[str, str]] = field(default_factory=list)
     """Dependencies not resolved from PyPI, as (name, where from). Never looked up."""
     warnings: list[str] = field(default_factory=list)
+    notices: list[str] = field(default_factory=list)
+    """Good to know, but nothing to worry about, e.g. why this is a health check."""
     project_python: str | None = None
     target_released: bool = True
     generated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def by_status(self, status: Status) -> list[PackageReport]:
         return [p for p in self.packages if p.status is status]
+
+    @property
+    def health_check(self) -> bool:
+        """The project already runs the target: nothing to upgrade to, only how things stand."""
+        if not self.current_django or not _is_version(self.current_django):
+            return False
+        current = Version(self.current_django)
+        return f"{current.major}.{current.minor}" == self.target
 
     @property
     def counts(self) -> dict[Status, int]:
@@ -593,7 +603,8 @@ def analyse(
         missing=missing,
         failed=[f.name for f in failed],
         external=external,
-        warnings=notes + _warnings(target, goal, django, current_minor, current_django, deps),
+        warnings=notes + _warnings(target, goal, django, current_minor, deps),
+        notices=_notices(target, goal, django, current_minor, current_django),
         project_python=project_python,
         target_released=goal.released,
     )
@@ -827,12 +838,27 @@ def _is_version(text: str) -> bool:
     return True
 
 
-def _warnings(
+def _notices(
     requested: str,
     goal: Target,
     django: Project,
     current_minor: Version | None,
     current_django: str | None,
+) -> list[str]:
+    if current_minor is None or goal.version != current_minor:
+        return []
+    if requested == "auto":
+        return [f"Django {goal.label} is already the newest release"]
+    if requested == "lts" and (lts := latest_lts(django)) < current_minor:
+        return [f"Django {lts}, the newest LTS, is older than your Django {current_django}"]
+    return [f"You are already on Django {current_django}"]
+
+
+def _warnings(
+    requested: str,
+    goal: Target,
+    django: Project,
+    current_minor: Version | None,
     deps: DependencySet,
 ) -> list[str]:
     warnings = []
@@ -841,16 +867,6 @@ def _warnings(
         warnings.append(
             f"Django {label} is not released yet: only classifiers count, upper bounds are ignored"
         )
-    if current_minor is not None and goal.version == current_minor:
-        if requested == "auto":
-            warnings.append(f"Django {label} is already the newest release; showing a health check")
-        elif requested == "lts" and (lts := latest_lts(django)) < current_minor:
-            warnings.append(
-                f"Django {lts}, the newest LTS, is older than your Django {current_django}; "
-                f"showing a health check of Django {label} instead"
-            )
-        else:
-            warnings.append(f"You are already on Django {current_django}; showing a health check")
     if current_minor is not None and requested in ("auto", "lts", "latest"):
         skipped = [v for v in _series(django) if v.minor == 2 and current_minor < v < goal.version]
         if skipped:

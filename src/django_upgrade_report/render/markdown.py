@@ -63,6 +63,8 @@ def render(report: Report) -> str:
         f"**{summary(report)}** · from {_code(report.source)}",
         "",
     ]
+    if report.notices:
+        lines += [" ".join(f"{escape(n)}." for n in report.notices), ""]
     if report.warnings:
         lines.append("> [!WARNING]")
         lines += [f"> {escape(w)}  " for w in report.warnings]

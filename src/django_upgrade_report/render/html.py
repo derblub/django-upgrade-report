@@ -100,7 +100,13 @@ _SECTION_COLOR = {
 def render(report: Report) -> str:
     counts = report.counts
     title = headline(report)
-    start, _, end = title.partition(" → ")
+    start, arrow, end = title.partition(" → ")
+    heading = (
+        f'{escape(start)} <span class="arrow">→</span> {escape(end)}' if arrow else escape(title)
+    )
+    kind = "Health check" if report.health_check else "Upgrade report"
+    intro = " ".join(f"{escape(n)}." for n in report.notices)
+    intro = f"{intro} {kind} for {packages_line(report)}".strip()
 
     tiles = "".join(
         f'<div class="tile {css}{" zero" if not counts[status] else ""}">'
@@ -182,8 +188,8 @@ def render(report: Report) -> str:
 <body>
 <main>
 <header>
-<h1>{escape(start)} <span class="arrow">→</span> {escape(end)}</h1>
-<p>Upgrade report for {packages_line(report)}</p>
+<h1>{heading}</h1>
+<p>{intro}</p>
 </header>
 {warnings}<div class="tiles">{tiles}</div>
 {"".join(body)}

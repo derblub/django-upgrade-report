@@ -50,7 +50,10 @@ def sections(report: Report) -> list[Section]:
         Section(
             "check",
             "Check manually",
-            "The metadata does not say either way. Read the changelog or run the test suite.",
+            f"You already run these on Django {report.target}, but their metadata does not say "
+            "so. If your test suite passes, there is nothing to do."
+            if report.health_check
+            else "The metadata does not say either way. Read the changelog or run the test suite.",
             report.by_status(Status.CHECK),
         ),
         Section(
@@ -102,6 +105,8 @@ def python_line(report: Report) -> str | None:
 
 
 def headline(report: Report) -> str:
+    if report.health_check:
+        return f"Django {report.target} · health check"
     start = f"Django {report.current_django}" if report.current_django else "Django"
     return f"{start} → {report.target}"
 
