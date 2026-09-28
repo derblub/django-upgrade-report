@@ -26,9 +26,9 @@ from django_upgrade_report import __version__
 USER_AGENT = (
     f"django-upgrade-report/{__version__} (+https://github.com/derblub/django-upgrade-report)"
 )
-ATTEMPTS = 3
+ATTEMPTS = 4
 MAX_RETRY_AFTER = 30.0
-MAX_CONNECTIONS = 16
+MAX_CONNECTIONS = 8
 """Requests in flight at once, however many threads ask."""
 
 

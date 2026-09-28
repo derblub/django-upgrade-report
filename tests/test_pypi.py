@@ -117,13 +117,13 @@ def test_gives_up_with_one_clear_error(monkeypatch, sleeps):
     fake = serve(monkeypatch, TimeoutError("timed out"))
     with pytest.raises(PyPIError) as info:
         PyPI("https://pypi.test/pypi").project("django-x")
-    assert len(fake.requests) == pypi.ATTEMPTS == 3
+    assert len(fake.requests) == pypi.ATTEMPTS == 4
     assert str(info.value) == (
-        "could not fetch https://pypi.test/pypi/django-x/json: timed out (tried 3 times)"
+        "could not fetch https://pypi.test/pypi/django-x/json: timed out (tried 4 times)"
     )
     assert isinstance(info.value, OSError)
     # Exponential backoff with jitter.
-    assert 1 <= sleeps[0] < 2 <= sleeps[1] < 3
+    assert 1 <= sleeps[0] < 2 <= sleeps[1] < 3 and 4 <= sleeps[2] < 5
 
 
 def test_not_json_names_the_likely_cause(monkeypatch, sleeps):

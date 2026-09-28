@@ -7,7 +7,7 @@ from conftest import DJANGO, _info, release
 from packaging.version import Version
 
 from django_upgrade_report.analysis import Phase, Status, Target, Verdict, analyse, supports
-from django_upgrade_report.pypi import PyPI, ReleaseInfo
+from django_upgrade_report.pypi import PyPI, PyPIError, ReleaseInfo
 from django_upgrade_report.sources import Dependency, DependencySet
 
 T52 = Version("5.2")
@@ -993,3 +993,54 @@ def test_index_that_does_not_know_the_projects_django_series_is_an_error():
     index.packages["django"] = [release("Django", "4.1", uploaded="2022-08-03")]
     with pytest.raises(ValueError, match="knows no Django newer than 4.1"):
         analyse(deps(django="4.2.7"), index)
+
+
+# --- a busy or flaky index ------------------------------------------------------------
+
+
+def test_unrelated_pinned_package_costs_one_small_request():
+    """Only the installed release's metadata, never the whole release history (botocore)."""
+    index = status_index(
+        s3transfer=[release("s3transfer", "0.10.0"), release("s3transfer", "0.11.0")]
+    )
+    report = analyse(deps(django="4.2.7", s3transfer="0.10.0"), index, target="5.2")
+    assert report.skipped == 1
+    asked = [u for u in index.requests if "/s3transfer/" in u]
+    assert asked == ["https://pypi.test/pypi/s3transfer/0.10.0/json"]
+
+
+class Flaky:
+    """An index that fails for one package, like PyPI's "503 Backend is unhealthy"."""
+
+    def __init__(self, index, broken):
+        self.index, self.broken = index, broken
+
+    def __getattr__(self, name):
+        return getattr(self.index, name)
+
+    def project(self, name):
+        if name == self.broken:
+            raise PyPIError(
+                f"could not fetch {name}: HTTP 503 Backend is unhealthy (tried 4 times)"
+            )
+        return self.index.project(name)
+
+    def release(self, name, version):
+        if name == self.broken:
+            raise PyPIError(
+                f"could not fetch {name}: HTTP 503 Backend is unhealthy (tried 4 times)"
+            )
+        return self.index.release(name, version)
+
+
+def test_one_package_the_index_cannot_answer_for_does_not_stop_the_report(index):
+    report = analyse(
+        deps(django="4.2.7", django_ready="1.0", django_before="1.0"),
+        Flaky(index, "django-before"),
+        target="5.2",
+    )
+    assert report.failed == ["django-before"]
+    assert [p.name for p in report.packages] == ["django-ready"]
+    assert any(
+        w.startswith("Could not check django-before, run again later") for w in report.warnings
+    )

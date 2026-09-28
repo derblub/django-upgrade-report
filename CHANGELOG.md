@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-09-28
+
+### Changed
+
+- Much less load on PyPI: for a pinned dependency, the small metadata of the installed release is fetched first, and the whole release history only for Django-related packages. On Saleor's lockfile that is 18 instead of 224 full fetches, 6.5 instead of 122 MB, with the same results.
+- At most 8 requests in flight at once instead of 16, and four attempts instead of three, with growing pauses.
+
+### Fixed
+
+- One package the index could not answer for, such as an HTTP 503 from PyPI, stopped the whole run. It is now reported as "Could not check" and the rest of the report is shown; `--fail-on` exits with 2 because the report is incomplete. The JSON report lists them under `not_checked`.
+
 ## [0.2.2] - 2026-09-28
 
 ### Fixed
@@ -88,7 +99,8 @@ Preview, not published on PyPI.
 - GitHub Action that writes the report to the job summary.
 - 24 hour cache for PyPI responses.
 
-[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/derblub/django-upgrade-report/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/derblub/django-upgrade-report/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/derblub/django-upgrade-report/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/derblub/django-upgrade-report/releases/tag/v0.2.0

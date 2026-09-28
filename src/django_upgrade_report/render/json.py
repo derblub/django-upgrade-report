@@ -23,6 +23,8 @@ Top level (schema_version 1):
   (``"before"``, ``"with"`` or null), ``reason``, ``notes`` (list of str) and
   ``last_release`` (ISO 8601 or null).
 - ``not_on_index`` (list of str): dependencies the package index does not know.
+- ``not_checked`` (list of str): dependencies the index could not answer for, even after
+  retries. When not empty, the report is incomplete; ``warnings`` says why.
 - ``external`` (list): dependencies not from PyPI and never looked up, as objects with
   ``name`` and ``source`` (e.g. ``"git https://github.com/org/repo"``).
 - ``skipped_non_django`` (int): dependencies without a Django requirement.
@@ -71,6 +73,7 @@ def as_dict(report: Report) -> dict:
             for p in report.packages
         ],
         "not_on_index": report.missing,
+        "not_checked": report.failed,
         "external": [{"name": name, "source": where} for name, where in report.external],
         "skipped_non_django": report.skipped,
     }

@@ -18,7 +18,7 @@ from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.utils import canonicalize_name
 from packaging.version import InvalidVersion, Version
 
-from django_upgrade_report.pypi import Project, PyPI, ReleaseInfo
+from django_upgrade_report.pypi import Project, PyPI, PyPIError, ReleaseInfo
 from django_upgrade_report.sources import Dependency, DependencySet
 
 _CLASSIFIER = re.compile(r"^Framework :: Django :: (\d+\.\d+)$")
@@ -125,6 +125,8 @@ class Report:
     """Dependencies that have nothing to do with Django."""
     missing: list[str]
     """Dependencies not found on the index (private packages, typos)."""
+    failed: list[str] = field(default_factory=list)
+    """Dependencies the index could not answer for (after retries): the report is incomplete."""
     external: list[tuple[str, str]] = field(default_factory=list)
     """Dependencies not resolved from PyPI, as (name, where from). Never looked up."""
     warnings: list[str] = field(default_factory=list)
@@ -553,14 +555,21 @@ def analyse(
         private = frozenset(d.name for d in deps.dependencies.values() if not checked(d))
         checker = _Checker(pypi, goal, today, release_pool, workers, pinned, private)
 
-        def check(dep: Dependency) -> PackageReport | str | None:
-            if progress:
-                progress(dep.name)
-            return checker.check(dep)
+        def check(dep: Dependency) -> PackageReport | str | _Failed | None:
+            try:
+                return checker.check(dep)
+            except PyPIError as exc:  # one flaky answer must not cost the whole report
+                return _Failed(dep.name, str(exc))
+            finally:
+                if progress:
+                    progress(dep.name)
 
         results = list(package_pool.map(check, others))
 
     packages = [r for r in results if isinstance(r, PackageReport)]
+    failed = [r for r in results if isinstance(r, _Failed)]
+    for f in failed:
+        notes.append(f"Could not check {f.name}, run again later: {f.problem}")
     if not packages and any(from_other_index(where) for _, where in external):
         notes.append(
             "No Django-related package was checked: they come from another index. If it "
@@ -582,6 +591,7 @@ def analyse(
         packages=packages,
         skipped=skipped,
         missing=missing,
+        failed=[f.name for f in failed],
         external=external,
         warnings=notes + _warnings(target, goal, django, current_minor, current_django, deps),
         project_python=project_python,
@@ -896,6 +906,12 @@ def _not_no(verdict: Verdict) -> bool:
     return verdict is not Verdict.NO
 
 
+@dataclass(frozen=True)
+class _Failed:
+    name: str
+    problem: str
+
+
 class _Checker:
     """Judges packages against one target, with one shared pool for all release lookups."""
 
@@ -929,13 +945,18 @@ class _Checker:
             self.links.setdefault(name, set()).add(needs)
 
     def check(self, dep: Dependency) -> PackageReport | str | None:
-        project = self.pypi.project(dep.name)
-        if project is None:
-            return dep.name
+        # The installed release's own metadata is a few kilobytes; a project's whole release
+        # history can be megabytes (botocore). Most dependencies are not Django-related, and
+        # their installed release is enough to tell.
         current_info = self.pypi.release(dep.name, dep.version) if dep.version else None
         if current_info is not None:
             with self._lock:
                 self.installed[dep.name] = current_info
+            if not is_django_related(current_info):
+                return None
+        project = self.pypi.project(dep.name)
+        if project is None:
+            return dep.name
         if not is_django_related(project.latest) and (
             current_info is None or not is_django_related(current_info)
         ):

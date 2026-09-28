@@ -457,3 +457,21 @@ def test_a_public_mirror_is_pypi(project, index, capsys):
     )
     assert cli.main([str(project), "--fail-on", "upgrade"]) == 1
     assert "not checked" not in capsys.readouterr().out
+
+
+def test_fail_on_never_passes_an_incomplete_report(project, index, monkeypatch, capsys):
+    from django_upgrade_report.pypi import PyPIError
+
+    real = index.release
+
+    def flaky(name, version):
+        if name == "django-before":
+            raise PyPIError("could not fetch django-before: HTTP 503 Backend is unhealthy")
+        return real(name, version)
+
+    monkeypatch.setattr(index, "release", flaky)
+    assert cli.main([str(project)]) == 0  # the report is still shown
+    out = capsys.readouterr().out
+    assert "Could not check django-before" in out
+    assert cli.main([str(project), "--fail-on", "blocked"]) == 2
+    assert "could not be checked" in capsys.readouterr().err

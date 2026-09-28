@@ -162,6 +162,11 @@ def _run(args: argparse.Namespace) -> int:
         sys.stdout.write(output)
         sys.stdout.flush()
 
+    if args.fail_on and report.failed:
+        raise Error(
+            f"--fail-on: {len(report.failed)} dependencies could not be checked "
+            f"({', '.join(report.failed)}): the package index did not answer. Run again later."
+        )
     if args.fail_on and not report.packages and _from_other_index(report):
         raise Error(
             "--fail-on: no Django-related package was checked, they come from another index. "
