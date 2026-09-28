@@ -21,7 +21,6 @@
   <a href="https://djangopackages.org/packages/p/django-upgrade-report/"><img src="https://img.shields.io/badge/Django%20Packages-django--upgrade--report-8c3c26" alt="Django Packages"></a>
   <a href="https://www.reddit.com/r/django/comments/1wsa9d3/54_days_after_django_61_14_of_the_top_200_django/"><img src="https://img.shields.io/badge/discuss-r%2Fdjango-FF4500?logo=reddit&logoColor=white" alt="Discuss on r/django"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
-  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
 </p>
 
 <p>
