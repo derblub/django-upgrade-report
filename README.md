@@ -18,6 +18,7 @@
   <a href="https://pypi.org/project/django-upgrade-report/"><img src="https://img.shields.io/pypi/v/django-upgrade-report" alt="PyPI"></a>
   <a href="https://pypi.org/project/django-upgrade-report/"><img src="https://img.shields.io/pypi/pyversions/django-upgrade-report" alt="Python versions"></a>
   <a href="https://pypi.org/project/django-upgrade-report/"><img src="https://img.shields.io/pypi/frameworkversions/django/django-upgrade-report" alt="Django versions"></a>
+  <a href="https://djangopackages.org/packages/p/django-upgrade-report/"><img src="https://img.shields.io/badge/Django%20Packages-django--upgrade--report-8c3c26" alt="Django Packages"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
 </p>
