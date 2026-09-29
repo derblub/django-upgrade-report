@@ -11,6 +11,7 @@ from django_upgrade_report.render import (
     packages_line,
     private_index_hint,
     python_line,
+    row_notes,
     sections,
     skipped_line,
     split_noted,
@@ -205,7 +206,7 @@ def _table(packages: list[PackageReport]) -> str:
     for p in packages:
         notes = "".join(
             f'<span class="note{" warn" if n.startswith("no release") else ""}">{escape(n)}</span>'
-            for n in p.notes
+            for n in row_notes(p)
         )
         rows.append(
             f'<tr><td class="name">{escape(p.display_name)}</td>'

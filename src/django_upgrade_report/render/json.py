@@ -26,6 +26,9 @@ Top level (schema_version 1):
   ``last_release`` (ISO 8601 or null) and ``source`` (where a package not from PyPI comes
   from, e.g. ``"git https://github.com/org/fork"``, or null). A package with a ``source``
   was judged by its own metadata, read locally, and never looked up.
+  ``built_into_django`` is null, or, when Django took over the package's job by the
+  target, an object with ``since`` (e.g. ``"3.1"``), ``replacement`` (e.g.
+  ``"models.JSONField"``) and ``source`` (a URL where that is written down).
 - ``not_on_index`` (list of str): dependencies the package index does not know.
 - ``not_checked`` (list of str): dependencies the index could not answer for, even after
   retries. When not empty, the report is incomplete; ``warnings`` says why.
@@ -76,6 +79,13 @@ def as_dict(report: Report) -> dict:
                 "notes": p.notes,
                 "last_release": p.last_release.isoformat() if p.last_release else None,
                 "source": p.source,
+                "built_into_django": {
+                    "since": str(p.successor.since),
+                    "replacement": p.successor.replacement,
+                    "source": p.successor.source,
+                }
+                if p.successor
+                else None,
             }
             for p in report.packages
         ],

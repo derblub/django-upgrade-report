@@ -46,8 +46,11 @@ CI also measures coverage: `uv run --group dev pytest --cov=django_upgrade_repor
 | `src/django_upgrade_report/pypi.py` | Cached client for the PyPI JSON API, with retries |
 | `src/django_upgrade_report/analysis.py` | The target (`resolve_target()`), the verdict rules (`supports()`) and the per-package status and phase |
 | `src/django_upgrade_report/render/` | Text, Markdown, JSON and HTML output. `render/json.py` documents the JSON fields and `schema_version` |
+| `src/django_upgrade_report/successors.py` | Packages whose job Django took over, each with a source |
 | `src/django_upgrade_report/cli.py` | Command line interface |
 | `action.yml` | The GitHub Action |
+
+An entry in `successors.py` needs a source: the package's maintainers pointing to Django (its README or PyPI page), or Django's release notes adding the same feature. A package that is only quiet, or that you would replace with another third-party package, does not qualify.
 
 A change to the verdict rules in `supports()` needs a test case in `tests/test_analysis.py` and an update to "How it decides" in the README.
 

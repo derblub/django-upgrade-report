@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from django_upgrade_report.analysis import PackageReport, Phase, Report, Status
@@ -25,7 +26,8 @@ def sections(report: Report) -> list[Section]:
         Section(
             "blocked",
             "Blocked",
-            f"Your copy excludes Django {report.target}, and there is no release to move to."
+            f"Your copy excludes Django {report.target}. Fix its requirement, or go back to a "
+            "release on PyPI."
             if blocked and all(p.source for p in blocked)
             else f"No release declares support for Django {report.target}.",
             blocked,
@@ -68,6 +70,23 @@ def sections(report: Report) -> list[Section]:
         ),
     ]
     return [s for s in result if s.packages]
+
+
+def source_label(where: str) -> str:
+    """``git https://github.com/org/fork.git`` as ``git github.com/org/fork``.
+
+    Index URLs stay whole: they are what ``--index-url`` needs.
+    """
+    kind, _, location = where.partition(" ")
+    if kind not in ("git", "hg", "svn", "bzr") or not location:
+        return where
+    return f"{kind} {re.sub(r'^[a-z+]+://', '', location).removesuffix('.git')}"
+
+
+def row_notes(package: PackageReport) -> list[str]:
+    """The notes to show on a package's row: where it comes from first, if not from PyPI."""
+    source = [f"from {source_label(package.source)}"] if package.source else []
+    return source + package.notes
 
 
 def packages_line(report: Report) -> str:

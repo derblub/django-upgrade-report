@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-29
+
+### Added
+
+- Packages whose job Django took over say what Django has instead, for example "built into Django 1.7: its own migrations, remove South" or "built into Django 3.1: models.JSONField" for jsonfield and django-jsonfield. They are shown even when their metadata does not mention Django. The list is short and every entry has a source (the maintainers or Django's release notes): South, django-discover-runner, django-secure, django-uuidfield, django-durationfield, django-transaction-hooks, jsonfield, django-jsonfield, django-jsonfield-backport and django-template-partials. The JSON report has it under `built_into_django`.
+
+### Changed
+
+- A tidier text report. An upgrade row no longer repeats "2.0 declares Django 5.2" next to "1.0 → 2.0", a manual check no longer ends every line with ", not 5.2", the project's Python moves into the line under the headline, and git URLs are shortened to `git github.com/org/fork`.
+- A fork or local package says where it comes from as `from git github.com/org/fork` in every format, instead of a longer note; the advice for a blocked fork moved into the section's hint.
+
 ## [0.3.0] - 2026-09-29
 
 ### Added
@@ -117,7 +128,8 @@ Preview, not published on PyPI.
 - GitHub Action that writes the report to the job summary.
 - 24 hour cache for PyPI responses.
 
-[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/derblub/django-upgrade-report/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/derblub/django-upgrade-report/compare/v0.2.4...v0.3.0
 [0.2.4]: https://github.com/derblub/django-upgrade-report/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/derblub/django-upgrade-report/compare/v0.2.2...v0.2.3

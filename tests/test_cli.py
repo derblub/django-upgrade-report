@@ -288,6 +288,10 @@ def test_markdown_escapes_cells(busy_project, capsys):
 def test_project_python(busy_project, capsys):
     (busy_project / ".python-version").write_text("3.12\n")
     cli.main([str(busy_project)])
+    out = capsys.readouterr().out
+    assert "· Python 3.12\n" in out.splitlines(keepends=True)[1]
+    assert "Django 5.2 requires Python" not in out  # nothing to say when the Python fits
+    cli.main([str(busy_project), "--format", "markdown"])
     assert "your project uses Python 3.12" in capsys.readouterr().out
 
 
@@ -491,3 +495,56 @@ def test_fail_on_never_passes_an_incomplete_report(project, index, monkeypatch, 
     assert "Could not check django-before" in out
     assert cli.main([str(project), "--fail-on", "blocked"]) == 2
     assert "could not be checked" in capsys.readouterr().err
+
+
+def test_text_leaves_out_what_the_columns_and_sections_already_say(project, capsys):
+    (project / "requirements.txt").write_text(
+        "Django==4.2.7\ndjango-before==1.0\ndjango-lagging==1.0\n"
+    )
+    cli.main([str(project)])
+    out = capsys.readouterr().out
+    assert re.search(r"↑ django-before\s+1\.0 → 2\.0\n", out)  # not "2.0 declares Django 5.2"
+    assert "? django-lagging  1.0  declares Django up to 4.2\n" in out  # no ", not 5.2"
+
+
+def test_forks_show_where_they_come_from_in_every_format(project, capsys):
+    fork = project / "vendor" / "taggit"
+    fork.mkdir(parents=True)
+    (fork / "pyproject.toml").write_text(
+        '[project]\nname = "django-taggit"\nversion = "4.0+ours"\ndependencies = ["Django<5.0"]\n'
+    )
+    (project / "requirements.txt").write_text("Django==4.2.7\n-e ./vendor/taggit\n")
+    cli.main([str(project)])
+    out = capsys.readouterr().out
+    assert "Your copy excludes Django 5.2. Fix its requirement" in out
+    assert re.search(r"✗ django-taggit\s+4\.0\+ours\s+requires Django<5\.0\n\s+from path ", out)
+    cli.main([str(project), "--format", "markdown"])
+    assert "requires Django\\<5.0; from path ./vendor/taggit" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("where", "label"),
+    [
+        ("git https://github.com/acme/fork.git", "git github.com/acme/fork"),
+        ("hg ssh://hg.example.com/repo", "hg hg.example.com/repo"),
+        ("index https://pkgs.example.com/simple", "index https://pkgs.example.com/simple"),
+        ("path ./vendor/app", "path ./vendor/app"),
+    ],
+)
+def test_source_label(where, label):
+    from django_upgrade_report.render import source_label
+
+    assert source_label(where) == label
+
+
+def test_json_says_what_django_has_instead(project, index, capsys):
+    index.packages["django-jsonfield"] = [release("django-jsonfield", "1.4.1", ">=1.8", ["2.2"])]
+    (project / "requirements.txt").write_text("Django==4.2.7\ndjango-jsonfield==1.4.1\n")
+    cli.main([str(project), "--format", "json"])
+    package = json.loads(capsys.readouterr().out)["packages"][0]
+    assert package["built_into_django"] == {
+        "since": "3.1",
+        "replacement": "models.JSONField",
+        "source": "https://docs.djangoproject.com/en/stable/releases/3.1/"
+        "#jsonfield-for-all-supported-database-backends",
+    }

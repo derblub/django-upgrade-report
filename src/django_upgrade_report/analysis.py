@@ -20,6 +20,7 @@ from packaging.version import InvalidVersion, Version
 
 from django_upgrade_report.pypi import Project, PyPI, PyPIError, ReleaseInfo
 from django_upgrade_report.sources import Dependency, DependencySet
+from django_upgrade_report.successors import Successor, successor
 
 _CLASSIFIER = re.compile(r"^Framework :: Django :: (\d+\.\d+)$")
 _MAJOR_CLASSIFIER = re.compile(r"^Framework :: Django :: (\d+)$")
@@ -108,6 +109,8 @@ class PackageReport:
     notes: list[str] = field(default_factory=list)
     source: str | None = None
     """Where the package comes from when not from PyPI: judged by its own metadata only."""
+    successor: Successor | None = None
+    """What Django itself has instead, when Django took over the package's job by the target."""
 
     @property
     def stale(self) -> bool:
@@ -590,6 +593,10 @@ def analyse(
         results = list(package_pool.map(check, others))
 
     packages = [r for r in results if isinstance(r, PackageReport)] + local
+    for p in packages:
+        p.successor = successor(p.name, goal.version)
+        if p.successor is not None:  # what a newer release declares no longer matters
+            p.notes = [p.successor.note(), *(n for n in p.notes if not n.startswith("latest "))]
     failed = [r for r in results if isinstance(r, _Failed)]
     for f in failed:
         notes.append(f"Could not check {f.name}, run again later: {f.problem}")
@@ -629,12 +636,8 @@ def _judge_local(dep: Dependency, goal: Target, info: ReleaseInfo, where: str) -
     status = {Verdict.YES: Status.READY, Verdict.NO: Status.BLOCKED}.get(
         support.verdict, Status.CHECK
     )
-    notes = [f"not from PyPI ({where}): judged by its own metadata"]
-    if status is Status.BLOCKED:
-        notes.append("fix the Django requirement in your copy, or go back to a release on PyPI")
     note = _framework_note(info)
-    if note:
-        notes.append(note)
+    notes = [note] if note else []
     return PackageReport(
         name=dep.name,
         display_name=info.name or dep.name,
@@ -1003,16 +1006,20 @@ class _Checker:
         # history can be megabytes (botocore). Most dependencies are not Django-related, and
         # their installed release is enough to tell.
         current_info = self.pypi.release(dep.name, dep.version) if dep.version else None
+        # Django took over the job of some packages: show them even if they declare nothing.
+        replaced = successor(dep.name, self.target.version) is not None
         if current_info is not None:
             with self._lock:
                 self.installed[dep.name] = current_info
-            if not is_django_related(current_info):
+            if not replaced and not is_django_related(current_info):
                 return None
         project = self.pypi.project(dep.name)
         if project is None:
             return dep.name
-        if not is_django_related(project.latest) and (
-            current_info is None or not is_django_related(current_info)
+        if (
+            not replaced
+            and not is_django_related(project.latest)
+            and (current_info is None or not is_django_related(current_info))
         ):
             return None
         return _Package(self, dep, project, current_info).judge()

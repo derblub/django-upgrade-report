@@ -1084,10 +1084,7 @@ def test_forks_are_judged_by_their_own_metadata_and_never_looked_up(index):
     assert by_name(report, "vague-fork").status is Status.CHECK
     old = by_name(report, "old-fork")
     assert old.source == "git https://git.example.com/old-fork"
-    assert (
-        old.notes[0]
-        == "not from PyPI (git https://git.example.com/old-fork): judged by its own metadata"
-    )
+    assert old.notes == []  # where it comes from is in `source`
     assert old.target_version is None and old.phase is None
     # Not Django-related: still listed as not checked, like any package not from PyPI.
     assert report.external == [("tool-fork", "git https://git.example.com/tool-fork")]
@@ -1102,7 +1099,9 @@ def test_blocked_hint_for_forks_only(index):
         {"django": Dependency("django", "4.2.7"), "old-fork": fork("old-fork", "<4.1")},
     )
     blocked = sections(analyse(ds, index))[0]
-    assert blocked.hint == "Your copy excludes Django 5.2, and there is no release to move to."
+    assert blocked.hint == (
+        "Your copy excludes Django 5.2. Fix its requirement, or go back to a release on PyPI."
+    )
 
 
 def test_a_forks_version_comes_from_its_metadata_when_not_pinned(index):
@@ -1137,3 +1136,29 @@ def test_an_upper_bound_of_unknown_age_is_not_dated():
         Verdict.LIKELY,
         "allows Django<6.0,>=4.2, may predate 5.2",
     )
+
+
+# --- packages Django took over ---------------------------------------------------
+
+
+def test_a_package_django_took_over_says_so_even_without_django_metadata(index):
+    index.packages["south"] = [
+        release("South", "0.8.4", classifiers=[]),
+        release("South", "1.0.2", classifiers=[]),
+    ]
+    index.packages["django-jsonfield"] = [release("django-jsonfield", "1.4.1", ">=1.8", ["2.2"])]
+    report = analyse(deps(django="4.2.7", south="0.8.4", django_jsonfield="1.4.1"), index)
+    south = by_name(report, "south")
+    assert south.notes == ["built into Django 1.7: its own migrations, remove South"]
+    assert south.successor is not None and str(south.successor.since) == "1.7"
+    assert by_name(report, "django-jsonfield").notes[0] == (
+        "built into Django 3.1: models.JSONField"
+    )
+
+
+def test_a_successor_only_counts_from_the_django_that_has_it(index):
+    from django_upgrade_report.successors import successor
+
+    assert successor("django-template-partials", Version("5.2")) is None
+    assert successor("django-template-partials", Version("6.0")) is not None
+    assert successor("django-debug-toolbar", Version("6.0")) is None
