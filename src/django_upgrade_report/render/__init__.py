@@ -20,12 +20,15 @@ def sections(report: Report) -> list[Section]:
     ready = report.by_status(Status.READY)
     unpinned = any(not p.current for p in ready)
     current = _minor_label(report.current_django)
+    blocked = report.by_status(Status.BLOCKED)
     result = [
         Section(
             "blocked",
             "Blocked",
-            f"No release declares support for Django {report.target}.",
-            report.by_status(Status.BLOCKED),
+            f"Your copy excludes Django {report.target}, and there is no release to move to."
+            if blocked and all(p.source for p in blocked)
+            else f"No release declares support for Django {report.target}.",
+            blocked,
         ),
         Section(
             "before",

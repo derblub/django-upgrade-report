@@ -106,6 +106,8 @@ class PackageReport:
     phase: Phase | None = None
     last_release: datetime | None = None
     notes: list[str] = field(default_factory=list)
+    source: str | None = None
+    """Where the package comes from when not from PyPI: judged by its own metadata only."""
 
     @property
     def stale(self) -> bool:
@@ -301,6 +303,8 @@ def supports(
             return Support(Verdict.YES, f"allows Django{spec}")
         if not target.released:
             return Support(Verdict.LIKELY, f"allows Django{spec}, {label} is not released yet")
+        if uploaded is None:
+            return Support(Verdict.LIKELY, f"allows Django{spec}, may predate {label}")
         return Support(Verdict.LIKELY, f"allows Django{spec}, released before {label}")
     # Classifiers often lag behind releases, so a missing one is a question, not a blocker.
     if target.version.major in majors:
@@ -546,11 +550,19 @@ def analyse(
         return d.external is None or (private_index and d.external.startswith("index "))
 
     # Django's release history is always read, so Django itself is never "not checked".
-    external = sorted(
-        (d.name, d.external)
+    unchecked = [
+        d
         for d in deps.dependencies.values()
         if not checked(d) and d.external and d.name != "django"
-    )
+    ]
+    # A fork or a local package cannot be looked up, but what it declares itself can be judged.
+    local = [
+        _judge_local(d, goal, d.metadata, d.external)
+        for d in unchecked
+        if d.metadata is not None and d.external and is_django_related(d.metadata)
+    ]
+    judged = {p.name for p in local}
+    external = sorted((d.name, d.external) for d in unchecked if d.name not in judged)
     others = [d for name, d in sorted(deps.dependencies.items()) if name != "django" and checked(d)]
     pinned = {
         name: Version(d.version)
@@ -564,6 +576,7 @@ def analyse(
     ):
         private = frozenset(d.name for d in deps.dependencies.values() if not checked(d))
         checker = _Checker(pypi, goal, today, release_pool, workers, pinned, private)
+        checker.installed.update((d.name, d.metadata) for d in unchecked if d.metadata is not None)
 
         def check(dep: Dependency) -> PackageReport | str | _Failed | None:
             try:
@@ -576,7 +589,7 @@ def analyse(
 
         results = list(package_pool.map(check, others))
 
-    packages = [r for r in results if isinstance(r, PackageReport)]
+    packages = [r for r in results if isinstance(r, PackageReport)] + local
     failed = [r for r in results if isinstance(r, _Failed)]
     for f in failed:
         notes.append(f"Could not check {f.name}, run again later: {f.problem}")
@@ -607,6 +620,31 @@ def analyse(
         notices=_notices(target, goal, django, current_minor, current_django),
         project_python=project_python,
         target_released=goal.released,
+    )
+
+
+def _judge_local(dep: Dependency, goal: Target, info: ReleaseInfo, where: str) -> PackageReport:
+    """A package not from PyPI, by its own metadata: there are no other releases to move to."""
+    support = supports(info, goal)
+    status = {Verdict.YES: Status.READY, Verdict.NO: Status.BLOCKED}.get(
+        support.verdict, Status.CHECK
+    )
+    notes = [f"not from PyPI ({where}): judged by its own metadata"]
+    if status is Status.BLOCKED:
+        notes.append("fix the Django requirement in your copy, or go back to a release on PyPI")
+    note = _framework_note(info)
+    if note:
+        notes.append(note)
+    return PackageReport(
+        name=dep.name,
+        display_name=info.name or dep.name,
+        current=dep.version or info.version or None,
+        spec=dep.spec,
+        latest=dep.version or info.version,
+        status=status,
+        reason=support.reason,
+        notes=notes,
+        source=where,
     )
 
 

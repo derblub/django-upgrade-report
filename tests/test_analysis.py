@@ -1047,3 +1047,93 @@ def test_one_package_the_index_cannot_answer_for_does_not_stop_the_report(index)
     assert any(
         w.startswith("Could not check django-before, run again later") for w in report.warnings
     )
+
+
+# --- packages not from PyPI, judged by what they declare themselves -----------
+
+
+def fork(name, django=None, classifiers=(), version="1.0", extra=()):
+    meta = ReleaseInfo(
+        name,
+        version,
+        tuple(f"Framework :: Django :: {c}" for c in classifiers),
+        (*([f"Django{django}"] if django else []), *extra),
+        None,
+    )
+    where = f"git https://git.example.com/{name}"
+    return Dependency(name, version, external=where, metadata=meta)
+
+
+def test_forks_are_judged_by_their_own_metadata_and_never_looked_up(index):
+    ds = DependencySet(
+        "test",
+        {
+            "django": Dependency("django", "4.2.7"),
+            "old-fork": fork("old-fork", ">=3.2,<4.1", ["4.0"]),
+            "good-fork": fork("good-fork", ">=4.2", ["4.2", "5.2"]),
+            "vague-fork": fork("vague-fork", ">=3.2", ["4.2"]),
+            "tool-fork": fork("tool-fork", extra=("requests>=2",)),
+        },
+    )
+    report = analyse(ds, index)
+    assert (by_name(report, "old-fork").status, by_name(report, "old-fork").reason) == (
+        Status.BLOCKED,
+        "requires Django<4.1,>=3.2",
+    )
+    assert by_name(report, "good-fork").status is Status.READY
+    assert by_name(report, "vague-fork").status is Status.CHECK
+    old = by_name(report, "old-fork")
+    assert old.source == "git https://git.example.com/old-fork"
+    assert (
+        old.notes[0]
+        == "not from PyPI (git https://git.example.com/old-fork): judged by its own metadata"
+    )
+    assert old.target_version is None and old.phase is None
+    # Not Django-related: still listed as not checked, like any package not from PyPI.
+    assert report.external == [("tool-fork", "git https://git.example.com/tool-fork")]
+    assert not any("fork" in url for url in index.requests)
+
+
+def test_blocked_hint_for_forks_only(index):
+    from django_upgrade_report.render import sections
+
+    ds = DependencySet(
+        "test",
+        {"django": Dependency("django", "4.2.7"), "old-fork": fork("old-fork", "<4.1")},
+    )
+    blocked = sections(analyse(ds, index))[0]
+    assert blocked.hint == "Your copy excludes Django 5.2, and there is no release to move to."
+
+
+def test_a_forks_version_comes_from_its_metadata_when_not_pinned(index):
+    dep = fork("old-fork", "<4.1", version="3.0+ours")
+    ds = DependencySet(
+        "test",
+        {
+            "django": Dependency("django", "4.2.7"),
+            "old-fork": Dependency("old-fork", None, external=dep.external, metadata=dep.metadata),
+        },
+    )
+    assert by_name(analyse(ds, index), "old-fork").current == "3.0+ours"
+
+
+def test_a_forks_requirements_count_against_planned_upgrades(index):
+    ds = DependencySet(
+        "test",
+        {
+            "django": Dependency("django", "4.2.7"),
+            "django-before": Dependency("django-before", "1.0"),
+            "our-fork": fork("our-fork", ">=4.2", ["4.2", "5.2"], extra=("django-before<2",)),
+        },
+    )
+    p = by_name(analyse(ds, index), "django-before")
+    assert p.status is Status.CHECK
+    assert "our-fork 1.0 requires django-before<2, which excludes 2.0" in p.notes
+
+
+def test_an_upper_bound_of_unknown_age_is_not_dated():
+    support = supports(info(">=4.2,<6.0"), T52_RELEASED, None)
+    assert (support.verdict, support.reason) == (
+        Verdict.LIKELY,
+        "allows Django<6.0,>=4.2, may predate 5.2",
+    )

@@ -21,6 +21,8 @@ from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.utils import canonicalize_name
 from packaging.version import InvalidVersion, Version
 
+from django_upgrade_report.pypi import ReleaseInfo
+
 if sys.version_info >= (3, 11):
     import tomllib
 else:  # pragma: no cover
@@ -39,6 +41,10 @@ class Dependency:
     """Where the package comes from when not from PyPI, e.g. ``git https://github.com/x/y``.
 
     ``None`` means "resolved from PyPI". External packages are never looked up on pypi.org.
+    """
+    metadata: ReleaseInfo | None = None
+    """What an external package declares itself, when that can be read locally: its installed
+    metadata, a local directory's ``pyproject.toml`` or the constraints a lockfile records.
     """
 
 
@@ -189,7 +195,9 @@ def _precision(dep: Dependency) -> int:
 def _combine(old: Dependency, new: Dependency) -> Dependency:
     """A pin beats a range beats nothing, regardless of order; the first pin wins."""
     best = old if _precision(old) >= _precision(new) else new
-    return replace(best, external=old.external or new.external)
+    return replace(
+        best, external=old.external or new.external, metadata=old.metadata or new.metadata
+    )
 
 
 def _add(into: dict[str, Dependency], dep: Dependency) -> None:
@@ -203,11 +211,42 @@ def _merge(into: dict[str, Dependency], deps: dict[str, Dependency]) -> None:
 
 
 def _dep(
-    name: str, version: str | None = None, spec: str = "", external: str | None = None
+    name: str,
+    version: str | None = None,
+    spec: str = "",
+    external: str | None = None,
+    metadata: ReleaseInfo | None = None,
 ) -> Dependency:
     if version is not None and not isinstance(version, str):
         raise TypeError(f"the version of {name} is {version!r}, not a string")
-    return Dependency(canonicalize_name(name), version, spec, external)
+    return Dependency(canonicalize_name(name), version, spec, external, metadata)
+
+
+def _metadata(
+    name: str,
+    version: object,
+    requires_dist: object = (),
+    classifiers: object = (),
+    requires_python: object = None,
+) -> ReleaseInfo | None:
+    """Metadata read locally, ``None`` when it says nothing about dependencies or frameworks."""
+    requires = _strings(requires_dist)
+    tags = _strings(classifiers)
+    if not requires and not tags:
+        return None
+    return ReleaseInfo(
+        name=name,
+        version=version if isinstance(version, str) else "",
+        classifiers=tags,
+        requires_dist=requires,
+        requires_python=requires_python if isinstance(requires_python, str) else None,
+    )
+
+
+def _strings(value: object) -> tuple[str, ...]:
+    if not isinstance(value, (list, tuple)):
+        return ()
+    return tuple(item for item in value if isinstance(item, str))
 
 
 def _all_from_index(deps: dict[str, Dependency], index_url: str) -> None:
@@ -608,8 +647,12 @@ def _from_uv_lock(path: Path, python: str | None) -> dict[str, Dependency]:
         if name in members or "virtual" in source or source.get("editable") == ".":
             continue  # the project itself or a workspace member
         external = _uv_external(source)
+        metadata = None
+        for key in ("directory", "editable"):
+            if isinstance(source.get(key), str):
+                metadata = _directory_metadata(path.parent / source[key])
         if "version" in package or external:
-            _add(deps, _dep(name, package.get("version"), external=external))
+            _add(deps, _dep(name, package.get("version"), external=external, metadata=metadata))
     return deps
 
 
@@ -632,9 +675,32 @@ def _from_poetry_lock(path: Path, python: str | None) -> dict[str, Dependency]:
     for name, entries in _by_name(_tables(_read_toml(path).get("package"))).items():
         package = _pick(entries, python)
         external = _poetry_external(_table(package.get("source")))
+        metadata = None
+        if external:
+            requires = [
+                f"{dependency} ({spec})" if spec else dependency
+                for dependency, constraint in _table(package.get("dependencies")).items()
+                if (spec := _poetry_lock_constraint(constraint, python)) is not None
+            ]
+            metadata = _metadata(str(package.get("name", name)), package.get("version"), requires)
         if "version" in package or external:
-            _add(deps, _dep(name, package.get("version"), external=external))
+            _add(deps, _dep(name, package.get("version"), external=external, metadata=metadata))
     return deps
+
+
+def _poetry_lock_constraint(constraint: object, python: str | None) -> str | None:
+    """A ``[package.dependencies]`` value as a PEP 440 range, ``None`` when it does not apply."""
+    if isinstance(constraint, list):
+        options = [c for c in constraint if isinstance(c, dict)]
+        constraint = _pick_poetry_constraint(options, python)
+    if isinstance(constraint, dict):
+        if constraint.get("optional") is True:
+            return None
+        constraint = constraint.get("version", "*")
+    if not isinstance(constraint, str):
+        return None
+    spec = _poetry_spec(constraint)
+    return None if "||" in spec else spec  # alternatives do not fit one Requires-Dist
 
 
 def _pdm_external(package: dict) -> str | None:
@@ -655,8 +721,18 @@ def _from_pdm_lock(path: Path, python: str | None) -> dict[str, Dependency]:
         if package.get("path") == ".":
             continue  # the project itself
         external = _vcs_external(package) or _pdm_external(package)
+        metadata = None
+        if external:
+            metadata = _metadata(
+                str(package.get("name", name)),
+                package.get("version"),
+                package.get("dependencies"),
+                requires_python=package.get("requires_python"),
+            )
+            if isinstance(package.get("path"), str):
+                metadata = _directory_metadata(path.parent / package["path"]) or metadata
         if "version" in package or external:
-            _add(deps, _dep(name, package.get("version"), external=external))
+            _add(deps, _dep(name, package.get("version"), external=external, metadata=metadata))
     return deps
 
 
@@ -839,7 +915,26 @@ def _local(target: str, requirements_file: Path) -> Dependency | None:
     if requirements_file.is_relative_to(directory):
         return None  # "-e ." is the project itself
     name = _egg_name(target) or _local_project_name(directory) or _path_name(directory)
-    return _dep(name, external=f"path {location}") if name else None
+    if not name:
+        return None
+    return _dep(name, external=f"path {location}", metadata=_directory_metadata(directory))
+
+
+def _directory_metadata(directory: Path) -> ReleaseInfo | None:
+    """What a local project's ``pyproject.toml`` declares statically (PEP 621)."""
+    try:
+        project = _table(_read_toml(directory / "pyproject.toml").get("project"))
+    except (SourceError, OSError):
+        return None
+    dynamic = _strings(project.get("dynamic"))
+    name = project.get("name")
+    return _metadata(
+        name if isinstance(name, str) else directory.name,
+        project.get("version"),
+        () if "dependencies" in dynamic else project.get("dependencies"),
+        () if "classifiers" in dynamic else project.get("classifiers"),
+        project.get("requires-python"),
+    )
 
 
 def _path_name(path: Path) -> str | None:
@@ -1047,7 +1142,15 @@ if m is not None:
     for d in m.distributions():
         name = d.metadata.get("Name")
         if name:
-            packages.append([name, d.version, d.read_text("direct_url.json")])
+            direct = d.read_text("direct_url.json")
+            own = None
+            if direct:  # not from an index: its own metadata is all there is to judge it by
+                own = {
+                    "requires_dist": d.metadata.get_all("Requires-Dist") or [],
+                    "classifiers": d.metadata.get_all("Classifier") or [],
+                    "requires_python": d.metadata.get("Requires-Python"),
+                }
+            packages.append([name, d.version, direct, own])
 else:
     import pkg_resources
     for d in pkg_resources.working_set:
@@ -1108,7 +1211,10 @@ def from_environment(python: str) -> DependencySet:
         if not marker:
             raise ValueError("no marker")
         data = json.loads(listing)
-        packages = [(str(p[0]), str(p[1]), (p[2:] or [None])[0]) for p in data["packages"]]
+        packages = [
+            (str(p[0]), str(p[1]), (p[2:] or [None])[0], (p[3:] or [None])[0])
+            for p in data["packages"]
+        ]
     except (ValueError, KeyError, TypeError) as exc:
         output = _tail(before if marker else result.stdout) or _tail(result.stderr) or "no output"
         raise NoDependenciesFound(
@@ -1116,8 +1222,18 @@ def from_environment(python: str) -> DependencySet:
         ) from exc
 
     deps: dict[str, Dependency] = {}
-    for name, version, direct_url in packages:
-        dep = _dep(name, version, external=_direct_url_external(direct_url))
+    for name, version, direct_url, own in packages:
+        external = _direct_url_external(direct_url)
+        metadata = None
+        if external and isinstance(own, dict):
+            metadata = _metadata(
+                name,
+                version,
+                own.get("requires_dist"),
+                own.get("classifiers"),
+                own.get("requires_python"),
+            )
+        dep = _dep(name, version, external=external, metadata=metadata)
         deps.setdefault(dep.name, dep)  # the first on sys.path is the one Python imports
     py = data.get("python") if isinstance(data.get("python"), str) else None
     return _dependency_set(f"packages installed for {python}", deps, py, "--python")

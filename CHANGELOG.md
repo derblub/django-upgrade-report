@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-29
+
+### Added
+
+- Forks and local packages are judged by what they declare themselves, read locally and never sent anywhere: the installed metadata with `--python`, a local directory's `pyproject.toml`, or the constraints in `poetry.lock` and `pdm.lock`. A fork pinned years ago with `Django<4.1` now shows up as blocked instead of only "not checked", and its requirements on other packages count against their upgrades. The JSON report says where such a package comes from in the new `source` field. When only such packages are blocked, the section says that your copy excludes the target, not that no release supports it.
+
+### Changed
+
+- An upper bound whose upload date is unknown reads "may predate 5.2" instead of "released before 5.2".
+
 ## [0.2.4] - 2026-09-28
 
 ### Changed
@@ -107,7 +117,8 @@ Preview, not published on PyPI.
 - GitHub Action that writes the report to the job summary.
 - 24 hour cache for PyPI responses.
 
-[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/derblub/django-upgrade-report/compare/v0.2.4...v0.3.0
 [0.2.4]: https://github.com/derblub/django-upgrade-report/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/derblub/django-upgrade-report/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/derblub/django-upgrade-report/compare/v0.2.1...v0.2.2

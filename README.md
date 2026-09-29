@@ -79,7 +79,7 @@ django-upgrade-report --target 6.1
 ```
 
 <p align="center">
-  <img src="docs/assets/terminal.png" alt="Terminal output for an upgrade from Django 5.2.7 to 6.1: django-celery-beat is blocked, four packages can be upgraded first, four need a manual check, one is ready" width="820">
+  <img src="docs/assets/terminal.png" alt="Terminal output for an upgrade from Django 4.2.7 to 5.2: a git fork of django-taggit is blocked by its own Django&lt;5.0 requirement, four packages can be upgraded first, one goes together with Django, two need a manual check, one is ready, and one git package is listed as not checked" width="820">
 </p>
 
 ## What the statuses mean
@@ -170,6 +170,8 @@ Markers are evaluated for CPython on Linux, where Django apps are deployed, neve
 ### Packages not from PyPI
 
 Packages from git, a local path, a URL or a private index are listed as "Not from PyPI, not checked", with where they come from, and their names are never sent to PyPI. This covers `git+https://...`, `-e` and local path lines in requirement files, `name @ url` requirements, git, path and URL sources in lockfiles, `--index-url` and `--no-index` in requirement files, a private default index or `no-index` in uv, Poetry, PDM or Pipenv, and the `PIP_INDEX_URL`, `UV_INDEX_URL`, `UV_DEFAULT_INDEX`, `PIP_NO_INDEX` and `UV_NO_INDEX` environment variables (lockfiles keep the index they record). Credentials in those URLs are removed before anything is shown.
+
+A fork or a local package can still be judged by what it declares itself, without anything being fetched: the installed metadata with `--python`, the `pyproject.toml` of a local directory, or the constraints `poetry.lock` and `pdm.lock` record. A fork someone pinned years ago with `Django<4.1` shows up as blocked, with a note saying where it comes from. Such a package has no other releases to move to, so it is only ever ready, blocked or to check. Its own requirements count, too: a fork that pins `django-filter<23` holds back that upgrade. Packages whose metadata cannot be read, or that have nothing to do with Django, stay under "Not from PyPI, not checked". The dependencies of a fork are checked like any other package when a lockfile or `--python` lists them.
 
 To check packages from a private index, point `--index-url` at its PyPI JSON API. If the index only mirrors PyPI, pass `--check-private-on-pypi` instead. Packages the index does not know at all are listed as "Not on the package index".
 
@@ -265,7 +267,7 @@ Many maintainers forget to add the classifier for a new Django version, or only 
 <details>
 <summary><strong>What about private packages?</strong></summary>
 
-Packages your project installs from git, a path or a private index are listed as "Not from PyPI, not checked" and otherwise ignored. If your private index implements PyPI's JSON API, point `--index-url` at it. If it mirrors PyPI, pass `--check-private-on-pypi`. See [Packages not from PyPI](#packages-not-from-pypi).
+Packages your project installs from git, a path or a private index are never looked up. Forks and local packages are judged by their own metadata when it can be read locally (with `--python`, from a local `pyproject.toml`, `poetry.lock` or `pdm.lock`); the rest are listed as "Not from PyPI, not checked". If your private index implements PyPI's JSON API, point `--index-url` at it. If it mirrors PyPI, pass `--check-private-on-pypi`. See [Packages not from PyPI](#packages-not-from-pypi).
 </details>
 
 <details>

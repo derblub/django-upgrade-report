@@ -22,12 +22,15 @@ Top level (schema_version 1):
 - ``packages`` (list): one object per Django-related package, most urgent first:
   ``name``, ``current`` (pinned version or null), ``spec`` (requirement when not pinned, or
   null), ``latest``, ``status``, ``upgrade_to`` (release to move to, or null), ``phase``
-  (``"before"``, ``"with"`` or null), ``reason``, ``notes`` (list of str) and
-  ``last_release`` (ISO 8601 or null).
+  (``"before"``, ``"with"`` or null), ``reason``, ``notes`` (list of str),
+  ``last_release`` (ISO 8601 or null) and ``source`` (where a package not from PyPI comes
+  from, e.g. ``"git https://github.com/org/fork"``, or null). A package with a ``source``
+  was judged by its own metadata, read locally, and never looked up.
 - ``not_on_index`` (list of str): dependencies the package index does not know.
 - ``not_checked`` (list of str): dependencies the index could not answer for, even after
   retries. When not empty, the report is incomplete; ``warnings`` says why.
-- ``external`` (list): dependencies not from PyPI and never looked up, as objects with
+- ``external`` (list): dependencies not from PyPI, never looked up and not judged (no
+  Django-related metadata could be read locally), as objects with
   ``name`` and ``source`` (e.g. ``"git https://github.com/org/repo"``).
 - ``skipped_non_django`` (int): dependencies without a Django requirement.
 """
@@ -72,6 +75,7 @@ def as_dict(report: Report) -> dict:
                 "reason": p.reason,
                 "notes": p.notes,
                 "last_release": p.last_release.isoformat() if p.last_release else None,
+                "source": p.source,
             }
             for p in report.packages
         ],

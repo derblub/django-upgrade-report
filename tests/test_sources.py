@@ -1101,3 +1101,116 @@ def test_download_link_without_a_package_name_is_listed_under_its_url(tmp_path):
     assert deps["pkg"].external == "url https://x.example/pkg-1.0.zip"
     assert deps["https://x.example/download"].external == "url https://x.example/download"
     assert "download" not in deps
+
+
+# --- what packages not from PyPI declare themselves ---------------------------
+
+
+def test_local_directory_metadata_comes_along(tmp_path):
+    write(
+        tmp_path / "vendor" / "taggit" / "pyproject.toml",
+        '[project]\nname = "django-taggit"\nversion = "3.0+fork"\n'
+        'dependencies = ["Django>=3.2,<4.1"]\n'
+        'classifiers = ["Framework :: Django :: 4.0"]\nrequires-python = ">=3.8"\n',
+    )
+    write(tmp_path / "requirements.txt", "Django==4.2.7\n-e ./vendor/taggit\n")
+    meta = sources.load(tmp_path).dependencies["django-taggit"].metadata
+    assert meta is not None
+    assert (meta.name, meta.version, meta.requires_python) == ("django-taggit", "3.0+fork", ">=3.8")
+    assert meta.requires_dist == ("Django>=3.2,<4.1",)
+    assert meta.classifiers == ("Framework :: Django :: 4.0",)
+
+
+def test_dynamic_metadata_is_not_guessed(tmp_path):
+    write(
+        tmp_path / "app" / "pyproject.toml",
+        '[project]\nname = "app"\ndynamic = ["dependencies", "classifiers"]\n',
+    )
+    write(tmp_path / "requirements.txt", "./app\n")
+    assert sources.load(tmp_path).dependencies["app"].metadata is None
+
+
+def test_uv_lock_directory_source_reads_its_pyproject(tmp_path):
+    write(
+        tmp_path / "libs" / "fork" / "pyproject.toml",
+        '[project]\nname = "django-fork"\nversion = "1.0"\ndependencies = ["django<5"]\n',
+    )
+    write(
+        tmp_path / "uv.lock",
+        'version = 1\n[[package]]\nname = "django-fork"\nversion = "1.0"\n'
+        'source = { editable = "libs/fork" }\n',
+    )
+    dep = sources.load(tmp_path).dependencies["django-fork"]
+    assert dep.external == "path libs/fork"
+    assert dep.metadata is not None and dep.metadata.requires_dist == ("django<5",)
+
+
+def test_poetry_lock_git_package_keeps_its_constraints(tmp_path):
+    write(
+        tmp_path / "poetry.lock",
+        """
+[[package]]
+name = "django-taggit"
+version = "3.0.0"
+python-versions = ">=3.8"
+
+[package.dependencies]
+Django = "^3.2"
+pillow = {version = ">=9", optional = true}
+
+[package.source]
+type = "git"
+url = "https://github.com/someone/django-taggit.git"
+reference = "HEAD"
+resolved_reference = "3f2a1c9"
+""",
+    )
+    dep = sources.load(tmp_path).dependencies["django-taggit"]
+    assert dep.external == "git https://github.com/someone/django-taggit.git"
+    assert dep.metadata is not None
+    assert dep.metadata.requires_dist == ("Django (>=3.2,<4)",)
+
+
+def test_pdm_lock_git_package_keeps_its_dependencies(tmp_path):
+    write(
+        tmp_path / "pdm.lock",
+        """
+[[package]]
+name = "django-taggit"
+version = "3.0.0"
+requires_python = ">=3.8"
+git = "https://github.com/someone/django-taggit.git"
+revision = "3f2a1c9"
+dependencies = ["Django<4.1,>=3.2"]
+""",
+    )
+    meta = sources.load(tmp_path).dependencies["django-taggit"].metadata
+    assert meta is not None and meta.requires_dist == ("Django<4.1,>=3.2",)
+
+
+@posix_only
+def test_environment_reads_the_metadata_of_direct_installs_only(tmp_path):
+    site = tmp_path / "site"
+    write(
+        site / "django_taggit-3.0.0.dist-info" / "METADATA",
+        "Metadata-Version: 2.1\nName: django-taggit\nVersion: 3.0.0\n"
+        "Requires-Python: >=3.8\nRequires-Dist: Django<4.1,>=3.2\n"
+        "Classifier: Framework :: Django :: 4.0\n",
+    )
+    write(
+        site / "django_taggit-3.0.0.dist-info" / "direct_url.json",
+        '{"url": "https://github.com/someone/django-taggit", '
+        '"vcs_info": {"vcs": "git", "commit_id": "3f2a1c9"}}',
+    )
+    write(
+        site / "django_ready-1.0.dist-info" / "METADATA",
+        "Metadata-Version: 2.1\nName: django-ready\nVersion: 1.0\nRequires-Dist: Django>=4.2\n",
+    )
+    python = fake_interpreter(tmp_path, f'PYTHONPATH={site} exec {sys.executable} "$@"')
+    deps = sources.from_environment(python).dependencies
+    fork = deps["django-taggit"]
+    assert fork.external == "git https://github.com/someone/django-taggit"
+    assert fork.metadata is not None
+    assert fork.metadata.requires_dist == ("Django<4.1,>=3.2",)
+    assert fork.metadata.classifiers == ("Framework :: Django :: 4.0",)
+    assert deps["django-ready"].metadata is None  # from an index: looked up there instead
