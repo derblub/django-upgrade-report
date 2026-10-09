@@ -18,6 +18,10 @@ Unpinned requirements are judged by the newest release they allow and marked as 
 
 `django-upgrade-report services/api services/worker`, or `-r services` to find them: one report per project, after an overview with each project's step and counts, the packages that block more than one project, and the upgrades several projects share. `--recursive` looks for lockfiles, `requirements*.txt`, `requirements/*.txt` and `pyproject.toml` files with dependencies; it skips virtual environments, `node_modules`, build output and hidden directories, and counts a directory inside a project as part of it unless it has its own lockfile. A project without dependencies is listed as not checked, the others are still reported, and the run exits with 2.
 
+![The overview of three services: each project's step and counts, and the upgrades they share](images/projects.png)
+
+The HTML report links each project from the overview, and the JSON report is a document of its own, `"kind": "multi"`. In the GitHub Action, `path` takes one project per line, or `recursive: true` finds them; the outputs count over all projects.
+
 ## Which Python
 
 Environment markers such as `python_version < "3.12"` decide which requirements apply, so the tool needs your project's Python. It takes the first of:

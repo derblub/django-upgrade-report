@@ -70,6 +70,11 @@ def fingerprint(report: dict) -> str:
     if report.get("kind") == "path":  # --via: every step
         steps = "\n".join(fingerprint(step) for step in report.get("steps") or [])
         return hashlib.sha256(steps.encode()).hexdigest()[:16]
+    if report.get("kind") == "multi":  # several projects: each, and which could not be checked
+        parts = "\n".join(
+            f"{path}:{fingerprint(part) if part else 'error'}" for path, part in _projects(report)
+        )
+        return hashlib.sha256(parts.encode()).hexdigest()[:16]
     python = report.get("python") or {"packages": []}
     rows = sorted(
         f"{p.get('name')}:{p.get('status')}:{p.get('phase')}:{p.get('upgrade_to')}"
@@ -145,21 +150,49 @@ _TASK = re.compile(r"^- \[(?P<tick>[ xX])\] (?P<text>.*?) <!-- (?P<id>[\w.:-]+) 
 _LABELS = {("upgrade", "before"): "upgrade first", ("upgrade", "with"): "upgrade with {name}"}
 
 
+_ID = re.compile(r"[^\w.:-]")
+"""What a task id cannot hold: ``services/api`` becomes ``services-api``."""
+
+
+def _projects(report: dict) -> list[tuple[str, dict | None]]:
+    """The projects of a ``"kind": "multi"`` report, with their reports (None: not checked)."""
+    return [
+        (str(p.get("path")), p.get("report") if isinstance(p.get("report"), dict) else None)
+        for p in report.get("projects") or []
+        if isinstance(p, dict)
+    ]
+
+
+def _target(report: dict) -> str:
+    """The target, or the targets of several projects: ``5.2 and 6.0``."""
+    if report.get("kind") != "multi":
+        return str(report.get("target"))
+    targets = sorted({str(part.get("target")) for _, part in _projects(report) if part})
+    return " and ".join(targets) or "?"
+
+
 def _name(report: dict) -> str:
     """``Django``, or ``Wagtail`` or ``django CMS`` for a report made with ``--framework``."""
-    steps = report.get("steps") or [{}]
+    steps = report.get("steps") or [part for _, part in _projects(report) if part] or [{}]
     key = report.get("framework") or steps[0].get("framework") or "django"
     return FRAMEWORKS.get(key, DJANGO).display
 
 
 def issue_title(report: dict, key: str) -> str:
     where = "" if key in ("", ".") else f" ({key})"
-    return f"{_name(report)} {report.get('target')} upgrade plan{where}"
+    return f"{_name(report)} {_target(report)} upgrade plan{where}"
 
 
 def tasks(report: dict) -> list[tuple[str, str]]:
     """(id, text) for every row with something to do, in the report's order; for a path
-    (``--via``), step by step."""
+    (``--via``), step by step; for several projects, project by project."""
+    if report.get("kind") == "multi":
+        return [
+            (f"{_ID.sub('-', path)}:{task_id}", f"{escape(path)}: {text}")
+            for path, part in _projects(report)
+            if part
+            for task_id, text in tasks(part)
+        ]
     if report.get("kind") == "path":
         return [
             (f"step{n}:{task_id}", f"Step {n}: {text}")
@@ -191,7 +224,7 @@ def issue_body(report: dict, key: str, old: str = "", today: str = "") -> str:
             before[match["id"]] = (match["tick"] != " ", match["text"])
     lines = [
         f"<!-- django-upgrade-report-issue:{key} -->",
-        f"What your dependencies need for {_name(report)} {report.get('target')}, from "
+        f"What your dependencies need for {_name(report)} {_target(report)}, from "
         f"`{_source(report)}`, kept up to date by django-upgrade-report. Tick what is "
         "done; the ticks stay when the list is updated.",
         "",
@@ -209,11 +242,13 @@ def issue_body(report: dict, key: str, old: str = "", today: str = "") -> str:
             text = f"~~{text}~~ (nothing to do since {today})"
         lines.append(f"- [x] {text} <!-- {task_id} -->")
     if not current:
-        lines += ["", f"Everything is ready for {_name(report)} {report.get('target')}."]
+        lines += ["", f"Everything is ready for {_name(report)} {_target(report)}."]
     return "\n".join(lines) + "\n"
 
 
 def _source(report: dict) -> object:
+    if report.get("kind") == "multi":
+        return ", ".join(path for path, _ in _projects(report))
     steps = report.get("steps") or [{}]
     return report.get("source") or steps[0].get("source")
 
@@ -252,7 +287,7 @@ def track(github: GitHub, repository: str, key: str, report: dict, today: str) -
         return "unchanged"
     number = existing["number"]
     github.send("PATCH", f"/repos/{repository}/issues/{number}", {"body": text})
-    message = f"Everything is ready for {_name(report)} {report.get('target')}."
+    message = f"Everything is ready for {_name(report)} {_target(report)}."
     if message in text and message not in old:  # said once, when the report gets there
         github.send("POST", f"/repos/{repository}/issues/{number}/comments", {"body": message})
     return "updated"

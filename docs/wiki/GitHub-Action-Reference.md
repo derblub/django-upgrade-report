@@ -15,7 +15,8 @@ Every input and output of the action, as `action.yml` describes them. [Continuou
 
 | Input | Default | What it does |
 | --- | --- | --- |
-| `path` | `.` | Project directory with a lockfile, requirements*.txt or pyproject.toml. |
+| `path` | `.` | Project directory with a lockfile, requirements*.txt or pyproject.toml. Several, one per line, make one report with an overview; with recursive, the directories to look for projects in. |
+| `recursive` | `false` | 'true' finds the projects under path (a monorepo, a folder of services) and makes one report with an overview. |
 | `target` | `auto` | Django version to upgrade to: 'auto' (the newest LTS above your Django, or the newest release when no LTS is above it), 'lts', 'latest' or e.g. '5.2'. |
 | `framework` | `django` | What to plan the upgrade of: 'django', or 'wagtail' or 'django-cms', whose packages are then checked against target and from of that framework. |
 | `via` |  | 'lts' plans the way to the target in steps, one report per LTS on the way; 'each' one per feature version. Empty: one report. The counts are summed over the steps. Does not go with baseline. |

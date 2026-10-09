@@ -3,6 +3,11 @@
 from __future__ import annotations
 
 import json
+import re
+import subprocess
+import sys
+import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -122,7 +127,7 @@ def test_markdown_folds_each_project(monorepo, capsys):
 
 
 @pytest.mark.parametrize(
-    "flag", [["--emit", "uv"], ["--via", "lts"], ["-f", "html"], ["--explain", "django-blocked"]]
+    "flag", [["--emit", "uv"], ["--via", "lts"], ["--python", "python3"], ["--explain", "x"]]
 )
 def test_what_does_not_go_with_several_projects(monorepo, capsys, flag):
     code, _, err = run(capsys, "services/api", "services/worker", *flag)
@@ -138,3 +143,74 @@ def test_recursive_without_projects(tmp_path, capsys):
 def test_recursive_with_one_project_is_the_usual_report(monorepo, capsys):
     code, out, _ = run(capsys, "-r", "services/worker", "-f", "json")
     assert code == 0 and json.loads(out)["kind"] == "report"
+
+
+def test_html_links_the_projects(monorepo, capsys):
+    code, out, _ = run(capsys, "services/api", "services/worker", "-f", "html")
+    assert code == 0
+    assert "<h1>2 projects</h1>" in out
+    assert '<a href="#project-1">services/api</a>' in out
+    assert '<section class="step" id="project-2"><h2 class="step">services/worker: Django' in out
+    assert "<h2>Blocking more than one project</h2>" in out
+    data = out.split('<script type="application/json" id="report-data">')[1].split("</script>")[0]
+    assert json.loads(data)["kind"] == "multi"
+
+
+def test_html_escapes_project_paths(monorepo, capsys):
+    odd = monorepo / "<b>x"
+    odd.mkdir()
+    (odd / "requirements.txt").write_text("Django==4.2.7\ndjango-blocked==1.0\n")
+    code, out, _ = run(capsys, "services/worker", "<b>x", "-f", "html", "--static")
+    assert code == 0
+    assert "&lt;b&gt;x" in out and "<b>x" not in out
+
+
+def test_tracking_issue_goes_project_by_project(monorepo, capsys):
+    from django_upgrade_report import ci
+
+    code, out, _ = run(capsys, "services/api", "services/worker", "-f", "json")
+    data = json.loads(out)
+    assert ci.issue_title(data, ".") == "Django 5.2 upgrade plan"
+    ids = [task_id for task_id, _ in ci.tasks(data)]
+    assert "services-api:django:django-blocked" in ids
+    assert "services-worker:django:django-blocked" in ids
+    body = ci.issue_body(data, ".")
+    assert "from `services/api, services/worker`" in body
+    assert "- [ ] services/api: **django-blocked**" in body
+    before = ci.fingerprint(data)
+    data["projects"][1] = {"path": "services/worker", "error": "gone"}
+    assert ci.fingerprint(data) != before
+
+
+ACTION = Path(__file__).parent.parent / "action.yml"
+
+
+def test_action_outputs_sum_the_projects(monorepo, capsys, tmp_path):
+    script = re.search(r"<<'PY'\n(.*?)\n\s*PY\n", ACTION.read_text(), re.S).group(1)
+    _, out, _ = run(capsys, "services/api", "services/worker", "-f", "json")
+    report = tmp_path / "report.json"
+    report.write_text(out)
+    outputs = subprocess.run(
+        [sys.executable, "-c", textwrap.dedent(script), str(report)],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert "blocked=2" in outputs.splitlines()
+
+
+def test_action_reads_one_path_per_line():
+    block = re.search(r"(# One path per line.*?)\n\s*common=", ACTION.read_text(), re.S).group(1)
+    script = textwrap.dedent("        " + block) + '\nprintf "<%s>" "${paths[@]}"; echo " key=$key"'
+    run_ = subprocess.run(
+        ["bash", "-c", script],
+        env={"DUR_PATH": "  services/api\n\nservices/my worker  \n"},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert run_.stdout == "<services/api><services/my worker> key=services/api services/my worker\n"
+    empty = subprocess.run(
+        ["bash", "-c", script], env={"DUR_PATH": ""}, capture_output=True, text=True, check=True
+    )
+    assert empty.stdout == "<.> key=.\n"

@@ -252,7 +252,7 @@ Upgrades several projects share
   django-filter → 25.1  services/admin, services/api, services/worker
 ```
 
-Each project's report follows, folded in Markdown. Every project has its own target (`auto` unless you pass `--target`), and a package several projects use is looked up once. `--recursive` skips virtual environments, `node_modules` and hidden directories, and a directory inside a project, such as `requirements/` or a package with its own `pyproject.toml`, belongs to that project unless it has a lockfile of its own. A project that cannot be checked is listed with the reason, the others are still reported, and the run exits with 2. `--fail-on` looks at every project. The JSON report has `"kind": "multi"`, with `projects`, `blocking` and `shared_upgrades`. `-i`, `--emit`, `--explain`, `--via`, `--baseline`, `--python` and `--scan-code` work on one project.
+Each project's report follows, folded in Markdown; the HTML report links each project from the overview. Every project has its own target (`auto` unless you pass `--target`), and a package several projects use is looked up once. `--recursive` skips virtual environments, `node_modules` and hidden directories, and a directory inside a project, such as `requirements/` or a package with its own `pyproject.toml`, belongs to that project unless it has a lockfile of its own. A project that cannot be checked is listed with the reason, the others are still reported, and the run exits with 2. `--fail-on` looks at every project. The JSON report has `"kind": "multi"`, with `projects`, `blocking` and `shared_upgrades`. `-i`, `--emit`, `--explain`, `--via`, `--baseline`, `--python` and `--scan-code` work on one project. In the GitHub Action, `path` takes one project per line, and `recursive: true` finds them.
 
 ### Wagtail and django CMS
 
@@ -291,7 +291,8 @@ The action writes the Markdown report to the job summary, exposes the counts as 
 
 | Input | Default | Description |
 | --- | --- | --- |
-| `path` | `.` | Project directory with a lockfile, `requirements*.txt` or `pyproject.toml`. |
+| `path` | `.` | Project directory with a lockfile, `requirements*.txt` or `pyproject.toml`. Several, one per line, make one report with an overview. See [Several projects](#several-projects). |
+| `recursive` | `false` | `true` finds the projects under `path`. `via` and `baseline` work on one project and are left out then. |
 | `target` | `auto` | `auto`, `lts`, `latest` or a version such as `6.1`. |
 | `framework` | `django` | `wagtail` or `django-cms` plans the upgrade of that framework instead. See [Wagtail and django CMS](#wagtail-and-django-cms). |
 | `via` | | `lts` or `each`: plan the way to the target in steps, one report per step. The counts are summed over the steps. Does not go with `baseline`. |

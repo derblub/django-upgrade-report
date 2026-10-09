@@ -667,7 +667,6 @@ def _check_multi(args: argparse.Namespace) -> None:
         "--baseline": args.baseline or args.only_changes or args.fail_on_change,
         "--python": args.python,
         "--scan-code": args.scan_code,
-        "--format html": args.format == "html",
     }
     clash = next((flag for flag, given in flags.items() if given), None)
     if clash:
@@ -716,6 +715,8 @@ def _run_multi(args: argparse.Namespace, projects: list[Path], mode: str) -> int
         output = json.render_multi(found)
     elif args.format == "markdown":
         output = markdown.render_multi(found)
+    elif args.format == "html":
+        output = html.render_multi(found, static=args.static)
     else:
         use_color = args.output is None and sys.stdout.isatty() and "NO_COLOR" not in os.environ
         output = text.render_multi(found, color=use_color, verbose=args.verbose, quiet=args.quiet)

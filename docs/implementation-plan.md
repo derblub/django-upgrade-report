@@ -82,9 +82,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 6.1 | 1.0 | Wagtail und django CMS als Ziel | erledigt |
 | 6.1a | 1.0 | `frameworks.py`, `--framework`, Analyse, Texte, Befehle, JSON | erledigt |
 | 6.1b | 1.0 | Django-Bereich des Ziel-Frameworks, Zeile für das Framework, django-CMS-Details, Golden-Fixtures, Action-Input | erledigt |
-| 6.2 | 1.0 | Mehrere Projekte | in Arbeit |
+| 6.2 | 1.0 | Mehrere Projekte | erledigt |
 | 6.2a | 1.0 | `multi.py` (Suche, `MultiReport`), mehrere `PROJECT`, `--recursive`, Text, Markdown, JSON, `--fail-on` | erledigt |
-| 6.2b | 1.0 | HTML mit Übersicht und Ankern, Action-Input `path` mehrzeilig, Bild | offen |
+| 6.2b | 1.0 | HTML mit Übersicht und Ankern, Action-Input `path` mehrzeilig, Bild | erledigt |
 | 6.3 | separat | Öffentliche Readiness-Daten | offen |
 
 ---
@@ -1609,6 +1609,13 @@ Bericht, auch mit `--recursive`. Jedes Projekt bekommt einen eigenen `Namespace`
 Code-Scan nicht geteilt wird. Fehlgeschlagene Projekte führen zu Exit 2 nach der Ausgabe,
 außer `--fail-on` liefert schon 1. Nicht mit `-i`, `--emit`, `--explain`, `--via`,
 `--baseline`, `--python`, `--scan-code`; HTML folgt in 6.2b.
+
+**Umsetzung 6.2b:** HTML mit Übersichtstabelle (Anker `project-N`), Tabellen für blockierende
+und geteilte Pakete, Suche und Filter über alle Projekte, ein Fortschritt für alle. Die Action
+liest `path` zeilenweise (ohne Bash-4-Syntax, macOS hat 3.2) und hat `recursive`; `via` und
+`baseline` fallen bei mehreren Projekten mit Warnung weg. `ci.py` kennt `"kind": "multi"`:
+Fingerprint über alle Projekte, Aufgaben im Issue je Projekt (`services-api:django:name`),
+Titel mit allen Zielen. Bild `projects.png` im Wiki.
 
 ### 6.3 Öffentliche Readiness-Daten
 

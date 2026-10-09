@@ -125,6 +125,10 @@ def projects(base: Path) -> dict[str, Path]:
     shutil.copytree(SAMPLE_CODE, base / "code")
     (base / "code" / "requirements.txt").write_text(REMOVALS, encoding="utf-8")
     made["code"] = base / "code"
+    services = base / "services"
+    for name, source in (("shop", "shop"), ("legacy", "old"), ("data", "python")):
+        shutil.copytree(made[source], services / name)
+    made["services"] = services
     return made
 
 
@@ -164,6 +168,18 @@ def only(output: str, section: str) -> str:
     start = next(i for i, line in enumerate(plain) if line.startswith(section))
     end = next((i for i in range(start, len(lines)) if not plain[i].strip()), len(lines))
     return "\n".join([lines[0], *about, "", *lines[start:end]])
+
+
+def overview(output: str) -> str:
+    """The overview of several projects, without the reports that follow it."""
+    blocks = output.split("\n\n")
+    plain = [re.sub(r"\x1b\[[0-9;]*m", "", block) for block in blocks]
+    kept = [blocks[0]]
+    for block, text in zip(blocks[1:], plain[1:], strict=True):
+        if not text.startswith(("Blocking more than one project", "Upgrades several projects")):
+            break
+        kept.append(block)
+    return "\n\n".join(kept)
 
 
 def ansi_to_html(text: str) -> str:
@@ -350,6 +366,15 @@ def main() -> int:
             ["--framework", "wagtail", "--target", "7.0", "--no-scan-code"],
             "django-upgrade-report --framework wagtail --target 7.0",
             WIKI / "wagtail.png",
+        )
+        output = run_in_terminal(
+            ["-r", "services", "--target", "5.2", "--no-input", "--no-scan-code"], base
+        )
+        terminal_shot(
+            browser,
+            "django-upgrade-report -r services --target 5.2",
+            overview(output),
+            WIKI / "projects.png",
         )
         term(
             "code",

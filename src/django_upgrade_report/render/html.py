@@ -9,17 +9,23 @@ from importlib import resources
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, commands
 from django_upgrade_report.analysis import PackageReport, PathReport, Report, Status
+from django_upgrade_report.multi import MultiReport
 from django_upgrade_report.projects import safe_url
 from django_upgrade_report.removals import DJANGO_UPGRADE
 from django_upgrade_report.render import (
+    BLOCKING_TITLE,
+    SHARED_TITLE,
     UNUSED_HINT,
+    blocking_rows,
     change_rows,
     changes_title,
     headline,
+    multi_headline,
     packages_line,
     path_blocked,
     path_headline,
     private_index_hint,
+    project_cells,
     python_hint,
     python_line,
     python_summary,
@@ -28,6 +34,7 @@ from django_upgrade_report.render import (
     row_links,
     row_notes,
     sections,
+    shared_rows,
     skipped_line,
     split_noted,
     step_title,
@@ -148,7 +155,7 @@ th[aria-sort=ascending] button.sort::after { content: " ↑"; }
 th[aria-sort=descending] button.sort::after { content: " ↓"; }
 tr.current { box-shadow: inset 3px 0 0 var(--check); }
 .overview { margin: 0 0 40px; }
-.overview td.name a { color: inherit; }
+.overview td a { color: inherit; }
 .tiles.single { grid-template-columns: minmax(140px, 220px); }
 h2.step { font-size: 22px; margin: 56px 0 0; }
 section.step > .tiles { margin: 16px 0 8px; }
@@ -245,6 +252,80 @@ def render_path(path: PathReport, static: bool = False) -> str:
         ]
     )
     return _page(title, key, "".join(inner), json_report.render_path(path), static)
+
+
+def render_multi(multi: MultiReport, static: bool = False) -> str:
+    """Several projects: an overview with a link to each, what blocks or is shared across
+    them, then each project as the single report shows it."""
+    title = multi_headline(multi)
+    reports = [report for _, report in multi.reports]
+    todos = sum(_todos(report) for report in reports)
+    anchors = {p.path: f"project-{n}" for n, p in enumerate(multi.projects, 1)}
+    rows = []
+    for p in multi.projects:
+        if p.report is None:
+            rows.append(
+                f'<tr><td class="name">{escape(p.path)}</td>'
+                f'<td colspan="5">{escape(project_cells(p)[1])}</td></tr>'
+            )
+            continue
+        rows.append(
+            f'<tr><td class="name"><a href="#{anchors[p.path]}">{escape(p.path)}</a></td>'
+            f"<td>{escape(headline(p.report))}</td>"
+            + "".join(f"<td>{p.report.counts[status]}</td>" for status in _COUNTED)
+            + "</tr>"
+        )
+    heads = "".join(f"<th>{label}</th>" for label in ("ready", "to upgrade", "to check", "blocked"))
+
+    def links(paths: list[str]) -> str:
+        return ", ".join(f'<a href="#{anchors[path]}">{escape(path)}</a>' for path in paths)
+
+    inner = [
+        f"<header>\n<h1>{escape(title)}</h1>\n<p>One report per project, after what they have "
+        "in common.</p>\n</header>\n",
+        f'<div class="tiles single">{_progress(todos)}</div>\n' if todos and not static else "",
+        f'<div class="table overview"><table><thead><tr><th>Project</th><th>From → to</th>'
+        f"{heads}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>\n",
+    ]
+    if blocking := blocking_rows(multi):
+        cells = "".join(
+            f'<tr><td class="name">{escape(name)}</td><td>{links(paths)}</td></tr>'
+            for name, paths in blocking
+        )
+        inner.append(
+            f"<h2>{BLOCKING_TITLE}</h2>"
+            '<div class="table overview"><table><thead><tr><th>Package</th><th>Projects</th>'
+            f"</tr></thead><tbody>{cells}</tbody></table></div>\n"
+        )
+    if shared := shared_rows(multi):
+        cells = "".join(
+            f'<tr><td class="name">{escape(name)}</td><td>{escape(version)}</td>'
+            f"<td>{links(paths)}</td></tr>"
+            for name, version, paths in shared
+        )
+        inner.append(
+            f"<h2>{SHARED_TITLE}</h2>"
+            '<div class="table overview"><table><thead><tr><th>Package</th><th>To</th>'
+            f"<th>Projects</th></tr></thead><tbody>{cells}</tbody></table></div>\n"
+        )
+    if reports and not static:
+        inner.append(_toolbar(reports))
+    for n, p in enumerate(multi.projects, 1):
+        if p.report is None:
+            continue
+        report = p.report
+        inner.append(
+            f'<section class="step" id="{anchors[p.path]}"><h2 class="step">{escape(p.path)}: '
+            f"{escape(headline(report))}</h2>{_warnings(report)}"
+            f'<div class="tiles">{_tiles(report, filters=False)}</div>'
+            f"{''.join(_body(report, static, prefix=f'{n}-'))}"
+            f'<p class="meta">{" ".join(_meta(report, path=True)[:-1])}</p></section>\n'
+        )
+    if reports:
+        inner.append(f'<p class="meta">{_meta(reports[0])[-1]}</p>')
+    plan = " ".join(f"{path}:{checklist_key(report)}" for path, report in multi.reports)
+    key = "django-upgrade-report:" + hashlib.sha256(plan.encode()).hexdigest()[:16]
+    return _page(title, key, "".join(inner), json_report.render_multi(multi), static)
 
 
 _COUNTED = (Status.READY, Status.UPGRADE, Status.CHECK, Status.BLOCKED)

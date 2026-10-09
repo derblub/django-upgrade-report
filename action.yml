@@ -7,8 +7,11 @@ branding:
 
 inputs:
   path:
-    description: Project directory with a lockfile, requirements*.txt or pyproject.toml.
+    description: "Project directory with a lockfile, requirements*.txt or pyproject.toml. Several, one per line, make one report with an overview; with recursive, the directories to look for projects in."
     default: "."
+  recursive:
+    description: "'true' finds the projects under path (a monorepo, a folder of services) and makes one report with an overview."
+    default: "false"
   target:
     description: "Django version to upgrade to: 'auto' (the newest LTS above your Django, or the newest release when no LTS is above it), 'lts', 'latest' or e.g. '5.2'."
     default: auto
@@ -112,6 +115,7 @@ runs:
       env:
         DUR_BIN: ${{ steps.install.outputs.bin }}
         DUR_PATH: ${{ inputs.path }}
+        DUR_RECURSIVE: ${{ inputs.recursive }}
         DUR_TARGET: ${{ inputs.target }}
         DUR_FRAMEWORK: ${{ inputs.framework }}
         DUR_FAIL_ON: ${{ inputs.fail-on }}
@@ -131,7 +135,27 @@ runs:
       run: |
         dur() { "$DUR_BIN/python" -m django_upgrade_report "$@"; }
         report="$("$DUR_BIN/python" -c 'import os, tempfile; print(tempfile.mkdtemp(prefix="django-upgrade-report-", dir=os.environ["RUNNER_TEMP"]).replace(os.sep, "/"))')/report.json"
-        common=("$DUR_PATH" --framework "${DUR_FRAMEWORK:-django}" --target "$DUR_TARGET" --python-target "$DUR_PYTHON_TARGET")
+        # One path per line; spaces inside a path are kept.
+        paths=()
+        while IFS= read -r line; do
+          line="${line#"${line%%[![:space:]]*}"}"
+          line="${line%"${line##*[![:space:]]}"}"
+          if [ -n "$line" ]; then paths+=("$line"); fi
+        done <<< "$DUR_PATH"
+        if [ "${#paths[@]}" -eq 0 ]; then paths=(.); fi
+        key="${DUR_COMMENT_KEY:-${paths[*]}}"
+        common=("${paths[@]}" --framework "${DUR_FRAMEWORK:-django}" --target "$DUR_TARGET" --python-target "$DUR_PYTHON_TARGET")
+        if [ "$DUR_RECURSIVE" = true ]; then common+=(--recursive); fi
+        if [ "${#paths[@]}" -gt 1 ] || [ "$DUR_RECURSIVE" = true ]; then
+          if [ -n "$DUR_VIA" ]; then
+            echo "::warning::django-upgrade-report: via works on one project, it is left out"
+            DUR_VIA=""
+          fi
+          if [ -n "$DUR_BASELINE" ]; then
+            echo "::warning::django-upgrade-report: baseline works on one project, it is left out"
+            DUR_BASELINE=""
+          fi
+        fi
         if [ -n "$DUR_FROM" ]; then common+=(--from "$DUR_FROM"); fi
         if [ "$DUR_CHECK_PRIVATE" = true ]; then common+=(--check-private-on-pypi); fi
         if [ "$DUR_EVIDENCE" = true ]; then common+=(--evidence); fi
@@ -151,7 +175,10 @@ runs:
         sys.stdout.reconfigure(newline="\n")  # no \r in the outputs on Windows
         with open(sys.argv[1], encoding="utf-8") as f:
             data = json.load(f)
-        steps = data["steps"] if data.get("kind") == "path" else [data]  # --via: summed
+        if data.get("kind") == "multi":  # several projects: summed
+            steps = [p["report"] for p in data["projects"] if "report" in p]
+        else:
+            steps = data["steps"] if data.get("kind") == "path" else [data]  # --via: summed
         for status in data.get("counts") or steps[0]["counts"]:
             print(f"{status}={sum(step['counts'][status] for step in steps)}")
         python = [p for step in steps for p in (step.get("python") or {}).get("packages", [])]
@@ -164,7 +191,7 @@ runs:
         cat "$markdown" >> "$GITHUB_STEP_SUMMARY"
         case "$DUR_COMMENT" in
           true|on-change)
-            comment=(--report "$report" --markdown "$markdown" --key "${DUR_COMMENT_KEY:-$DUR_PATH}")
+            comment=(--report "$report" --markdown "$markdown" --key "$key")
             if [ "$DUR_COMMENT" = on-change ]; then comment+=(--on-change); fi
             # Only this command gets the token.
             GITHUB_TOKEN="$DUR_TOKEN" "$DUR_BIN/python" -m django_upgrade_report.ci comment "${comment[@]}"
@@ -174,7 +201,7 @@ runs:
         esac
         case "$DUR_ISSUE" in
           true)
-            GITHUB_TOKEN="$DUR_TOKEN" "$DUR_BIN/python" -m django_upgrade_report.ci issue --report "$report" --key "${DUR_COMMENT_KEY:-$DUR_PATH}"
+            GITHUB_TOKEN="$DUR_TOKEN" "$DUR_BIN/python" -m django_upgrade_report.ci issue --report "$report" --key "$key"
             ;;
           false|"") ;;
           *) echo "::warning::django-upgrade-report: issue is '$DUR_ISSUE', expected true or false" ;;
