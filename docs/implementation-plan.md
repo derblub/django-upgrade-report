@@ -69,7 +69,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 1.2a | 0.10 | `Evidence`, README auf PyPI, Sortierung, Hinweis, alle Formate, JSON `evidence` | erledigt |
 | 1.2b | 0.10 | `--evidence`: Testmatrix im Repository (tox, Workflows, nox), Action-Input, FAQ | erledigt |
 | 1.2c | 0.10 | `--evidence`: Changelog im Repository | erledigt |
-| 1.3 | 0.10 | Upstream-Issues und -PRs | offen |
+| 1.3 | 0.10 | Upstream-Issues und -PRs | erledigt |
 | 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | offen |
 | 2.4 | 0.11 | Ungenutzte Pakete | offen |
 | 2.5 | 0.11 | Was Django entfernt hat | offen |
@@ -547,6 +547,16 @@ Blocked (1)
 `<script>` und `|`.
 
 **Aufwand:** S–M. **Abhängigkeiten:** 1.2 (Repository-Ermittlung, Opt-in-Flag), 0.1.
+
+**Umsetzung:** `UpstreamItem` in `analysis.py` (mit `label`), Suche und Auswahl in
+`evidence.py` (`upstream_items`, `_upstream`), über denselben `GitHubFiles`-Client: eine
+API-Verbindung mit oder ohne Token, Suchergebnisse 6 h gecacht. Ein Treffer zählt nur, wenn
+der Titel wirklich „Django X.Y“ enthält (die Suche ist unscharf). Gemergte PRs gelten als
+geschlossen, stehen also hinter offenen. Die Einträge erscheinen über `row_notes()` als
+Notizen, im HTML als Links, im JSON unter `upstream`. Bei der ersten Ablehnung (403/429) wird
+nicht weiter gesucht, der Hinweis nennt das Limit. In dieser Umgebung sperrt der Proxy
+`api.github.com`; die Suche ist deshalb nur mit Testantworten in der Form der API geprüft,
+die Ablehnung echt.
 
 ---
 

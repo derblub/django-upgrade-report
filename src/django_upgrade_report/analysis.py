@@ -124,6 +124,28 @@ class Evidence:
     """Where to read it."""
 
 
+@dataclass(frozen=True)
+class UpstreamItem:
+    """An issue or pull request about the target in the package's repository (``--evidence``)."""
+
+    kind: str
+    """``"issue"`` or ``"pr"``."""
+    state: str
+    """``"open"``, ``"closed"`` or ``"merged"``."""
+    title: str
+    """Shortened to 80 characters; from outside, so every format escapes it."""
+    url: str
+    number: int
+    updated: str = ""
+    """ISO 8601."""
+
+    @property
+    def label(self) -> str:
+        """``open PR: Add Django 5.2 support (#912)``."""
+        kind = "PR" if self.kind == "pr" else "issue"
+        return f"{self.state} {kind}: {self.title} (#{self.number})"
+
+
 @dataclass
 class PackageReport:
     name: str
@@ -154,6 +176,8 @@ class PackageReport:
     """The requirement file line that pins or names it, as ``path:line``."""
     evidence: list[Evidence] = field(default_factory=list)
     """Signs of support for a package to check, shown as notes; they never change the status."""
+    upstream: list[UpstreamItem] = field(default_factory=list)
+    """Issues and pull requests about the target, for a blocked package or one to check."""
 
     @property
     def stale(self) -> bool:

@@ -516,7 +516,7 @@ def _table(
             if todo
             else ""
         )
-        signs = {e.text for e in p.evidence}
+        signs = {e.text for e in p.evidence} | {i.label for i in p.upstream}
         notes = "".join(
             f'<span class="note{" warn" if n.startswith("no release") else ""}">{escape(n)}</span>'
             for n in row_notes(p)
@@ -527,6 +527,10 @@ def _table(
             if e.url
             else f'<span class="note sign">{escape(e.text)}</span>'
             for e in p.evidence
+        )
+        notes += "".join(
+            f'<a class="note" href="{escape(safe_url(i.url))}">{escape(i.label)}</a>'
+            for i in p.upstream
         )
         links = "".join(
             f' <a class="link" href="{escape(url)}">{escape(label)}</a>'

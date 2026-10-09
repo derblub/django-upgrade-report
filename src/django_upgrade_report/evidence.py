@@ -11,6 +11,7 @@ import ast
 import configparser
 import re
 import sys
+import urllib.parse
 import urllib.request
 from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
@@ -19,7 +20,15 @@ from typing import Protocol
 
 from packaging.version import InvalidVersion, Version
 
-from django_upgrade_report.analysis import SEVERITY, Evidence, PackageReport, Phase, Report, Status
+from django_upgrade_report.analysis import (
+    SEVERITY,
+    Evidence,
+    PackageReport,
+    Phase,
+    Report,
+    Status,
+    UpstreamItem,
+)
 from django_upgrade_report.client import ONLINE, FetchError, JsonClient, UnexpectedAnswer
 
 if sys.version_info >= (3, 11):
@@ -249,6 +258,13 @@ class Files(Protocol):
     def workflows(self, owner: str, repo: str) -> list[str] | None:
         """The workflow file names, ``None`` when they cannot be listed."""
 
+    def search(self, owner: str, repo: str, words: str) -> list[dict]:
+        """Issues and pull requests whose title has ``words``, as the search API lists them."""
+
+    @property
+    def searches(self) -> int:
+        """How many searches a run may make: GitHub allows 10 a minute, 30 with a token."""
+
 
 class _Raw(JsonClient):
     """Files from raw.githubusercontent.com, kept as ``{"text": ...}``: no API rate limit."""
@@ -268,8 +284,11 @@ class _Raw(JsonClient):
 
 class _Api(JsonClient):
     def _validate(self, data: object) -> None:
-        if not isinstance(data, list):
-            raise UnexpectedAnswer("unexpected answer, not a list")
+        if not isinstance(data, (list, dict)):
+            raise UnexpectedAnswer("unexpected answer")
+
+    def _ttl(self, url: str) -> float | None:
+        return 6 * 3600 if "/search/" in url else 24 * 3600
 
 
 class GitHubFiles:
@@ -277,24 +296,29 @@ class GitHubFiles:
     listed through the API instead of guessed."""
 
     def __init__(self, cache_dir: Path | None = None, mode: str = ONLINE, token: str | None = None):
-        self.raw = _Raw(cache_dir / "github" if cache_dir else None, mode)
+        cache = cache_dir / "github" if cache_dir else None
+        self.raw = _Raw(cache, mode)
+        headers = {"Accept": "application/vnd.github+json"}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        self.search_api = _Api(API, cache_dir=cache, headers=headers, connections=2, mode=mode)
         self.api = None
         if token:
-            self.api = _Api(
-                API,
-                cache_dir=cache_dir / "github" if cache_dir else None,
-                headers={
-                    "Authorization": f"Bearer {token}",
-                    "Accept": "application/vnd.github+json",
-                },
-                connections=4,
-                mode=mode,
-            )
+            self.api = self.search_api
             self.api._secrets = (*self.api._secrets, token)
+        self.searches = 30 if token else 10
 
     def text(self, owner: str, repo: str, path: str) -> str | None:
         data = self.raw._get(f"{RAW}/{owner}/{repo}/HEAD/{path}")
         return data["text"] if isinstance(data, dict) else None
+
+    def search(self, owner: str, repo: str, words: str) -> list[dict]:
+        query = urllib.parse.quote(f'repo:{owner}/{repo} "{words}" in:title')
+        found = self.search_api._get(
+            f"{API}/search/issues?q={query}&sort=updated&order=desc&per_page=5"
+        )
+        items = found.get("items") if isinstance(found, dict) else None
+        return [item for item in items or [] if isinstance(item, dict)]
 
     def workflows(self, owner: str, repo: str) -> list[str] | None:
         if self.api is None:
@@ -472,8 +496,79 @@ def gather(report: Report, files: Files, workers: int = 4, skip: Iterable[str] =
 
     with ThreadPoolExecutor(max_workers=workers) as pool:
         problems = [problem for problem in pool.map(look, wanted) if problem]
+    problems += _upstream(report, files, skip)
     # Stable: the order of the upgrades stays, packages to check with a sign move down.
     report.packages.sort(
         key=lambda p: (-SEVERITY[p.status], p.phase is Phase.WITH, bool(p.evidence))
     )
+    return problems
+
+
+# --- issues and pull requests upstream ---------------------------------------------------
+
+
+def upstream_items(found: list[dict], target: str) -> list[UpstreamItem]:
+    """At most two of the search results: open before closed, pull requests before issues,
+    the newest first. A title has to name the target, the search matches words loosely."""
+    items = []
+    mention = re.compile(rf"django\D{{0,3}}{re.escape(target)}(?![\d])", re.I)
+    for entry in found:
+        title, url, number = entry.get("title"), entry.get("html_url"), entry.get("number")
+        if not isinstance(title, str) or not isinstance(url, str) or not isinstance(number, int):
+            continue
+        if not mention.search(title) or not url.startswith("https://github.com/"):
+            continue
+        pull = entry.get("pull_request")
+        state = "open" if entry.get("state") == "open" else "closed"
+        if isinstance(pull, dict) and pull.get("merged_at"):
+            state = "merged"
+        short = " ".join(title.split())
+        short = short if len(short) <= 80 else short[:79].rstrip() + "…"
+        items.append(
+            UpstreamItem(
+                "pr" if isinstance(pull, dict) else "issue",
+                state,
+                short,
+                url,
+                number,
+                str(entry.get("updated_at") or ""),
+            )
+        )
+    newest = sorted(items, key=lambda i: i.updated, reverse=True)
+    newest.sort(key=lambda i: (i.state != "open", i.kind != "pr"))  # stable: newest stays first
+    return newest[:2]
+
+
+def _upstream(report: Report, files: Files, skip: set[str]) -> list[str]:
+    """Search for blocked packages first, then for packages to check without a sign, as many
+    as the search API allows; say so when some were left out."""
+    wanted = [
+        p
+        for p in report.packages
+        if p.status in (Status.BLOCKED, Status.CHECK)
+        and not p.evidence
+        and not p.source
+        and p.repository_url
+        and p.name not in skip
+    ]
+    wanted.sort(key=lambda p: p.status is not Status.BLOCKED)
+    allowed = files.searches
+    problems = []
+    for p in wanted[:allowed]:
+        owner, repo = p.repository_url.removeprefix("https://github.com/").split("/", 1)
+        try:
+            p.upstream = upstream_items(
+                files.search(owner, repo, f"Django {report.target}"), report.target
+            )
+        except FetchError as exc:
+            why = str(exc)
+            if "HTTP 403" in why or "HTTP 429" in why:
+                why += " (GitHub allows 10 searches a minute, 30 with GITHUB_TOKEN)"
+            problems.append(f"Could not search the issues of {p.display_name}: {why}")
+            break  # most likely the rate limit: the next search would fail too
+    if len(wanted) > allowed:
+        problems.append(
+            f"Searched upstream issues for {allowed} of {len(wanted)} packages: "
+            "set GITHUB_TOKEN for more"
+        )
     return problems

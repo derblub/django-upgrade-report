@@ -156,9 +156,18 @@ def test_parsers_find_nothing_rather_than_guess():
 
 
 class FakeFiles:
-    def __init__(self, files, workflows=None, broken=()):
+    def __init__(self, files, workflows=None, broken=(), issues=None, searches=10):
         self.files, self.listed, self.broken = files, workflows, set(broken)
+        self.issues, self.searches = issues or {}, searches
         self.requests = []
+        self.searched = []
+
+    def search(self, owner, repo, words):
+        self.searched.append((repo, words))
+        found = self.issues.get(repo, [])
+        if isinstance(found, Exception):
+            raise found
+        return found
 
     def text(self, owner, repo, path):
         self.requests.append(f"{owner}/{repo}/{path}")
@@ -341,3 +350,105 @@ def test_changelog_sign_in_the_report(repo_project, capsys):
             "url": "https://github.com/org/django-lagging/blob/HEAD/CHANGELOG.md",
         }
     ]
+
+
+# --- issues and pull requests upstream ----------------------------------------------
+
+
+def item(number, title, state="open", pull=None, updated="2026-01-01T00:00:00Z"):
+    entry = {
+        "number": number,
+        "title": title,
+        "state": state,
+        "html_url": f"https://github.com/org/x/issues/{number}",
+        "updated_at": updated,
+    }
+    if pull is not None:
+        entry["pull_request"] = {"merged_at": pull or None}
+    return entry
+
+
+def test_upstream_items_pick_the_most_telling_two():
+    found = [
+        item(1, "Django 5.2 support?", updated="2026-03-01T00:00:00Z"),
+        item(2, "Support Django 5.2", state="closed", pull="2026-02-01T00:00:00Z"),
+        item(3, "Add Django 5.2 to CI", pull=False, updated="2026-01-01T00:00:00Z"),
+        item(4, "Add Django 5.2 and Python 3.13", pull=False, updated="2026-02-01T00:00:00Z"),
+        item(5, "Django 5.20 typo"),  # not the target
+        item(6, "Support django 4.2"),
+    ]
+    items = evidence.upstream_items(found, "5.2")
+    assert [(i.number, i.kind, i.state) for i in items] == [(4, "pr", "open"), (3, "pr", "open")]
+    assert items[0].label == "open PR: Add Django 5.2 and Python 3.13 (#4)"
+    merged = evidence.upstream_items([found[1], found[0]], "5.2")
+    assert [i.label for i in merged] == [
+        "open issue: Django 5.2 support? (#1)",
+        "merged PR: Support Django 5.2 (#2)",
+    ]
+
+
+def test_upstream_titles_are_shortened():
+    (long,) = evidence.upstream_items([item(7, "Django 5.2: " + "x" * 200)], "5.2")
+    assert len(long.title) == 80 and long.title.endswith("…")
+
+
+@pytest.fixture
+def blocked_project(repo_project, index):
+    index.packages["django-blocked"][0]["project_urls"] = {
+        "Source": "https://github.com/org/django-blocked"
+    }
+    (repo_project.path / "requirements.txt").write_text(
+        "Django==4.2.7\ndjango-lagging==1.0\ndjango-silent==0.2\ndjango-blocked==1.0\n"
+    )
+    return repo_project
+
+
+def test_upstream_in_every_format(blocked_project, capsys):
+    blocked_project.files.issues["django-blocked"] = [
+        item(912, "Add Django 5.2 support <script>alert(1)</script> | x", pull=False)
+    ]
+    args = [str(blocked_project.path), "--evidence", "--no-input"]
+    cli.main([*args, "-f", "json"])
+    packages = {p["name"]: p for p in json.loads(capsys.readouterr().out)["packages"]}
+    (upstream,) = packages["django-blocked"]["upstream"]
+    assert (upstream["kind"], upstream["state"], upstream["number"]) == ("pr", "open", 912)
+    assert packages["django-silent"]["upstream"] == []  # it has a sign already
+    cli.main(args)
+    assert "open PR: Add Django 5.2 support <script>alert(1)</script> | x (#912)" in (
+        capsys.readouterr().out
+    )
+    cli.main([*args, "-f", "markdown"])
+    assert "open PR: Add Django 5.2 support \\<script\\>alert(1)\\</script\\> \\| x (#912)" in (
+        capsys.readouterr().out
+    )
+    cli.main([*args, "-f", "html"])
+    page = capsys.readouterr().out
+    assert "&lt;script&gt;alert(1)&lt;/script&gt; | x (#912)</a>" in page
+    assert "<script>alert(1)" not in page
+
+
+def test_searches_blocked_first_and_within_the_limit(blocked_project, capsys):
+    blocked_project.files.searches = 1
+    cli.main([str(blocked_project.path), "--evidence", "-f", "json"])
+    notices = json.loads(capsys.readouterr().out)["notices"]
+    assert blocked_project.files.searched == [("django-blocked", "Django 5.2")]
+    assert "Searched upstream issues for 1 of 2 packages: set GITHUB_TOKEN for more" in notices
+
+
+def test_a_refused_search_stops_searching(blocked_project, capsys):
+    blocked_project.files.issues["django-blocked"] = FetchError("HTTP 403 rate limit exceeded")
+    cli.main([str(blocked_project.path), "--evidence", "-f", "json"])
+    notices = json.loads(capsys.readouterr().out)["notices"]
+    assert any(n.startswith("Could not search the issues of django-blocked") for n in notices)
+    assert len(blocked_project.files.searched) == 1
+
+
+def test_github_search_over_http(monkeypatch):
+    fake = serve(monkeypatch, {"total_count": 1, "items": [item(3, "Django 5.2")]})
+    files = evidence.GitHubFiles(None)
+    assert files.searches == 10 and evidence.GitHubFiles(None, token="t").searches == 30
+    assert files.search("org", "x", "Django 5.2")[0]["number"] == 3
+    assert fake.requests[0].full_url == (
+        "https://api.github.com/search/issues?q=repo%3Aorg/x%20%22Django%205.2%22%20in%3Atitle"
+        "&sort=updated&order=desc&per_page=5"
+    )

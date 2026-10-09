@@ -46,7 +46,11 @@ Top level (schema_version 1):
   ``evidence`` (list): for a package to check, signs of support the metadata does not give,
   each with ``kind`` (``"readme"``, ``"test-matrix"`` or ``"changelog"``), ``text`` (also in
   ``notes``-like form, e.g. ``"README of 2.1 mentions Django 5.2"``) and ``url`` (or null).
-  They never change the status.
+  They never change the status. ``upstream`` (list): with ``--evidence``, for a blocked
+  package or one to check without a sign, at most two issues or pull requests in its GitHub
+  repository whose title names the target: ``kind`` (``"issue"`` or ``"pr"``), ``state``
+  (``"open"``, ``"closed"`` or ``"merged"``), ``title`` (at most 80 characters, from outside:
+  escape it), ``url``, ``number`` and ``updated`` (ISO 8601 or null).
 - ``not_on_index`` (list of str): dependencies the package index does not know.
 - ``not_checked`` (list of str): dependencies the index could not answer for, even after
   retries. When not empty, the report is incomplete; ``warnings`` says why.
@@ -164,6 +168,17 @@ def _package(p: PackageReport) -> dict:
         "direct": p.direct,
         "origin": p.origin,
         "evidence": [{"kind": e.kind, "text": e.text, "url": e.url} for e in p.evidence],
+        "upstream": [
+            {
+                "kind": i.kind,
+                "state": i.state,
+                "title": i.title,
+                "url": i.url,
+                "number": i.number,
+                "updated": i.updated or None,
+            }
+            for i in p.upstream
+        ],
     }
 
 

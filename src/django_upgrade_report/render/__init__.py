@@ -99,7 +99,8 @@ def source_label(where: str) -> str:
 def row_notes(package: PackageReport) -> list[str]:
     """The notes to show on a package's row: where it comes from first, if not from PyPI."""
     source = [f"from {source_label(package.source)}"] if package.source else []
-    return source + package.notes + [e.text for e in package.evidence]
+    signs = [e.text for e in package.evidence] + [i.label for i in package.upstream]
+    return source + package.notes + signs
 
 
 def row_links(package: PackageReport) -> list[tuple[str, str]]:
