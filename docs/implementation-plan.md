@@ -42,10 +42,10 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 5.1b | 0.6 | Trace der Suche und Phase, `--explain` im Text | erledigt |
 | 5.1c | 0.6 | FAQ, CONTRIBUTING, Issue-Template | erledigt |
 | 7.3 | 0.6 | Fehlende Angaben nachfragen | erledigt |
-| 2.1 | 0.7 | Python-Readiness | in Arbeit |
+| 2.1 | 0.7 | Python-Readiness | erledigt |
 | 2.1a | 0.7 | Regel: läuft ein Release auf Python X.Y (`python.py`) | erledigt |
 | 2.1b | 0.7 | Python-Plan in der Analyse, `--python-target`, Text | erledigt |
-| 2.1c | 0.7 | Markdown/HTML/JSON, `--fail-on-python`, Action, Doku, Golden-Tests | offen |
+| 2.1c | 0.7 | Markdown/HTML/JSON, `--fail-on-python`, Action, Doku | erledigt |
 | 4.1 | 0.8 | Baseline-Diff | offen |
 | 4.2 | 0.8 | Sticky PR-Kommentar | offen |
 | 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | offen |
@@ -576,6 +576,15 @@ PyPy- und Free-Threading-Wheels (`cp313t`) nicht.
   der Index schuldig bleibt, nennt eine Zeile „Could not check, run again later“.
 - Im Quiet-Modus erscheinen nur blockierte Python-Zeilen. Markdown, HTML, JSON und
   `--fail-on-python` folgen in 2.1c.
+
+**2.1c umgesetzt:** Abschnitt in Markdown und HTML (eigene Farbe), JSON `python` mit den
+Zeilen in derselben Form wie `packages` plus `ready`, `pure`, `silent`, `not_checked`,
+`django_note`; `--fail-on-python`; Action-Inputs `python-target`, `fail-on-python` und Output
+`python-blocked`; README „Upgrading Python too“. **Nicht umgesetzt:** Golden-Tests mit
+aufgezeichnetem numpy und psycopg2. `tests/fixtures/record.py` speichert pro Release nur
+Upload-Zeit und Yanked, keine Dateien; dafür müsste das Fixture-Format wachsen. Die Regeln
+decken Unit-Tests mit Wheel-Dateinamen im Fake-Index ab, und ein echter Lauf gegen PyPI
+(numpy 1.22.4, psycopg2-binary 2.9.3, Django 4.2.7 → 6.1) liefert das erwartete Ergebnis.
 
 **Status pro Paket** (wie bei Django):
 

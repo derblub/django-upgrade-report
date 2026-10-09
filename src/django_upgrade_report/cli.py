@@ -83,6 +83,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="exit with status 1 when a package is blocked, needs an upgrade or needs a check "
         "(errors exit with status 2)",
     )
+    parser.add_argument(
+        "--fail-on-python",
+        choices=sorted(_FAIL_ON),
+        help="like --fail-on, for the dependencies on the newer Python (see --python-target)",
+    )
     parser.add_argument("-v", "--verbose", action="store_true", help="list ready packages too")
     parser.add_argument(
         "--python-target",
@@ -268,6 +273,10 @@ def _run(args: argparse.Namespace) -> int:
     threshold = SEVERITY[_FAIL_ON[args.fail_on]] if args.fail_on else None
     if threshold is not None and any(SEVERITY[p.status] >= threshold for p in report.packages):
         return 1  # a package that needs attention is a result, even if others are unknown
+    if args.fail_on_python and report.python is not None:
+        python = SEVERITY[_FAIL_ON[args.fail_on_python]]
+        if any(SEVERITY[p.status] >= python for p in report.python.packages):
+            return 1
     if args.fail_on and report.failed:
         why = (
             "they are not in the cache. Run once without --offline"

@@ -18,6 +18,12 @@ inputs:
   fail-on:
     description: "Fail the step when a package is 'blocked', needs an 'upgrade' or a 'check'. Empty never fails."
     default: ""
+  python-target:
+    description: "Also check every dependency on this Python: 'auto' (when the target Django needs a newer one than your project uses), 'none' or e.g. '3.12'."
+    default: auto
+  fail-on-python:
+    description: "Fail the step when a dependency is 'blocked', needs an 'upgrade' or a 'check' on that Python. Empty never fails."
+    default: ""
   check-private-on-pypi:
     description: "'true' looks up packages your project installs from another index on PyPI, too: for an index that mirrors PyPI (Artifactory, Nexus, devpi). Their names are sent to PyPI."
     default: "false"
@@ -38,6 +44,9 @@ outputs:
   ready:
     description: Number of ready packages.
     value: ${{ steps.report.outputs.ready }}
+  python-blocked:
+    description: Number of dependencies no release of which runs on the newer Python, 0 when there is none to check.
+    value: ${{ steps.report.outputs.python-blocked }}
 
 runs:
   using: composite
@@ -80,11 +89,13 @@ runs:
         DUR_FAIL_ON: ${{ inputs.fail-on }}
         DUR_FROM: ${{ inputs.from }}
         DUR_CHECK_PRIVATE: ${{ inputs.check-private-on-pypi }}
+        DUR_PYTHON_TARGET: ${{ inputs.python-target }}
+        DUR_FAIL_ON_PYTHON: ${{ inputs.fail-on-python }}
         PYTHONUTF8: "1"
       run: |
         dur() { "$DUR_BIN/python" -m django_upgrade_report "$@"; }
         report="$("$DUR_BIN/python" -c 'import os, tempfile; print(tempfile.mkdtemp(prefix="django-upgrade-report-", dir=os.environ["RUNNER_TEMP"]).replace(os.sep, "/"))')/report.json"
-        common=("$DUR_PATH" --target "$DUR_TARGET")
+        common=("$DUR_PATH" --target "$DUR_TARGET" --python-target "$DUR_PYTHON_TARGET")
         if [ -n "$DUR_FROM" ]; then common+=(--from "$DUR_FROM"); fi
         if [ "$DUR_CHECK_PRIVATE" = true ]; then common+=(--check-private-on-pypi); fi
         # The first run fills the cache, the others read from it.
@@ -94,11 +105,15 @@ runs:
         import json, sys
         sys.stdout.reconfigure(newline="\n")  # no \r in the outputs on Windows
         with open(sys.argv[1], encoding="utf-8") as f:
-            for status, n in json.load(f)["counts"].items():
-                print(f"{status}={n}")
+            data = json.load(f)
+        for status, n in data["counts"].items():
+            print(f"{status}={n}")
+        python = data.get("python") or {"packages": []}
+        print(f"python-blocked={sum(p['status'] == 'blocked' for p in python['packages'])}")
         PY
         dur "${common[@]}" --format markdown >> "$GITHUB_STEP_SUMMARY"
         # Last, so the summary and outputs exist even when this fails the step.
         args=()
         if [ -n "$DUR_FAIL_ON" ]; then args+=(--fail-on "$DUR_FAIL_ON"); fi
+        if [ -n "$DUR_FAIL_ON_PYTHON" ]; then args+=(--fail-on-python "$DUR_FAIL_ON_PYTHON"); fi
         dur "${common[@]}" "${args[@]}"

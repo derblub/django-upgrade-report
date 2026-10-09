@@ -10,7 +10,9 @@ from django_upgrade_report.render import (
     headline,
     packages_line,
     private_index_hint,
+    python_hint,
     python_line,
+    python_summary,
     row_links,
     row_notes,
     sections,
@@ -22,13 +24,13 @@ from django_upgrade_report.render import (
 _CSS = """
 :root {
   --bg: #f7f7f5; --panel: #ffffff; --text: #1b1d1c; --muted: #6a706d; --line: #e4e4e0;
-  --ready: #1f7a4d; --upgrade: #a15c00; --check: #22639e; --blocked: #b3261e;
+  --python: #6b46c1; --ready: #1f7a4d; --upgrade: #a15c00; --check: #22639e; --blocked: #b3261e;
   --ready-bg: #e5f3ec; --upgrade-bg: #fbefdc; --check-bg: #e3eef8; --blocked-bg: #fbe4e2;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #111312; --panel: #1a1d1c; --text: #e9ebea; --muted: #9aa19d; --line: #2c302e;
-    --ready: #5fd49a; --upgrade: #f0b35a; --check: #7db6ec; --blocked: #f28b82;
+    --python: #b794f4; --ready: #5fd49a; --upgrade: #f0b35a; --check: #7db6ec; --blocked: #f28b82;
     --ready-bg: #173325; --upgrade-bg: #3a2a12; --check-bg: #16283a; --blocked-bg: #3d1a18;
   }
 }
@@ -56,6 +58,7 @@ h2 .count { color: var(--muted); font-weight: 400; }
 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .dot.ready { background: var(--ready); } .dot.upgrade { background: var(--upgrade); }
 .dot.check { background: var(--check); } .dot.blocked { background: var(--blocked); }
+.dot.python { background: var(--python); }
 .table { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
   overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
@@ -123,6 +126,18 @@ def render(report: Report) -> str:
     )
 
     body = []
+    plan = report.python
+    if plan is not None:
+        title = f"Python {plan.target} first" if plan.packages else f"Python {plan.target}"
+        count = f' <span class="count">{len(plan.packages)}</span>' if plan.packages else ""
+        body.append(
+            f'<section id="python"><h2><span class="dot python"></span>{escape(title)}{count}</h2>'
+        )
+        if plan.packages:
+            body.append(f'<p class="hint">{escape(python_hint(report))}</p>')
+            body.append(_table(plan.packages))
+        summary = "".join(f"<p>{escape(line)}.</p>" for line in python_summary(report))
+        body.append(f'<div class="hint">{summary}</div></section>')
     for section in sections(report):
         color = _SECTION_COLOR[section.key]
         body.append(

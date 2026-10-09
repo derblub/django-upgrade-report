@@ -113,6 +113,8 @@ django-upgrade-report [PROJECT] [options]
 | `-f`, `--format` | `text` (default), `markdown`, `json` or `html`. |
 | `-o`, `--output` | Write the report to a file instead of stdout. Missing directories are created. |
 | `--fail-on` | Exit with status 1 when a package is `blocked`, needs an `upgrade` (or is blocked), or needs a `check` (or anything worse). |
+| `--python-target` | `auto` (default): also check every dependency on the Python the target Django needs, when your project uses an older one. `none`: never. `3.12` and so on: on that Python, whatever Django needs. See [Upgrading Python too](#upgrading-python-too). |
+| `--fail-on-python` | Like `--fail-on`, for the dependencies on that Python. |
 | `--explain PACKAGE` | Show step by step how the verdict on a package came about instead of the report: the requirement lines that apply, the classifiers, whether an upper bound counts, every release looked at, and whether it goes before or with Django. Can be given more than once. Paste it into an issue when you think a verdict is wrong. |
 | `-v`, `--verbose` | Text output only: list every ready package with its reason. The other formats always do. |
 | `-q`, `--quiet` | Text output only: just the headline, warnings, blocked packages and the counts. |
@@ -177,6 +179,22 @@ A range counts as its lower bound. The report shows the Python it found and warn
 
 Markers are evaluated for CPython on Linux, where Django apps are deployed, never for the machine running the tool. Against the target, a package is judged on the newer of your project's Python and the oldest Python the target Django supports. Against your current Django, on your project's Python, or the oldest Python your current Django supports when none was found.
 
+### Upgrading Python too
+
+Django 6.0 needs Python 3.12. When the target Django needs a newer Python than your project uses, the report starts with what your dependencies need on it, all of them, not only the Django-related ones:
+
+```
+Python 3.12 first (2)
+  These dependencies need something before they run on Python 3.12.
+  ↑ numpy            1.22.4 → 1.26.0  1.22.4 no wheel for Python 3.12, pip builds it from source
+  ↑ psycopg2-binary  2.9.3 → 2.9.9    2.9.3 no wheel for Python 3.12, pip builds it from source
+  3 more dependencies run on Python 3.12, all pure Python.
+  1 says nothing about Python versions: pycrypto.
+  Django 4.2.7 does not declare Python 3.12, 4.2.8 does: update Django 4.2 first.
+```
+
+For each installed release, in this order: a `Requires-Python` that excludes the Python means no; a `Programming Language :: Python :: 3.12` classifier means yes; so does a wheel built for it. An `abi3` wheel for an older Python, or a pure-Python wheel, runs too. Wheels only for other Pythons mean pip builds the package from source, which needs a compiler and often fails; without a source distribution it cannot be installed at all. Wheels count when they install on CPython under Linux on x86_64. A dependency that needs something gets the oldest newer release that runs on the Python, with a note when that release no longer runs on the Python you use today, so it goes together with the switch. It needs a project Python (see above); `--python-target 3.13` checks any Python you name.
+
 ### Packages not from PyPI
 
 Packages from git, a local path, a URL or a private index are listed as "Not from PyPI, not checked", with where they come from, and their names are never sent to PyPI. This covers `git+https://...`, `-e` and local path lines in requirement files, `name @ url` requirements, git, path and URL sources in lockfiles, `--index-url` and `--no-index` in requirement files, a private default index or `no-index` in uv, Poetry, PDM or Pipenv, and the `PIP_INDEX_URL`, `UV_INDEX_URL`, `UV_DEFAULT_INDEX`, `PIP_NO_INDEX` and `UV_NO_INDEX` environment variables (lockfiles keep the index they record). Credentials in those URLs are removed before anything is shown.
@@ -206,12 +224,15 @@ The action writes the Markdown report to the job summary, exposes the counts as 
 | `target` | `auto` | `auto`, `lts`, `latest` or a version such as `6.1`. |
 | `from` | | The Django version you run today, when your requirements only give a range. Empty reads it from the project. |
 | `fail-on` | | `blocked`, `upgrade` or `check`. Empty never fails the step because of a package. |
+| `python-target` | `auto` | `auto`, `none` or a version such as `3.12`. |
+| `fail-on-python` | | `blocked`, `upgrade` or `check` on that Python. Empty never fails the step because of it. |
 | `check-private-on-pypi` | `false` | `true` looks up packages from another index on PyPI, too. |
 
 | Output | Description |
 | --- | --- |
 | `report` | Path to the JSON report, unique per use of the action. |
 | `blocked`, `upgrade`, `check`, `ready` | Number of packages with that status. |
+| `python-blocked` | Number of dependencies no release of which runs on the newer Python. `0` when there is none to check. |
 
 The action brings its own Python, runs on Linux and Windows runners, and caches PyPI responses between runs. The summary and the outputs are written before `fail-on` fails the step.
 

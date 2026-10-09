@@ -46,6 +46,14 @@ Top level (schema_version 1):
   Django-related metadata could be read locally), as objects with
   ``name`` and ``source`` (e.g. ``"git https://github.com/org/repo"``).
 - ``skipped_non_django`` (int): dependencies without a Django requirement.
+- ``python`` (object or null): when the target Django needs a newer Python than the project
+  uses, or ``--python-target`` names one, what every pinned dependency from PyPI needs on it:
+  ``target`` and ``current`` (X.Y), ``packages`` (objects like those under ``packages``, with
+  ``status`` ``"upgrade"``, ``"check"`` or ``"blocked"`` and ``upgrade_to`` the first release
+  that runs on the target), ``ready`` and ``pure`` (how many run on it already, the second
+  pure Python), ``silent`` (names whose release says nothing about Python), ``not_checked``
+  (names the index did not answer for) and ``django_note`` (str or null: whether your Django
+  patch release declares the target Python, or which one does).
 - ``explain`` (object): for each package given with ``--explain``, by canonical name, how its
   verdict came about: a list of objects with ``section`` (``"inputs"``, ``"release"``,
   ``"search"``, ``"phase"`` or ``"result"``) and ``text``, in the order they happened. Empty
@@ -57,7 +65,7 @@ from __future__ import annotations
 import json
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, __version__
-from django_upgrade_report.analysis import Report
+from django_upgrade_report.analysis import PackageReport, Report
 
 SCHEMA_VERSION = 1
 
@@ -81,49 +89,65 @@ def as_dict(report: Report) -> dict:
         "warnings": report.warnings,
         "notices": report.notices,
         "counts": {status.value: n for status, n in report.counts.items()},
-        "packages": [
-            {
-                "name": p.display_name,
-                "current": p.current,
-                "spec": p.spec or None,
-                "latest": p.latest,
-                "status": p.status.value,
-                "upgrade_to": p.target_version,
-                "phase": p.phase.value if p.phase else None,
-                "reason": p.reason,
-                "notes": p.notes,
-                "last_release": p.last_release.isoformat() if p.last_release else None,
-                "source": p.source,
-                "built_into_django": {
-                    "since": str(p.successor.since),
-                    "replacement": p.successor.replacement,
-                    "source": p.successor.source,
-                }
-                if p.successor
-                else None,
-                "prerelease": {
-                    "version": p.prerelease.version,
-                    "reason": p.prerelease.reason,
-                    "uploaded": p.prerelease.uploaded.isoformat()
-                    if p.prerelease.uploaded
-                    else None,
-                }
-                if p.prerelease
-                else None,
-                "majors_crossed": p.majors_crossed,
-                "changelog_url": p.changelog_url,
-                "repository_url": p.repository_url,
-            }
-            for p in report.packages
-        ],
+        "packages": [_package(p) for p in report.packages],
         "not_on_index": report.missing,
         "not_checked": report.failed,
         "external": [{"name": name, "source": where} for name, where in report.external],
         "skipped_non_django": report.skipped,
+        "python": _python(report),
         "explain": {
             name: [{"section": line.section, "text": line.text} for line in lines]
             for name, lines in report.explanations.items()
         },
+    }
+
+
+def _package(p: PackageReport) -> dict:
+    return {
+        "name": p.display_name,
+        "current": p.current,
+        "spec": p.spec or None,
+        "latest": p.latest,
+        "status": p.status.value,
+        "upgrade_to": p.target_version,
+        "phase": p.phase.value if p.phase else None,
+        "reason": p.reason,
+        "notes": p.notes,
+        "last_release": p.last_release.isoformat() if p.last_release else None,
+        "source": p.source,
+        "built_into_django": {
+            "since": str(p.successor.since),
+            "replacement": p.successor.replacement,
+            "source": p.successor.source,
+        }
+        if p.successor
+        else None,
+        "prerelease": {
+            "version": p.prerelease.version,
+            "reason": p.prerelease.reason,
+            "uploaded": p.prerelease.uploaded.isoformat() if p.prerelease.uploaded else None,
+        }
+        if p.prerelease
+        else None,
+        "majors_crossed": p.majors_crossed,
+        "changelog_url": p.changelog_url,
+        "repository_url": p.repository_url,
+    }
+
+
+def _python(report: Report) -> dict | None:
+    plan = report.python
+    if plan is None:
+        return None
+    return {
+        "target": plan.target,
+        "current": plan.current,
+        "packages": [_package(p) for p in plan.packages],
+        "ready": plan.ready,
+        "pure": plan.pure,
+        "silent": plan.silent,
+        "not_checked": plan.unknown,
+        "django_note": plan.django_note,
     }
 
 

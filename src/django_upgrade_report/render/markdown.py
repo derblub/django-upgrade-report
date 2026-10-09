@@ -9,7 +9,9 @@ from django_upgrade_report.analysis import PackageReport, Report
 from django_upgrade_report.render import (
     headline,
     private_index_hint,
+    python_hint,
     python_line,
+    python_summary,
     row_links,
     row_notes,
     sections,
@@ -71,6 +73,15 @@ def render(report: Report) -> str:
     if report.warnings:
         lines.append("> [!WARNING]")
         lines += [f"> {escape(w)}  " for w in report.warnings]
+        lines.append("")
+    plan = report.python
+    if plan is not None:
+        if plan.packages:
+            lines += [f"### 🐍 Python {plan.target} first ({len(plan.packages)})", ""]
+            lines += [escape(python_hint(report)), "", *_table(plan.packages), ""]
+        else:
+            lines += [f"### 🐍 Python {plan.target}", ""]
+        lines += [f"{escape(line)}.  " for line in python_summary(report)]
         lines.append("")
     for section in sections(report):
         lines.append(f"### {_ICON[section.key]} {section.title} ({len(section.packages)})")

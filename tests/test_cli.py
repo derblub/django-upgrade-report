@@ -818,3 +818,53 @@ def test_python_target_is_checked_before_anything_is_fetched(project, index, cap
     assert cli.main([str(project), "--python-target", value]) == 2
     assert "is not a Python version such as 3.12" in capsys.readouterr().err
     assert index.requests == []
+
+
+@pytest.fixture
+def py_project(project, index):
+    """Django 4.2.7 on Python 3.10; django-before 1.0 to 2.0 exclude Python 3.12."""
+    (project / ".python-version").write_text("3.10\n")
+    for r in index.packages["django-before"][:3]:
+        r["requires_python"] = "<3.12"
+    return project
+
+
+@pytest.mark.parametrize("fmt", ["markdown", "html", "json"])
+def test_python_section_in_every_format(py_project, capsys, fmt):
+    assert cli.main([str(py_project), "--python-target", "3.12", "-f", fmt]) == 0
+    out = capsys.readouterr().out
+    if fmt == "json":
+        python = json.loads(out)["python"]
+        assert (python["target"], python["current"]) == ("3.12", "3.10")
+        (row,) = python["packages"]
+        assert (row["name"], row["status"], row["upgrade_to"]) == (
+            "django-before",
+            "upgrade",
+            "2.1",
+        )
+        assert python["silent"] == ["django-blocked", "django-ready"]
+        assert python["django_note"].startswith("No Django 4.2 release declares Python 3.12")
+        return
+    assert "Python 3.12 first" in out
+    assert "These dependencies need something before they run on Python 3.12." in out
+    assert "django-blocked, django-ready" in out
+    if fmt == "markdown":
+        assert "| `django-before` | 1.0 → 2.1 | 1.0 requires Python \\<3.12 |" in out
+
+
+def test_json_python_is_null_without_a_newer_python(project, capsys):
+    cli.main([str(project), "-f", "json"])
+    assert json.loads(capsys.readouterr().out)["python"] is None
+
+
+def test_fail_on_python(py_project, index):
+    args = [str(py_project), "--python-target", "3.12"]
+    assert cli.main([*args, "--fail-on-python", "upgrade"]) == 1
+    assert cli.main([*args, "--fail-on-python", "blocked"]) == 0
+    for r in index.packages["django-before"]:
+        r["requires_python"] = "<3.12"
+    index._memory.clear()  # the same client answers every run of this test
+    assert cli.main([*args, "--fail-on-python", "blocked"]) == 1
+    assert (
+        cli.main([str(py_project), "--fail-on-python", "blocked", "--python-target", "none"]) == 0
+    )
