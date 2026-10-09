@@ -37,10 +37,10 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 2.3 | 0.5 | Risiko pro Schritt und Changelog-Links | erledigt |
 | 4.3 | 0.5 | pre-commit-Hook und `--offline` | erledigt |
 | 0.5 | 0.6 | Verallgemeinerte Release-Suche | erledigt |
-| 5.1 | 0.6 | `--explain` | in Arbeit |
+| 5.1 | 0.6 | `--explain` | erledigt |
 | 5.1a | 0.6 | Regelkette pro Release (`explain_support`) | erledigt |
 | 5.1b | 0.6 | Trace der Suche und Phase, `--explain` im Text | erledigt |
-| 5.1c | 0.6 | FAQ, CONTRIBUTING, Issue-Template | offen |
+| 5.1c | 0.6 | FAQ, CONTRIBUTING, Issue-Template | erledigt |
 | 7.3 | 0.6 | Fehlende Angaben nachfragen | offen |
 | 2.1 | 0.7 | Python-Readiness | offen |
 | 4.1 | 0.8 | Baseline-Diff | offen |

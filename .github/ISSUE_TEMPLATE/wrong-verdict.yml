@@ -22,8 +22,12 @@ body:
   - type: textarea
     id: actual
     attributes:
-      label: What the report says
-      description: Paste the line from the report, or the package's entry from `--format json`.
+      label: What the tool says
+      description: >-
+        Paste the output of `django-upgrade-report --explain PACKAGE` (run it the way you ran
+        the report, with the same target). It names the tool version, every rule it applied and
+        every release it looked at. On versions before 0.5, paste the line from the report or
+        the package's entry from `--format json`.
       render: text
     validations:
       required: true
@@ -38,6 +42,7 @@ body:
     id: version
     attributes:
       label: django-upgrade-report version
+      description: Already in the `--explain` output; needed only if you could not run it.
       placeholder: output of django-upgrade-report --version
     validations:
-      required: true
+      required: false

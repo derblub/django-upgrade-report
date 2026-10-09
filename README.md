@@ -281,6 +281,12 @@ No. It reads your lockfile or requirement files locally and sends only names and
 </details>
 
 <details>
+<summary><strong>Why does it say that about my package?</strong></summary>
+
+Run it again with `--explain` and the package's name, for example `django-upgrade-report --explain wagtail`. It shows the Django requirement lines that apply on your Python, the classifiers, whether an upper bound counts given when it was set, every release it looked at with its verdict, and why an upgrade goes before or with Django. If the verdict is still wrong, paste that output into a [wrong verdict](https://github.com/derblub/django-upgrade-report/issues/new/choose) issue.
+</details>
+
+<details>
 <summary><strong>Why are so many packages "check manually"?</strong></summary>
 
 Many maintainers forget to add the classifier for a new Django version, or only add it with the next release. The tool refuses to guess. Packages that are really incompatible almost always say so with an upper bound, and those show up as blocked.

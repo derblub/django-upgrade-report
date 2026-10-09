@@ -6,11 +6,8 @@ Thanks for taking the time. Bug reports with a real `requirements.txt` or lockfi
 
 Open an [issue](https://github.com/derblub/django-upgrade-report/issues/new/choose) with:
 
-- the command you ran and `django-upgrade-report --version`,
-- the package, the version you use and the target Django version,
-- what the tool said and what you expected, ideally with a link to the package's changelog or PyPI page.
-
-`--format json` output helps, since it includes the reason for every verdict.
+- the output of `django-upgrade-report --explain PACKAGE`, run the way you ran the report: it names the tool version, the target, every rule the tool applied and every release it looked at,
+- what you expected, ideally with a link to the package's changelog or PyPI page.
 
 ## Development setup
 
