@@ -22,8 +22,7 @@ Release-Reihenfolge, Risiken und eine Checkliste pro Pull Request.
 
 ## Fortschritt
 
-Die Schleife `/loop /plan-step` (Skill in `.claude/skills/plan-step/`) arbeitet diese Tabelle
-von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
+Die Tabelle wird von oben nach unten abgearbeitet; die Spalte „Status“ ist `offen`, `in Arbeit`,
 `erledigt` oder `blockiert: <Grund>`. Ein zu großer Punkt wird in Unterschritte
 (`2.1a`, `2.1b`, …) geteilt, die direkt unter ihm eingefügt werden.
 
