@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import re
+import time
+from datetime import datetime, timezone
+from pathlib import Path
 
 import pytest
 from conftest import release
@@ -510,6 +514,9 @@ def test_fail_on_never_passes_an_incomplete_report(project, index, monkeypatch, 
     assert cli.main([str(project)]) == 0  # the report is still shown
     out = capsys.readouterr().out
     assert "Could not check django-before" in out
+    # django-blocked is known to block: that is a result, whatever django-before would say.
+    assert cli.main([str(project), "--fail-on", "blocked"]) == 1
+    (project / "requirements.txt").write_text("Django==4.2.7\ndjango-before==1.0\n")
     assert cli.main([str(project), "--fail-on", "blocked"]) == 2
     assert "could not be checked" in capsys.readouterr().err
 
@@ -606,3 +613,106 @@ def test_changelog_link_and_step_size(project, index, capsys):
     assert "x.test" not in capsys.readouterr().out  # only with -v
     cli.main([str(project), "-v"])
     assert "changelog https://x.test/CHANGES%20%282%29.md" in capsys.readouterr().out
+
+
+# --- offline, prefer-cache, hooks -------------------------------------------------
+
+
+@pytest.fixture
+def cached(project, index, monkeypatch, tmp_path):
+    """Each run gets a fresh client over the same packages and a shared disk cache."""
+    from conftest import FakePyPI
+
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
+    clients = []
+
+    def make(url, cache_dir=None, mode="online"):
+        fake = FakePyPI(index.packages)
+        fake.cache_dir, fake.mode = cache_dir, mode
+        clients.append(fake)
+        return fake
+
+    monkeypatch.setattr(cli, "PyPI", make)
+    return clients
+
+
+def test_offline_answers_from_the_cache(project, cached, capsys):
+    assert cli.main([str(project)]) == 0
+    online = capsys.readouterr().out
+    assert cli.main([str(project), "--offline"]) == 0
+    offline = capsys.readouterr().out
+    assert cached[-1].requests == []  # never asked the index
+    assert online == offline  # a fresh cache needs no notice
+
+
+def test_old_cache_says_how_old(project, cached, capsys):
+    cli.main([str(project)])
+    old = time.time() - 3 * 24 * 3600
+    for path in (Path(os.environ["XDG_CACHE_HOME"]) / "django-upgrade-report").iterdir():
+        os.utime(path, (old, old))
+    capsys.readouterr()
+    day = datetime.fromtimestamp(old, timezone.utc).date()
+    for flag in ("--offline", "--prefer-cache"):
+        cli.main([str(project), flag])
+        assert f"Answers from the cache, the oldest from {day}\n" in capsys.readouterr().out
+
+
+def test_offline_without_a_cache(project, cached, capsys):
+    assert cli.main([str(project), "--offline"]) == 2
+    assert "not in the cache, run once without --offline" in capsys.readouterr().err
+    assert cli.main([str(project), "--offline", "--no-cache"]) == 2
+    assert "cannot go with --no-cache" in capsys.readouterr().err
+
+
+def test_offline_with_a_package_missing_from_the_cache(project, cached, capsys):
+    cli.main([str(project)])
+    with (project / "requirements.txt").open("a") as f:
+        f.write("django-lagging==1.0\n")
+    capsys.readouterr()
+    assert cli.main([str(project), "--offline", "--fail-on", "check"]) == 1  # django-before
+    (project / "requirements.txt").write_text("Django==4.2.7\ndjango-lagging==1.0\n")
+    assert cli.main([str(project), "--offline", "--fail-on", "blocked"]) == 2
+    err = capsys.readouterr().err
+    assert "(django-lagging): they are not in the cache. Run once without --offline" in err
+
+
+def test_prefer_cache_fetches_only_what_is_missing(project, cached, capsys):
+    cli.main([str(project)])
+    with (project / "requirements.txt").open("a") as f:
+        f.write("django-lagging==1.0\n")
+    assert cli.main([str(project), "--prefer-cache"]) == 0
+    assert {url.split("/")[4] for url in cached[-1].requests} == {"django-lagging"}
+
+
+def test_offline_knows_what_is_not_on_the_index(project, cached, capsys):
+    """A 404 is cached too: offline, a private package is "not on the index", not "failed"."""
+    with (project / "requirements.txt").open("a") as f:
+        f.write("django-private==1.0\n")
+    cli.main([str(project)])
+    capsys.readouterr()
+    assert cli.main([str(project), "--offline", "--fail-on", "check"]) == 1
+    assert "Not on the package index: django-private" in capsys.readouterr().out
+
+
+def test_a_blocker_fails_even_when_another_package_is_unknown(project, cached, capsys):
+    cli.main([str(project)])
+    with (project / "requirements.txt").open("a") as f:
+        f.write("django-lagging==1.0\n")
+    for flags in ([], ["--errors-as-warnings"]):
+        assert cli.main([str(project), "--offline", "--fail-on", "blocked", *flags]) == 1
+
+
+def test_errors_as_warnings_never_exit_2(project, cached, capsys):
+    assert cli.main([str(project), "--offline", "--errors-as-warnings"]) == 0
+    assert capsys.readouterr().err.startswith("warning: could not fetch")
+    cli.main([str(project)])
+    assert cli.main([str(project), "--fail-on", "blocked", "--errors-as-warnings"]) == 1
+
+
+def test_quiet_shows_only_what_blocks(project, capsys):
+    assert cli.main([str(project), "--quiet"]) == 0
+    out = capsys.readouterr().out
+    assert out.startswith("Django 4.2.7 → 5.2\n")
+    assert "Blocked (1)" in out and "django-blocked" in out
+    assert "Upgrade first" not in out and "from requirements.txt" not in out
+    assert out.rstrip().endswith("1 ready · 1 to upgrade · 0 to check · 1 blocked")

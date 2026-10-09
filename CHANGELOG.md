@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- A pre-commit hook, `django-upgrade-report`: it fails a commit that changes your dependencies when a package blocks the next Django upgrade, and lets the commit through when the report cannot be made.
+- `--offline` answers from the cache only, however old, and never asks the package index; the report says how old its oldest answer is. `--prefer-cache` asks the index only for what is not in the cache.
+- `--errors-as-warnings` exits with status 0 instead of 2 when the report cannot be made, for hooks that must not block a commit.
+- `-q`, `--quiet` shows only the headline, warnings, blocked packages and the counts.
 - An upgrade says how big the step is: "crosses 2 major versions", counted by the releases in between, each 0.x minor release as one. Calendar versions (2024.1) say "read the changelog" instead.
 - The rows of the Markdown and HTML reports link the package's changelog, the link its maintainers label as such or else its GitHub releases page; the text report shows it with `-v`. The JSON report has `majors_crossed`, `changelog_url` and `repository_url`.
 - Packages to check and blocked packages say when their newest pre-release declares the target, or no longer excludes it: "2.6.0.dev22 declares Django 6.1 (pre-release)". The status stays the same. The JSON report has it under `prerelease`.
@@ -13,6 +17,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- `--fail-on` exits with status 1 when a package matches it, even if other packages could not be checked; it used to exit with 2. A blocker that is known is a result. Without a match, an incomplete report still exits with 2.
 - The cache keeps a little more of each answer for the features to come: the project's links, the Django versions its description names, and per release the Python it requires and the tags of its Linux wheels. Answers cached by 0.4 are fetched once more; the old files are ignored, delete `~/.cache/django-upgrade-report` to free the space.
 - An index that answers HTTP 403 because of a rate limit (`X-RateLimit-Remaining: 0` or `Retry-After`) is asked again when the limit lets it within 30 seconds, like an HTTP 429. A longer wait stops the run at once with "rate limit exceeded" instead of retrying in vain, and any other 403 still stops it.
 

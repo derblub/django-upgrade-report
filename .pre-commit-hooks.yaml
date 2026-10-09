@@ -1,0 +1,7 @@
+- id: django-upgrade-report
+  name: django-upgrade-report
+  description: Fail when a dependency blocks the next Django upgrade.
+  entry: django-upgrade-report --fail-on blocked --prefer-cache --errors-as-warnings --quiet
+  language: python
+  pass_filenames: false
+  files: '^(uv\.lock|poetry\.lock|pdm\.lock|Pipfile\.lock|requirements([^/]*|/[^/]+)\.(txt|in)|pyproject\.toml)$'

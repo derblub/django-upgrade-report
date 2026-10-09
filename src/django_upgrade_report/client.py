@@ -26,6 +26,11 @@ ATTEMPTS = 4
 MAX_RETRY_AFTER = 30.0
 MAX_CONNECTIONS = 8
 """Requests in flight at once per client, however many threads ask."""
+_NOT_FOUND = {"not_found": True}
+"""What the disk cache holds for a 404, so offline runs know it, too."""
+ONLINE, PREFER_CACHE, OFFLINE = "online", "prefer-cache", "offline"
+"""How a client uses its disk cache: fresh answers only, any answer before asking the
+network, or never the network at all."""
 
 
 class FetchError(OSError):
@@ -33,6 +38,10 @@ class FetchError(OSError):
 
     The message never contains credentials from the base URL.
     """
+
+
+class NotCached(FetchError):
+    """Offline, and the answer is not in the disk cache."""
 
 
 class UnexpectedAnswer(ValueError):
@@ -58,9 +67,13 @@ class JsonClient:
         timeout: float = 20,
         headers: dict[str, str] | None = None,
         connections: int = MAX_CONNECTIONS,
+        mode: str = ONLINE,
     ):
         self.base_url, authorization, self._secrets = _split_credentials(base_url.rstrip("/"))
         self.cache_dir = cache_dir
+        self.mode = mode
+        self.oldest_cached: float | None = None
+        """When the oldest answer read from the disk cache was stored (a timestamp)."""
         self.timeout = timeout
         self._headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
         if authorization:
@@ -92,12 +105,16 @@ class JsonClient:
         with self._lock:
             if url in self._memory:
                 return self._memory[url]
-        data = self._read_cache(url)
+        data = self._read_cache(url, any_age=self.mode != ONLINE)
         if data is None:
+            if self.mode == OFFLINE:
+                raise NotCached(self.redact(f"could not fetch {url}: not in the cache"))
             data = self._fetch(url)
             if data is not None:
                 data = self._slim(data)  # so a cold cache answers like a warm one
-                self._write_cache(url, data)
+            self._write_cache(url, _NOT_FOUND if data is None else data)
+        elif data == _NOT_FOUND:
+            data = None
         with self._lock:
             self._memory[url] = data
         return data
@@ -164,18 +181,23 @@ class JsonClient:
         key = f"{self.cache_format} {url}" if self.cache_format else url
         return self.cache_dir / (hashlib.sha256(key.encode()).hexdigest() + ".json")
 
-    def _read_cache(self, url: str) -> object | None:
+    def _read_cache(self, url: str, any_age: bool = False) -> object | None:
         path = self._cache_path(url)
         if path is None or not path.is_file():
             return None
-        ttl = self._ttl(url)
-        if ttl is not None and time.time() - path.stat().st_mtime > ttl:
-            return None
         try:
+            stored = path.stat().st_mtime
+            ttl = self._ttl(url)
+            if not any_age and ttl is not None and time.time() - stored > ttl:
+                return None
             data = json.loads(path.read_text())
-            self._validate(data)  # a cache entry from another version, or a damaged one
+            if data != _NOT_FOUND:
+                self._validate(data)  # a cache entry from another version, or a damaged one
         except (OSError, ValueError):
             return None
+        with self._lock:
+            if self.oldest_cached is None or stored < self.oldest_cached:
+                self.oldest_cached = stored
         return data
 
     def _write_cache(self, url: str, data: object) -> None:

@@ -137,3 +137,46 @@ def test_an_answer_is_kept_in_memory(monkeypatch, sleeps):
     api = JsonClient("https://api.test")
     assert api._get(URL) == api._get(URL)
     assert len(fake.requests) == 1
+
+
+# --- offline and prefer-cache -----------------------------------------------------
+
+
+def stale(cache_dir):
+    old = time.time() - 30 * 24 * 3600
+    for path in cache_dir.iterdir():
+        os.utime(path, (old, old))
+    return old
+
+
+def test_offline_reads_old_answers_and_never_the_network(monkeypatch, sleeps, tmp_path):
+    serve(monkeypatch, {"v": 1})
+    Expiring("https://api.test", cache_dir=tmp_path)._get("https://api.test/hourly")
+    old = stale(tmp_path)
+    fake = serve(monkeypatch, {"v": 2})
+    api = Expiring("https://api.test", cache_dir=tmp_path, mode=client.OFFLINE)
+    assert api._get("https://api.test/hourly") == {"v": 1}
+    assert api.oldest_cached == pytest.approx(old)
+    with pytest.raises(client.NotCached, match="not in the cache"):
+        api._get("https://api.test/other")
+    assert fake.requests == []
+
+
+def test_prefer_cache_asks_only_for_what_is_missing(monkeypatch, sleeps, tmp_path):
+    serve(monkeypatch, {"v": 1})
+    Expiring("https://api.test", cache_dir=tmp_path)._get("https://api.test/hourly")
+    stale(tmp_path)
+    fake = serve(monkeypatch, {"v": 2})
+    api = Expiring("https://api.test", cache_dir=tmp_path, mode=client.PREFER_CACHE)
+    assert api._get("https://api.test/hourly") == {"v": 1}
+    assert api._get("https://api.test/other") == {"v": 2}
+    assert [r.full_url for r in fake.requests] == ["https://api.test/other"]
+
+
+def test_not_found_is_cached_for_offline_runs(monkeypatch, sleeps, tmp_path):
+    serve(monkeypatch, http_error(404))
+    assert JsonClient("https://api.test", cache_dir=tmp_path)._get(URL) is None
+    fake = serve(monkeypatch, {"v": 1})
+    assert JsonClient("https://api.test", cache_dir=tmp_path, mode=client.OFFLINE)._get(URL) is None
+    assert JsonClient("https://api.test", cache_dir=tmp_path)._get(URL) is None  # fresh 24 h
+    assert fake.requests == []

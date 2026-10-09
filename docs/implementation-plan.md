@@ -35,7 +35,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 0.6 | 0.5 | Testinfrastruktur | erledigt |
 | 1.1 | 0.5 | Pre-Releases | erledigt |
 | 2.3 | 0.5 | Risiko pro Schritt und Changelog-Links | erledigt |
-| 4.3 | 0.5 | pre-commit-Hook und `--offline` | offen |
+| 4.3 | 0.5 | pre-commit-Hook und `--offline` | erledigt |
 | 0.5 | 0.6 | Verallgemeinerte Release-Suche | offen |
 | 5.1 | 0.6 | `--explain` | offen |
 | 7.3 | 0.6 | Fehlende Angaben nachfragen | offen |
@@ -1088,6 +1088,30 @@ Commit verhindert.
   Warnung. Der Hook nutzt sie, CI nicht.
 - Text-Ausgabe im Hook knapp: neue Option `--quiet` zeigt nur Überschrift, Warnungen, BLOCKED
   und die Zählzeile.
+
+**Umgesetzt, mit diesen Entscheidungen:**
+
+- `JsonClient.mode` ist `online`, `prefer-cache` oder `offline`; die beiden letzten lesen den
+  Cache ohne TTL. `oldest_cached` merkt sich, wann die älteste gelesene Antwort gespeichert
+  wurde. Ist sie älter als die normale TTL (24 h), sagt der Report in beiden Modi
+  „Answers from the cache, the oldest from 2026-10-01“: Für die Frage „wie aktuell ist das?“
+  zählt die älteste Antwort, nicht die neueste. Ein frischer Cache bleibt ohne Hinweis.
+- Auch ein 404 kommt in den Cache (`{"not_found": true}`, gleiche TTL wie der Projektindex),
+  sonst wäre ein privates Paket offline „not checked“ statt „not on the index“.
+- Der Client meldet offline nur „not in the cache“ (`NotCached`); den Hinweis auf
+  `--offline` ergänzt die CLI.
+- `--fail-on` gibt jetzt 1 zurück, sobald ein Paket die Schwelle erreicht, auch wenn andere
+  nicht geprüft werden konnten (vorher 2). Sonst würde `--errors-as-warnings` im Hook einen
+  bekannten Blocker durchlassen, nur weil ein anderes Paket offline fehlt.
+- Offline fehlende Pakete landen in „Could not check“; mit `--fail-on` sagt der Fehler „they
+  are not in the cache. Run once without --offline“. `--offline` oder `--prefer-cache` mit
+  `--no-cache` ist ein Fehler.
+- `--errors-as-warnings` gilt auch für unerwartete Fehler (Bugs): Ein Hook soll auch daran
+  keinen Commit scheitern lassen. Die Meldung heißt dann `warning:` statt `error:`.
+- Das Dateimuster des Hooks erfasst nur Dateien im Wurzelverzeichnis (auch
+  `requirements/*.txt`), weil der Hook mit `pass_filenames: false` das Projekt dort liest. Für
+  Monorepos überschreibt man `files` und `args`.
+- Mit `pre-commit try-repo` gegen ein Beispielprojekt geprüft.
 
 **Tests:** Offline mit leerem Cache, mit vollem Cache, `--prefer-cache` holt nur Fehlendes,
 `--errors-as-warnings`, `--quiet`. `tests/test_packaging.py` prüft, dass

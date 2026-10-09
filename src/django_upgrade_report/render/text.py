@@ -31,7 +31,9 @@ _COUNTS = (
 )
 
 
-def render(report: Report, color: bool = False, verbose: bool = False) -> str:
+def render(report: Report, color: bool = False, verbose: bool = False, quiet: bool = False) -> str:
+    """The report for a terminal. ``quiet`` keeps the headline, warnings, blockers and counts."""
+
     def paint(text: str, code: str) -> str:
         return f"\033[{code}m{text}\033[0m" if color else text
 
@@ -64,10 +66,13 @@ def render(report: Report, color: bool = False, verbose: bool = False) -> str:
         about.append(f"Python {report.project_python}")
     lines = [paint(headline(report), "1")]
     lines += [paint(notice, "2") for notice in report.notices]
-    lines.append(paint(" · ".join(about), "2"))
+    if not quiet:
+        lines.append(paint(" · ".join(about), "2"))
     lines += [paint(f"! {warning}", "1;33") for warning in report.warnings]
     lines.append("")
     for section in sections(report):
+        if quiet and section.key != "blocked":
+            continue
         mark, code = _STYLE[section.key]
         shared = _shared_notes(section.packages)
         lines.append(paint(f"{section.title} ({len(section.packages)})", f"1;{code}"))
@@ -86,6 +91,9 @@ def render(report: Report, color: bool = False, verbose: bool = False) -> str:
         lines += rows(section.packages, mark, code, shared)
         lines.append("")
 
+    if quiet:
+        lines.append(_counts(report, paint))
+        return "\n".join(lines)
     if report.missing:
         lines.append(paint(f"Not on the package index: {', '.join(report.missing)}", "2"))
     if report.external:
@@ -99,14 +107,16 @@ def render(report: Report, color: bool = False, verbose: bool = False) -> str:
     python = python_line(report)
     if python and not report.project_python:  # a project Python too old is a warning above
         lines.append(paint(python, "2"))
-    counts = report.counts
-    lines.append(
-        paint(" · ", "2").join(
-            paint(f"{counts[status]} {label}", f"1;{code}" if counts[status] else "2")
-            for status, label, code in _COUNTS
-        )
-    )
+    lines.append(_counts(report, paint))
     return "\n".join(lines)
+
+
+def _counts(report: Report, paint) -> str:
+    counts = report.counts
+    return paint(" · ", "2").join(
+        paint(f"{counts[status]} {label}", f"1;{code}" if counts[status] else "2")
+        for status, label, code in _COUNTS
+    )
 
 
 def _shared_notes(packages: list[PackageReport]) -> list[str]:

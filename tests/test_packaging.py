@@ -32,3 +32,19 @@ def test_release_moves_the_major_tag_the_readme_uses():
     workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
     assert re.search(r'git tag --force "\$major"', workflow)
     assert "__init__.py" in workflow
+
+
+def test_pre_commit_hook():
+    """pre-commit reads .pre-commit-hooks.yaml from the repository root."""
+    text = (ROOT / ".pre-commit-hooks.yaml").read_text(encoding="utf-8")
+    lines = [line.removeprefix("- ").strip() for line in text.splitlines() if ": " in line]
+    hook = dict(line.split(": ", 1) for line in lines)
+    assert hook["id"] == "django-upgrade-report"
+    assert hook["entry"].split()[0] == "django-upgrade-report"
+    assert {"--prefer-cache", "--errors-as-warnings", "--quiet"} <= set(hook["entry"].split())
+    files = re.compile(hook["files"].strip("'"))
+    # The hook reads the project at the repository root, so only files there count.
+    for path in ("uv.lock", "poetry.lock", "requirements/base.txt", "requirements-dev.in"):
+        assert files.search(path), path
+    for path in ("app/poetry.lock", "docs/requirements.md", "uv.lock.bak", "requirements/a/b.txt"):
+        assert not files.search(path), path

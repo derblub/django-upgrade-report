@@ -6,11 +6,21 @@ import contextlib
 import os
 import sys
 import threading
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, sources
 from django_upgrade_report.analysis import SEVERITY, Status, analyse, from_other_index
-from django_upgrade_report.pypi import PyPI, PyPIError, default_cache_dir
+from django_upgrade_report.pypi import (
+    OFFLINE,
+    ONLINE,
+    PREFER_CACHE,
+    NotCached,
+    PyPI,
+    PyPIError,
+    default_cache_dir,
+)
 from django_upgrade_report.render import html, json, markdown, text
 
 _FAIL_ON = {"blocked": Status.BLOCKED, "upgrade": Status.UPGRADE, "check": Status.CHECK}
@@ -70,6 +80,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="list ready packages too")
     parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help="text output only: the headline, warnings, blocked packages and the counts",
+    )
+    parser.add_argument(
         "--index-url",
         help=f"PyPI JSON API base URL (default: {PYPI_JSON}). Packages your project installs "
         "from another index are looked up only when you pass this",
@@ -81,6 +97,23 @@ def build_parser() -> argparse.ArgumentParser:
         "index that mirrors PyPI (Artifactory, Nexus, devpi). Their names are sent to PyPI",
     )
     parser.add_argument("--no-cache", action="store_true", help="do not cache PyPI responses")
+    cache = parser.add_mutually_exclusive_group()
+    cache.add_argument(
+        "--offline",
+        action="store_true",
+        help="answer from the cache only, however old, and never ask the package index",
+    )
+    cache.add_argument(
+        "--prefer-cache",
+        action="store_true",
+        help="answer from the cache, however old, and ask the index only for what is missing",
+    )
+    parser.add_argument(
+        "--errors-as-warnings",
+        action="store_true",
+        help="exit with status 0 instead of 2 when the report cannot be made, e.g. offline: "
+        "for hooks that must not block a commit",
+    )
     parser.add_argument(
         "--version",
         action="version",
@@ -99,30 +132,35 @@ class Error(Exception):
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     _utf8_streams()
+    # A hook must not stop a commit because the report could not be made.
+    failure, label = (0, "warning") if args.errors_as_warnings else (2, "error")
     try:
         return _run(args)
     except Error as exc:
-        print(f"error: {exc}", file=sys.stderr)
-        return 2
-    except Exception as exc:  # a bug: still exit 2, so CI does not read it as "blocked"
+        print(f"{label}: {exc}", file=sys.stderr)
+        return failure
+    except Exception as exc:  # a bug: exit 2 (or 0 for a hook), so CI does not read it as "blocked"
         message = f"unexpected {type(exc).__name__}"
         # When the index URL itself is broken, leave out the details: they may hold it.
         with contextlib.suppress(Exception):
             message = PyPI(args.index_url or PYPI_JSON).redact(f"{message}: {exc}")
-        print(f"error: {message}\nPlease report this at {REPO_URL}/issues", file=sys.stderr)
-        return 2
+        print(f"{label}: {message}\nPlease report this at {REPO_URL}/issues", file=sys.stderr)
+        return failure
 
 
 def _run(args: argparse.Namespace) -> int:
     if args.output is not None and args.output.is_dir():
         raise Error(f"{args.output} is a directory, pass a file name to -o")
+    mode = OFFLINE if args.offline else PREFER_CACHE if args.prefer_cache else ONLINE
+    if args.no_cache and mode != ONLINE:
+        raise Error(f"--{mode} reads the cache, it cannot go with --no-cache")
     try:
         deps = sources.load(args.project, args.python)
     except (sources.NoDependenciesFound, sources.SourceError, OSError, ValueError) as exc:
         raise Error(exc) from None
 
     index_url = args.index_url or PYPI_JSON
-    pypi = PyPI(index_url, cache_dir=None if args.no_cache else default_cache_dir())
+    pypi = PyPI(index_url, cache_dir=None if args.no_cache else default_cache_dir(), mode=mode)
     # An index URL you pass, even pypi.org's, is where your packages are meant to be looked up.
     private_index = args.index_url is not None or args.check_private_on_pypi
 
@@ -141,14 +179,21 @@ def _run(args: argparse.Namespace) -> int:
             current=args.current,
             private_index=private_index,
         )
+    except NotCached as exc:
+        raise Error(f"{pypi.redact(str(exc))}, run once without --offline") from None
     except (PyPIError, ValueError, RuntimeError, OSError) as exc:
         raise Error(pypi.redact(str(exc))) from None
     finally:
         progress.clear()
+    oldest = pypi.oldest_cached
+    if mode != ONLINE and oldest is not None and time.time() - oldest > pypi.cache_ttl:
+        day = datetime.fromtimestamp(oldest, timezone.utc).date()
+        report.notices.append(f"Answers from the cache, the oldest from {day}")
 
     if args.format == "text":
         use_color = args.output is None and sys.stdout.isatty() and "NO_COLOR" not in os.environ
-        output = text.render(report, color=use_color, verbose=args.verbose) + "\n"
+        output = text.render(report, color=use_color, verbose=args.verbose, quiet=args.quiet)
+        output += "\n"
     else:
         output = {"markdown": markdown, "json": json, "html": html}[args.format].render(report)
 
@@ -159,10 +204,18 @@ def _run(args: argparse.Namespace) -> int:
         sys.stdout.write(output)
         sys.stdout.flush()
 
+    threshold = SEVERITY[_FAIL_ON[args.fail_on]] if args.fail_on else None
+    if threshold is not None and any(SEVERITY[p.status] >= threshold for p in report.packages):
+        return 1  # a package that needs attention is a result, even if others are unknown
     if args.fail_on and report.failed:
+        why = (
+            "they are not in the cache. Run once without --offline"
+            if mode == OFFLINE
+            else "the package index did not answer. Run again later"
+        )
         raise Error(
             f"--fail-on: {len(report.failed)} dependencies could not be checked "
-            f"({', '.join(report.failed)}): the package index did not answer. Run again later."
+            f"({', '.join(report.failed)}): {why}."
         )
     if args.fail_on and not report.packages and _from_other_index(report):
         raise Error(
@@ -170,9 +223,6 @@ def _run(args: argparse.Namespace) -> int:
             "If it mirrors PyPI, pass --check-private-on-pypi; else pass its JSON API with "
             "--index-url"
         )
-    threshold = SEVERITY[_FAIL_ON[args.fail_on]] if args.fail_on else None
-    if threshold is not None and any(SEVERITY[p.status] >= threshold for p in report.packages):
-        return 1
     return 0
 
 

@@ -15,9 +15,13 @@ from django_upgrade_report.client import (  # noqa: F401  (re-exported for calle
     ATTEMPTS,
     MAX_CONNECTIONS,
     MAX_RETRY_AFTER,
+    OFFLINE,
+    ONLINE,
+    PREFER_CACHE,
     USER_AGENT,
     FetchError,
     JsonClient,
+    NotCached,
     UnexpectedAnswer,
 )
 
@@ -81,8 +85,9 @@ class PyPI(JsonClient):
         cache_dir: Path | None = None,
         cache_ttl: float = 24 * 3600,
         timeout: float = 20,
+        mode: str = ONLINE,
     ):
-        super().__init__(index_url, cache_dir=cache_dir, timeout=timeout)
+        super().__init__(index_url, cache_dir=cache_dir, timeout=timeout, mode=mode)
         self.cache_ttl = cache_ttl
 
     @property

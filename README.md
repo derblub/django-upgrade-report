@@ -114,9 +114,13 @@ django-upgrade-report [PROJECT] [options]
 | `-o`, `--output` | Write the report to a file instead of stdout. Missing directories are created. |
 | `--fail-on` | Exit with status 1 when a package is `blocked`, needs an `upgrade` (or is blocked), or needs a `check` (or anything worse). |
 | `-v`, `--verbose` | Text output only: list every ready package with its reason. The other formats always do. |
+| `-q`, `--quiet` | Text output only: just the headline, warnings, blocked packages and the counts. |
 | `--index-url` | Base URL of an index that implements PyPI's JSON API. Default: `https://pypi.org/pypi`. |
 | `--check-private-on-pypi` | Look up packages your project installs from another index on PyPI, too. For an index that mirrors PyPI (Artifactory, Nexus, devpi). Their names are sent to PyPI. |
 | `--no-cache` | Do not cache PyPI responses. |
+| `--offline` | Answer from the cache only, however old, and never ask the package index. A package that is not in the cache counts as not checked. |
+| `--prefer-cache` | Answer from the cache, however old, and ask the index only for what is missing. |
+| `--errors-as-warnings` | Exit with status 0 instead of 2 when the report cannot be made, for example offline without a cache. For hooks that must not block a commit. |
 | `--version` | Show the version and exit. |
 
 Responses are cached in `~/.cache/django-upgrade-report` (or `$XDG_CACHE_HOME/django-upgrade-report`): a project's release list for 24 hours, the metadata of a single release for good, since it never changes. A new version of the tool may keep more of each answer; it then fetches them once more and ignores the old files, so delete the directory now and then to free the space.
@@ -127,7 +131,7 @@ Responses are cached in `~/.cache/django-upgrade-report` (or `$XDG_CACHE_HOME/dj
 | --- | --- |
 | `0` | The report was written, and no package matched `--fail-on`. |
 | `1` | A package matched `--fail-on`. |
-| `2` | An error: no dependencies found, an unreadable file, an unknown target, the index could not be reached. Also with `--fail-on` when no dependency could be checked because they all come from another index. |
+| `2` | An error: no dependencies found, an unreadable file, an unknown target, the index could not be reached. Also with `--fail-on` when no dependency could be checked because they all come from another index. With `--errors-as-warnings` these exit with `0` and print a warning instead. |
 
 So CI can tell "packages need attention" from "the tool could not run".
 
@@ -208,6 +212,17 @@ The action writes the Markdown report to the job summary, exposes the counts as 
 | `blocked`, `upgrade`, `check`, `ready` | Number of packages with that status. |
 
 The action brings its own Python, runs on Linux and Windows runners, and caches PyPI responses between runs. The summary and the outputs are written before `fail-on` fails the step.
+
+### pre-commit
+
+```yaml
+- repo: https://github.com/derblub/django-upgrade-report
+  rev: v0.5.0
+  hooks:
+    - id: django-upgrade-report
+```
+
+The hook runs when a lockfile, a requirements file or `pyproject.toml` changes, and fails the commit when a package blocks the next Django upgrade. It answers from the cache where it can (`--prefer-cache`), shows only what blocks (`--quiet`), and lets the commit through when the report cannot be made (`--errors-as-warnings`). It reads the project at the repository root and runs when one of its files changes. Add `args: [--target, "6.1"]` to check another target.
 
 ### GitLab CI
 
