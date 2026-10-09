@@ -20,6 +20,7 @@ import urllib.request
 from pathlib import Path
 
 from django_upgrade_report.client import JsonClient
+from django_upgrade_report.frameworks import DJANGO, FRAMEWORKS
 from django_upgrade_report.render.markdown import escape
 
 API = "https://api.github.com"
@@ -141,12 +142,19 @@ def _ours(comment: object, key: str) -> bool:
 
 LABEL = "django-upgrade-report"
 _TASK = re.compile(r"^- \[(?P<tick>[ xX])\] (?P<text>.*?) <!-- (?P<id>[\w.:-]+) -->$")
-_LABELS = {("upgrade", "before"): "upgrade first", ("upgrade", "with"): "upgrade with Django"}
+_LABELS = {("upgrade", "before"): "upgrade first", ("upgrade", "with"): "upgrade with {name}"}
+
+
+def _name(report: dict) -> str:
+    """``Django``, or ``Wagtail`` or ``django CMS`` for a report made with ``--framework``."""
+    steps = report.get("steps") or [{}]
+    key = report.get("framework") or steps[0].get("framework") or "django"
+    return FRAMEWORKS.get(key, DJANGO).display
 
 
 def issue_title(report: dict, key: str) -> str:
     where = "" if key in ("", ".") else f" ({key})"
-    return f"Django {report.get('target')} upgrade plan{where}"
+    return f"{_name(report)} {report.get('target')} upgrade plan{where}"
 
 
 def tasks(report: dict) -> list[tuple[str, str]]:
@@ -164,7 +172,7 @@ def tasks(report: dict) -> list[tuple[str, str]]:
     rows += [("django", p) for p in report.get("packages") or [] if p.get("status") != "ready"]
     for section, p in rows:
         status = str(p.get("status"))
-        what = _LABELS.get((status, p.get("phase")), status)
+        what = _LABELS.get((status, p.get("phase")), status).format(name=_name(report))
         if section == "python":
             what = f"{what} on Python {python.get('target')}"
         step = f" {p.get('current')} → {p.get('upgrade_to')}" if p.get("upgrade_to") else ""
@@ -183,7 +191,7 @@ def issue_body(report: dict, key: str, old: str = "", today: str = "") -> str:
             before[match["id"]] = (match["tick"] != " ", match["text"])
     lines = [
         f"<!-- django-upgrade-report-issue:{key} -->",
-        f"What your dependencies need for Django {report.get('target')}, from "
+        f"What your dependencies need for {_name(report)} {report.get('target')}, from "
         f"`{_source(report)}`, kept up to date by django-upgrade-report. Tick what is "
         "done; the ticks stay when the list is updated.",
         "",
@@ -201,7 +209,7 @@ def issue_body(report: dict, key: str, old: str = "", today: str = "") -> str:
             text = f"~~{text}~~ (nothing to do since {today})"
         lines.append(f"- [x] {text} <!-- {task_id} -->")
     if not current:
-        lines += ["", f"Everything is ready for Django {report.get('target')}."]
+        lines += ["", f"Everything is ready for {_name(report)} {report.get('target')}."]
     return "\n".join(lines) + "\n"
 
 
@@ -244,7 +252,7 @@ def track(github: GitHub, repository: str, key: str, report: dict, today: str) -
         return "unchanged"
     number = existing["number"]
     github.send("PATCH", f"/repos/{repository}/issues/{number}", {"body": text})
-    message = f"Everything is ready for Django {report.get('target')}."
+    message = f"Everything is ready for {_name(report)} {report.get('target')}."
     if message in text and message not in old:  # said once, when the report gets there
         github.send("POST", f"/repos/{repository}/issues/{number}/comments", {"body": message})
     return "updated"

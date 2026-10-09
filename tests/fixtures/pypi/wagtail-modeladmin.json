@@ -1,0 +1,21 @@
+{
+ "info": {"name":"wagtail-modeladmin","version":"2.5.0","classifiers":["Framework :: Django","Framework :: Django :: 5.2","Framework :: Django :: 6.0","Framework :: Django :: 6.1","Framework :: Wagtail","Framework :: Wagtail :: 7","Framework :: Wagtail :: 8"],"requires_dist":["Wagtail>=7.0"],"requires_python":">=3.10"},
+ "yanked": [],
+ "uploaded": {
+  "1.0.0":"2023-07-26T11:19:25.551100Z",
+  "2.0.0":"2024-02-05T17:19:29.233934Z",
+  "2.1.0":"2024-10-23T15:20:14.550064Z",
+  "2.2.0":"2025-04-25T12:17:25.538678Z",
+  "2.3.0":"2026-04-19T09:46:36.365339Z",
+  "2.4.0":"2026-06-07T11:37:07.152723Z",
+  "2.5.0":"2026-09-25T09:12:10.925627Z"
+ },
+ "releases": {
+  "2.0.0":{"name":"wagtail-modeladmin","version":"2.0.0","classifiers":["Framework :: Django","Framework :: Django :: 4.2","Framework :: Django :: 5.0","Framework :: Wagtail","Framework :: Wagtail :: 5","Framework :: Wagtail :: 6"],"requires_dist":["Wagtail>=5.2"],"requires_python":">=3.8"},
+  "2.1.0":{"name":"wagtail-modeladmin","version":"2.1.0","classifiers":["Framework :: Django","Framework :: Django :: 4.2","Framework :: Django :: 5.0","Framework :: Django :: 5.1","Framework :: Wagtail","Framework :: Wagtail :: 5","Framework :: Wagtail :: 6"],"requires_dist":["Wagtail>=5.2"],"requires_python":">=3.8"},
+  "2.2.0":{"name":"wagtail-modeladmin","version":"2.2.0","classifiers":["Framework :: Django","Framework :: Django :: 4.2","Framework :: Django :: 5.0","Framework :: Django :: 5.1","Framework :: Django :: 5.2","Framework :: Wagtail","Framework :: Wagtail :: 5","Framework :: Wagtail :: 6","Framework :: Wagtail :: 7"],"requires_dist":["Wagtail>=5.2"],"requires_python":">=3.8"},
+  "2.3.0":{"name":"wagtail-modeladmin","version":"2.3.0","classifiers":["Framework :: Django","Framework :: Django :: 5.2","Framework :: Django :: 6.0","Framework :: Wagtail","Framework :: Wagtail :: 7"],"requires_dist":["Wagtail>=7.0"],"requires_python":">=3.10"},
+  "2.4.0":{"name":"wagtail-modeladmin","version":"2.4.0","classifiers":["Framework :: Django","Framework :: Django :: 5.2","Framework :: Django :: 6.0","Framework :: Wagtail","Framework :: Wagtail :: 7"],"requires_dist":["Wagtail>=7.0"],"requires_python":">=3.10"},
+  "2.5.0":{"name":"wagtail-modeladmin","version":"2.5.0","classifiers":["Framework :: Django","Framework :: Django :: 5.2","Framework :: Django :: 6.0","Framework :: Django :: 6.1","Framework :: Wagtail","Framework :: Wagtail :: 7","Framework :: Wagtail :: 8"],"requires_dist":["Wagtail>=7.0"],"requires_python":">=3.10"}
+ }
+}

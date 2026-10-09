@@ -235,7 +235,7 @@ For each installed release, in this order: a `Requires-Python` that excludes the
 
 ### Wagtail and django CMS
 
-`--framework wagtail` (or `django-cms`) plans the upgrade of that framework instead of Django's: `--target`, the sections, the commands and the bot configurations are about Wagtail, and only packages that depend on Wagtail or declare `Framework :: Wagtail` are checked. Wagtail's LTS releases come from its [release schedule](https://github.com/wagtail/wagtail/wiki/Release-schedule), so `auto` is the newest of them; django CMS has none, so `auto` is its newest release. The Python plan, `--evidence` and the list of what Django removed stay Django's and are left out.
+`--framework wagtail` (or `django-cms`) plans the upgrade of that framework instead of Django's: `--target`, the sections, the commands and the bot configurations are about Wagtail, and only packages that depend on Wagtail or declare `Framework :: Wagtail` are checked. Wagtail's LTS releases come from its [release schedule](https://github.com/wagtail/wagtail/wiki/Release-schedule), so `auto` is the newest of them; django CMS has none, so `auto` is its newest release. The report also says whether the target runs on your Django ("Wagtail 7.0.9 requires Django>=4.2: your Django 4.2.16 is fine"), and when it does not, which Django to upgrade to first. For django CMS, plugins named `djangocms-…` count even when they declare neither django CMS nor its classifiers. The Python plan, `--evidence` and the list of what Django removed stay Django's and are left out. The GitHub Action takes `framework`.
 
 ```console
 django-upgrade-report --framework wagtail --target 7.0
@@ -272,6 +272,7 @@ The action writes the Markdown report to the job summary, exposes the counts as 
 | --- | --- | --- |
 | `path` | `.` | Project directory with a lockfile, `requirements*.txt` or `pyproject.toml`. |
 | `target` | `auto` | `auto`, `lts`, `latest` or a version such as `6.1`. |
+| `framework` | `django` | `wagtail` or `django-cms` plans the upgrade of that framework instead. See [Wagtail and django CMS](#wagtail-and-django-cms). |
 | `via` | | `lts` or `each`: plan the way to the target in steps, one report per step. The counts are summed over the steps. Does not go with `baseline`. |
 | `from` | | The Django version you run today, when your requirements only give a range. Empty reads it from the project. |
 | `fail-on` | | `blocked`, `upgrade` or `check`. Empty never fails the step because of a package. |

@@ -8,7 +8,7 @@ import pytest
 from conftest import DJANGO, FakePyPI, release
 
 from django_upgrade_report import cli
-from django_upgrade_report.analysis import Status, Target, Verdict, supports
+from django_upgrade_report.analysis import Phase, Status, Target, Verdict, supports
 from django_upgrade_report.frameworks import DJANGO_CMS, WAGTAIL
 from django_upgrade_report.pypi import ReleaseInfo
 
@@ -168,3 +168,158 @@ def test_commands_name_the_framework_package(wagtail_project, capsys):
     rules = json.loads(capsys.readouterr().out)["packageRules"]
     assert (rules[0]["matchPackageNames"], rules[0]["allowedVersions"]) == (["wagtail"], "<5.3")
     assert rules[1]["groupName"] == "Wagtail 6.3"
+
+
+def test_target_wagtail_needs_a_newer_django(wagtail_project, wagtail_index, capsys):
+    (wagtail_project / "requirements.txt").write_text("Django==3.2.25\nwagtail==5.2.3\n")
+    wagtail_index.packages["wagtail"][-1] = release("wagtail", "7.0", ">=4.2,<6.1")
+    data = report(wagtail_project, capsys, "--target", "7.0")
+    assert (
+        "Wagtail 7.0 requires Django>=4.2,<6.1, not your Django 3.2.25: upgrade Django first, "
+        "run django-upgrade-report --target 4.2"
+    ) in data["warnings"]
+
+
+def test_target_wagtail_runs_on_your_django(wagtail_project, capsys):
+    data = report(wagtail_project, capsys, "--target", "6.3")
+    assert "Wagtail 6.3.1 requires Django>=4.2: your Django 4.2.7 is fine" in data["notices"]
+    assert not any("requires Django" in w for w in data["warnings"])
+
+
+def test_django_reports_have_no_framework_fit(project, capsys):
+    assert cli.main([str(project), "-f", "json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert not any("requires Django" in n for n in data["notices"] + data["warnings"])
+
+
+def test_django_cms_plugins_by_classifier_or_name():
+    from django_upgrade_report.analysis import is_django_related
+
+    def info(name, classifiers=()):
+        return ReleaseInfo(name, "1.0", classifiers, (), None)
+
+    assert is_django_related(info("djangocms-text", ("Framework :: Django CMS",)), DJANGO_CMS)
+    assert is_django_related(info("djangocms_link"), DJANGO_CMS)  # only the name says so
+    assert not is_django_related(info("django-filter", ("Framework :: Django",)), DJANGO_CMS)
+    assert not is_django_related(info("wagtail-localize"), DJANGO_CMS)
+
+
+# --- golden tests: real PyPI metadata, recorded by fixtures/record.py -----------
+
+
+def golden(recorded, framework, target, *pins):
+    from django_upgrade_report.analysis import analyse
+    from django_upgrade_report.frameworks import FRAMEWORKS
+    from django_upgrade_report.sources import Dependency, DependencySet
+
+    ds = {name: Dependency(name, version) for name, version in (p.split("==") for p in pins)}
+    return analyse(DependencySet("golden", ds), recorded, target, framework=FRAMEWORKS[framework])
+
+
+def by_name(report, name):
+    return next(p for p in report.packages if p.name == name)
+
+
+def test_golden_wagtail_plugins(recorded):
+    """wagtail-localize 1.12 still runs on Wagtail 5.2; wagtail-modeladmin 2.3.0 needs 7.0."""
+    report = golden(
+        recorded,
+        "wagtail",
+        "7.0",
+        "django==4.2.20",
+        "wagtail==5.2.8",
+        "wagtail-localize==1.11",
+        "wagtail-modeladmin==2.0.0",
+        "wagtail-grapple==0.31.0",
+    )
+    localize, modeladmin = (
+        by_name(report, "wagtail-localize"),
+        by_name(report, "wagtail-modeladmin"),
+    )
+    assert (localize.status, localize.phase, localize.target_version) == (
+        Status.UPGRADE,
+        Phase.BEFORE,
+        "1.12",
+    )
+    assert (modeladmin.phase, modeladmin.target_version) == (Phase.WITH, "2.3.0")
+    assert modeladmin.reason == "2.3.0 declares Wagtail 7"
+    assert by_name(report, "wagtail-grapple").status is Status.READY
+    assert "Wagtail 7.0.9 requires Django>=4.2: your Django 4.2.20 is fine" in report.notices
+
+
+def test_golden_wagtail_on_an_old_django(recorded):
+    report = golden(recorded, "wagtail", "7.0", "django==3.2.25", "wagtail==5.2.8")
+    assert any(
+        "upgrade Django first, run django-upgrade-report --target 4.2" in w for w in report.warnings
+    )
+
+
+def test_golden_django_cms(recorded):
+    """django CMS has no LTS: auto is its newest release. djangocms-text has classifiers only."""
+    report = golden(
+        recorded,
+        "django-cms",
+        "auto",
+        "django==5.2.17",
+        "django-cms==4.1.0",
+        "djangocms-text==0.9.2",
+    )
+    assert report.target == "5.1"
+    text = by_name(report, "djangocms-text")
+    assert (text.status, text.phase, text.target_version) == (Status.UPGRADE, Phase.BEFORE, "0.9.4")
+    assert text.reason == "0.9.4 declares django CMS 5.1"
+
+
+def test_questions_are_about_the_framework(wagtail_index):
+    from django_upgrade_report.prompts import ask_missing
+    from django_upgrade_report.sources import Dependency, DependencySet
+
+    asked = []
+
+    def ask(question, options):
+        asked.append((question, options))
+        return 0 if len(asked) == 1 else None
+
+    deps = DependencySet(
+        "test",
+        {
+            "django": Dependency("django", "4.2.7"),
+            "wagtail": Dependency("wagtail", None, spec=">=5.2,<6.0"),
+        },
+        python="3.12",
+    )
+    answers = ask_missing(deps, wagtail_index, "auto", None, ask, WAGTAIL)
+    assert asked[0] == (
+        "Wagtail is not pinned (wagtail>=5.2,<6.0). Which version do you run?",
+        ["5.2.3"],
+    )
+    assert answers.current == "5.2.3"
+    assert asked[1][0] == "Wagtail 7.0 skips the 6.3 LTS. Which target?"
+
+
+def test_tracking_issue_names_the_framework():
+    from django_upgrade_report import ci
+
+    plan = {
+        "framework": "wagtail",
+        "target": "7.0",
+        "source": "requirements.txt",
+        "packages": [
+            {
+                "name": "wagtail-with",
+                "status": "upgrade",
+                "phase": "with",
+                "current": "2.0",
+                "upgrade_to": "3.0",
+                "reason": "3.0 declares Wagtail 7",
+            }
+        ],
+    }
+    assert ci.issue_title(plan, ".") == "Wagtail 7.0 upgrade plan"
+    body = ci.issue_body(plan, ".")
+    assert "What your dependencies need for Wagtail 7.0" in body
+    assert "upgrade with Wagtail, 3.0 declares Wagtail 7" in body
+    assert ci.issue_title({"kind": "path", "target": "7.0", "steps": [plan]}, ".").startswith(
+        "Wagtail"
+    )
+    assert ci.issue_title({"target": "5.2"}, ".") == "Django 5.2 upgrade plan"

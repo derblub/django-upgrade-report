@@ -38,6 +38,10 @@ CASES = {
     "netbox": "4.7.1",
     "dj-database-url": "3.0.1",
     "djangorestframework": "3.12.0",
+    "wagtail-modeladmin": "2.0.0",
+    "wagtail-localize": "1.11",
+    "django-cms": "4.1.0",
+    "djangocms-text": "0.9.2",
 }
 # Django: the release history from here on, and the release JSON of every X.Y.0 and of the
 # versions the tests use as the project's current Django.

@@ -18,7 +18,7 @@ from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.utils import canonicalize_name
 from packaging.version import InvalidVersion, Version
 
-from django_upgrade_report.frameworks import DJANGO, Framework
+from django_upgrade_report.frameworks import DJANGO, DJANGO_CMS, Framework
 from django_upgrade_report.projects import changelog_url, repository_url
 from django_upgrade_report.pypi import Project, PyPI, PyPIError, ReleaseInfo
 from django_upgrade_report.sources import Dependency, DependencySet
@@ -566,8 +566,10 @@ def is_django_related(info: ReleaseInfo, framework: Framework = DJANGO) -> bool:
     """Whether ``info`` is built on the framework: it requires it or has its classifiers.
     For Django also a package on Wagtail or django CMS, which a note then points out."""
     if framework is not DJANGO:
-        return any(_needed(req) for req in _requirements(info, framework.package)) or any(
-            c.startswith(framework.classifier) for c in info.classifiers
+        return (
+            any(_needed(req) for req in _requirements(info, framework.package))
+            or any(c.startswith(framework.classifier) for c in info.classifiers)
+            or (framework is DJANGO_CMS and _cms_plugin(info))
         )
     return (
         any(_needed(req) for req in _requirements(info, "django"))
@@ -584,9 +586,19 @@ def _framework_note(info: ReleaseInfo) -> str | None:
         or any(_needed(req) for req in _requirements(info, "wagtail"))
     ):
         return "Wagtail package: also check it against your Wagtail version"
-    if name != "django-cms" and any(_needed(req) for req in _requirements(info, "django-cms")):
+    if name != "django-cms" and (
+        any(_needed(req) for req in _requirements(info, "django-cms")) or _cms_plugin(info)
+    ):
         return "django CMS package: also check it against your django CMS version"
     return None
+
+
+def _cms_plugin(info: ReleaseInfo) -> bool:
+    """django CMS plugins often declare neither: djangocms-text has its classifiers only, and
+    many older ones are only known by the ``djangocms-`` prefix of their name."""
+    return canonicalize_name(info.name).startswith("djangocms-") or any(
+        c.startswith(DJANGO_CMS.classifier) for c in info.classifiers
+    )
 
 
 # --- Django's release history ------------------------------------------------
@@ -985,6 +997,7 @@ def analyse(
     )
     _explain_results(traces, packages, missing, failed, fw)
 
+    fits = _django_fit(pypi, goal, deps)
     django_dep = deps.dependencies.get(fw.package)
     return Report(
         target=goal.label,
@@ -997,13 +1010,45 @@ def analyse(
         missing=missing,
         failed=[f.name for f in failed],
         external=external,
-        warnings=notes + _warnings(target, goal, django, current_minor, deps),
-        notices=_notices(target, goal, django, current_minor, current_django),
+        warnings=notes + _warnings(target, goal, django, current_minor, deps) + fits[0],
+        notices=_notices(target, goal, django, current_minor, current_django) + fits[1],
         project_python=project_python,
         target_released=goal.released,
         explanations=traces,
         framework=fw.key,
     )
+
+
+def _django_fit(pypi: PyPI, goal: Target, deps: DependencySet) -> tuple[list[str], list[str]]:
+    """Whether the target Wagtail or django CMS runs on the project's Django: a warning with
+    the Django to upgrade to first when not, a notice when it does."""
+    dep = deps.dependencies.get("django")
+    have = dep.version if dep and dep.version and _is_version(dep.version) else None
+    if goal.framework is DJANGO or not goal.patches or have is None:
+        return [], []
+    newest = goal.patches[-1]  # patch releases add Django versions: Wagtail 6.3.4 added 5.2
+    info = pypi.release(goal.framework.package, str(newest))
+    spec = django_requirement(info, goal.python) if info else None
+    if not spec:
+        return [], []
+    needs = f"{goal.name} {newest} requires Django{_bounds(spec)}"
+    if spec.contains(have, prereleases=True):
+        return [], [f"{needs}: your Django {have} is fine"]
+    django = pypi.project("django")
+    series = _series(django).values() if django else ()
+    first = min((v for patches in series for v in patches if v in spec), default=None)
+    if first is not None and first > Version(have):
+        step = f"{first.major}.{first.minor}"
+        return [
+            f"{needs}, not your Django {have}: upgrade Django first, "
+            f"run django-upgrade-report --target {step}"
+        ], []
+    return [f"{needs}, not your Django {have}"], []
+
+
+def _bounds(spec: SpecifierSet) -> str:
+    """``>=4.2,<6.1``: lower bounds first, the way people write them."""
+    return ",".join(sorted(map(str, spec), key=lambda s: (not s.startswith(">"), s)))
 
 
 def _explain_inputs(

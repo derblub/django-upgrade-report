@@ -212,7 +212,7 @@ def python_line(report: Report) -> str | None:
     if not parts:
         return None
     line = ", ".join(parts)
-    return line[0].upper() + line[1:]
+    return line[0].upper() + line[1:] if line.startswith("your") else line  # not "Django CMS"
 
 
 def headline(report: Report) -> str:

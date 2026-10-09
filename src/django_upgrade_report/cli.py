@@ -363,7 +363,14 @@ def _run(args: argparse.Namespace) -> int:
     pypi = PyPI(index_url, cache_dir=None if args.no_cache else default_cache_dir(), mode=mode)
     if _interactive(args):
         try:
-            answers = ask_missing(deps, pypi, args.target, args.current, terminal_ask)
+            answers = ask_missing(
+                deps,
+                pypi,
+                args.target,
+                args.current,
+                terminal_ask,
+                FRAMEWORKS[args.framework],
+            )
         except (PyPIError, ValueError):
             answers = None  # questions are a help: the report says what is wrong itself
         if answers is not None:

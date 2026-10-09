@@ -11,13 +11,13 @@ from packaging.version import InvalidVersion, Version
 from django_upgrade_report.analysis import (
     _current_django,
     _django_python,
-    _is_lts,
     _min_python,
     _series,
     resolve_target,
     skipped_lts,
     spec_sets,
 )
+from django_upgrade_report.frameworks import DJANGO, Framework
 from django_upgrade_report.pypi import PyPI
 from django_upgrade_report.sources import DependencySet
 
@@ -33,7 +33,7 @@ SERIES_SHOWN = 5
 @dataclass
 class Answers:
     current: str | None = None
-    """The Django version the project runs, for ``--from``."""
+    """The version of the framework (Django) the project runs, for ``--from``."""
     target: str | None = None
     """The target, for ``--target``."""
     python: str | None = None
@@ -52,15 +52,21 @@ class Answers:
 
 
 def ask_missing(
-    deps: DependencySet, pypi: PyPI, target: str, current: str | None, ask: Ask
+    deps: DependencySet,
+    pypi: PyPI,
+    target: str,
+    current: str | None,
+    ask: Ask,
+    framework: Framework = DJANGO,
 ) -> Answers:
     """Ask only what changes the report: the Django in use, a smaller step, the Python."""
+    fw = framework
     answers = Answers()
-    django = pypi.project("django")
+    django = pypi.project(fw.package)
     if django is None:
         return answers
     series = _series(django)
-    dep = deps.dependencies.get("django")
+    dep = deps.dependencies.get(fw.package)
 
     if current is None and dep is not None and not dep.version:
         alternatives = spec_sets(dep.spec) if dep.spec else None
@@ -75,11 +81,12 @@ def ask_missing(
                 allowed.append(fits[-1])
         if len(allowed) > SERIES_SHOWN:  # keep the LTS series, where most projects stay
             newest = allowed[-2:]
-            allowed = [v for v in allowed if _is_lts(v) and v not in newest] + newest
+            allowed = [v for v in allowed if fw.is_lts(v) and v not in newest] + newest
         if allowed:
-            requirement = f"Django{dep.spec}" if dep.spec else "Django"
+            written = "Django" if fw is DJANGO else fw.package
+            requirement = f"{written}{dep.spec}" if dep.spec else written
             chosen = ask(
-                f"Django is not pinned ({requirement}). Which version do you run?",
+                f"{fw.display} is not pinned ({requirement}). Which version do you run?",
                 [str(v) for v in allowed],
             )
             if chosen is not None:
@@ -87,15 +94,15 @@ def ask_missing(
                 answers.options.append(f"--from {answers.current}")
 
     # The Django the report will assume: the answer, --from, a pin, or the newest a cap allows.
-    assumed, _ = _current_django(django, dep, answers.current or current)
+    assumed, _ = _current_django(django, dep, answers.current or current, fw)
     minor = _minor_of(assumed)
     if target == "auto" and minor is not None:
-        goal = resolve_target(django, "auto", minor)
-        skipped = skipped_lts(django, minor, goal)
+        goal = resolve_target(django, "auto", minor, fw)
+        skipped = skipped_lts(django, minor, goal, fw)
         if skipped:
             step = skipped[0]
             chosen = ask(
-                f"Django {goal} skips the {', '.join(map(str, skipped))} LTS. Which target?",
+                f"{fw.display} {goal} skips the {', '.join(map(str, skipped))} LTS. Which target?",
                 [f"{step} (one LTS at a time, easier)", f"{goal}"],
             )
             if chosen is not None:
@@ -104,17 +111,17 @@ def ask_missing(
 
     if deps.python is None:
         try:
-            goal = resolve_target(django, answers.target or target, minor)
+            goal = resolve_target(django, answers.target or target, minor, fw)
         except ValueError:  # an unknown target: the report says so
             return answers
         first = series.get(goal, [None])[0]
-        needed = _min_python(_django_python(pypi, str(first))) if first else None
+        needed = _min_python(_django_python(pypi, str(first), fw)) if first else None
         if needed:
             floor = Version(needed)
             older = [p for p in PYTHONS if Version(p) < floor][-OLDER_PYTHONS:]
             options = older + [p for p in PYTHONS if Version(p) >= floor]
             chosen = ask(
-                f"Django {goal} needs Python {needed} or newer. Which Python does your "
+                f"{fw.display} {goal} needs Python {needed} or newer. Which Python does your "
                 "project run?",
                 options,
             )

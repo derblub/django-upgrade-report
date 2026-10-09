@@ -79,9 +79,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 2.5 | 0.11 | Was Django entfernt hat | erledigt |
 | 2.5a | 0.11 | Daten aus den Release-Notes (Skript, JSON im Paket), Abgleich mit dem Code, Text und JSON | erledigt |
 | 2.5b | 0.11 | Markdown und HTML | erledigt |
-| 6.1 | 1.0 | Wagtail und django CMS als Ziel | in Arbeit |
+| 6.1 | 1.0 | Wagtail und django CMS als Ziel | erledigt |
 | 6.1a | 1.0 | `frameworks.py`, `--framework`, Analyse, Texte, Befehle, JSON | erledigt |
-| 6.1b | 1.0 | Django-Bereich des Ziel-Frameworks, Zeile für das Framework, django-CMS-Details, Golden-Fixtures, Action-Input | offen |
+| 6.1b | 1.0 | Django-Bereich des Ziel-Frameworks, Zeile für das Framework, django-CMS-Details, Golden-Fixtures, Action-Input | erledigt |
 | 6.2 | 1.0 | Mehrere Projekte | offen |
 | 6.3 | separat | Öffentliche Readiness-Daten | offen |
 
@@ -1540,6 +1540,16 @@ und `next_feature()` kennen die Django-Regel selbst; statt `versions` gibt es
 `--evidence` und Django-Entfernungen ebenso (für `--evidence` mit Hinweis). `auto` ist wie bei
 Django das neueste LTS, mit Warnung beim Überspringen. Die Django-Prüfung des Ziel-Wagtail,
 die Wagtail-Zeile, django-CMS-Details, Golden-Fixtures und der Action-Input folgen in 6.1b.
+
+**Umsetzung 6.1b:** `_django_fit` liest die Django-Anforderung des neuesten Patch-Releases des
+Ziels (Patch-Releases nehmen Django-Versionen dazu) und gibt einen Hinweis („your Django 4.2.16
+is fine") oder eine Warnung mit `--target X.Y` für das kleinste passende Django. Eine eigene
+Zeile für das Framework gibt es nicht: im Django-Modus ist Django auch keine Zeile, die
+Kopfzeile nennt den Schritt schon, `--emit` und die Bots setzen das Framework in den
+„together"-Schritt. django CMS: Plugins zählen auch über den Classifier `Framework :: Django
+CMS` oder das Präfix `djangocms-` (im Django-Modus mit der Framework-Notiz). Fragen am
+Terminal und das Tracking-Issue nennen das Framework. Golden-Fixtures: `wagtail-modeladmin`,
+`wagtail-localize`, `django-cms`, `djangocms-text`.
 
 ### 6.2 Mehrere Projekte
 

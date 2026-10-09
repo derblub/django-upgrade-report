@@ -72,6 +72,10 @@ OLD = (
 PYTHON = (
     "Django==4.2.7\ndjango-filter==23.3\nnumpy==1.22.4\npsycopg2-binary==2.9.3\nrequests==2.31.0\n"
 )
+WAGTAIL = (
+    "Django==4.2.16\nwagtail==5.2.3\nwagtail-localize==1.7\nwagtail-modeladmin==2.0.0\n"
+    "wagtail-grapple==0.24.0\nwagtailmenus==3.1.9\n"
+)
 REMOVALS = "Django==4.2.7\ndjango-taggit==4.0.0\ndjango-crispy-forms==2.0\nwhitenoise==6.5.0\n"
 
 COLORS = {"31": "#ff6b6b", "32": "#3ddc97", "33": "#f5c542", "35": "#c792ea", "36": "#4cc9f0"}
@@ -116,6 +120,7 @@ def projects(base: Path) -> dict[str, Path]:
         },
     )
     project("old", {"requirements.txt": OLD})
+    project("wagtail", {"requirements.txt": WAGTAIL, ".python-version": "3.12\n"})
     project("python", {"requirements.txt": PYTHON, ".python-version": "3.10\n"})
     shutil.copytree(SAMPLE_CODE, base / "code")
     (base / "code" / "requirements.txt").write_text(REMOVALS, encoding="utf-8")
@@ -339,6 +344,12 @@ def main() -> int:
             "django-upgrade-report --target 6.0 --evidence",
             WIKI / "signs.png",
             section="Check manually",
+        )
+        term(
+            "wagtail",
+            ["--framework", "wagtail", "--target", "7.0", "--no-scan-code"],
+            "django-upgrade-report --framework wagtail --target 7.0",
+            WIKI / "wagtail.png",
         )
         term(
             "code",

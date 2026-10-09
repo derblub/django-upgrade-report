@@ -74,6 +74,10 @@ Some packages did a job Django now does itself, and no metadata says so: South, 
 
 With `--framework wagtail` or `--framework django-cms` the same rules apply to that framework: its `Framework :: Wagtail` or `Framework :: Django CMS` classifiers, its requirement in `Requires-Dist`, and only packages that depend on it. One rule differs for Wagtail, whose classifiers name major versions only. `Framework :: Wagtail :: 6` means **yes** for 6.3 when the release came out after Wagtail 6.3 did; before that, it is **not declared**, since nobody could have tested 6.3 yet.
 
+![A Wagtail 5.2 to 7.0 report: wagtail-localize to upgrade first, three plugins together with Wagtail](images/wagtail.png)
+
+The report also checks that the target runs on your Django, by the requirement of its newest patch release: a notice when it does, and when it does not a warning with the Django to upgrade to first (`--target 4.2`). For django CMS, plugins named `djangocms-…` count as related even when their metadata says nothing.
+
 `auto` picks the newest Wagtail LTS ([release schedule](https://github.com/wagtail/wagtail/wiki/Release-schedule)), and the newest django CMS release, which has no LTS. Packages Django took over, the Python plan, `--evidence` and what Django removed are about Django and are left out.
 
 ## Seeing it for one package
