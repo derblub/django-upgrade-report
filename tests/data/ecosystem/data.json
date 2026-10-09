@@ -1,0 +1,293 @@
+{
+ "generated": "2026-01-15",
+ "tool": "django-upgrade-report",
+ "packages_count": 5,
+ "versions": [
+  {
+   "version": "4.2",
+   "released": true,
+   "ga": "2023-04-03",
+   "counts": {
+    "ready": 4,
+    "check": 0,
+    "blocked": 1
+   },
+   "curve": [
+    [
+     0,
+     0.2
+    ],
+    [
+     30,
+     0.2
+    ],
+    [
+     60,
+     0.2
+    ],
+    [
+     90,
+     0.2
+    ],
+    [
+     180,
+     0.2
+    ],
+    [
+     270,
+     0.2
+    ],
+    [
+     365,
+     0.2
+    ],
+    [
+     540,
+     0.2
+    ],
+    [
+     730,
+     0.2
+    ]
+   ]
+  },
+  {
+   "version": "5.0",
+   "released": true,
+   "ga": "2023-12-04",
+   "counts": {
+    "ready": 1,
+    "check": 2,
+    "blocked": 2
+   },
+   "curve": [
+    [
+     0,
+     0.0
+    ],
+    [
+     30,
+     0.0
+    ],
+    [
+     60,
+     0.0
+    ],
+    [
+     90,
+     0.0
+    ],
+    [
+     180,
+     0.0
+    ],
+    [
+     270,
+     0.0
+    ],
+    [
+     365,
+     0.0
+    ],
+    [
+     540,
+     0.0
+    ],
+    [
+     730,
+     0.0
+    ]
+   ]
+  },
+  {
+   "version": "5.1",
+   "released": true,
+   "ga": "2024-08-07",
+   "counts": {
+    "ready": 1,
+    "check": 2,
+    "blocked": 2
+   },
+   "curve": [
+    [
+     0,
+     0.0
+    ],
+    [
+     30,
+     0.0
+    ],
+    [
+     60,
+     0.0
+    ],
+    [
+     90,
+     0.0
+    ],
+    [
+     180,
+     0.0
+    ],
+    [
+     270,
+     0.0
+    ],
+    [
+     365,
+     0.0
+    ]
+   ]
+  },
+  {
+   "version": "5.2",
+   "released": true,
+   "ga": "2025-04-02",
+   "counts": {
+    "ready": 3,
+    "check": 1,
+    "blocked": 1
+   },
+   "curve": [
+    [
+     0,
+     0.0
+    ],
+    [
+     30,
+     0.0
+    ],
+    [
+     60,
+     0.0
+    ],
+    [
+     90,
+     0.0
+    ],
+    [
+     180,
+     0.0
+    ],
+    [
+     270,
+     0.0
+    ]
+   ]
+  },
+  {
+   "version": "6.0",
+   "released": true,
+   "ga": "2025-12-03",
+   "counts": {
+    "ready": 2,
+    "check": 2,
+    "blocked": 1
+   },
+   "curve": [
+    [
+     0,
+     0.0
+    ],
+    [
+     30,
+     0.4
+    ]
+   ]
+  },
+  {
+   "version": "6.1",
+   "released": false,
+   "ga": null,
+   "counts": {
+    "ready": 0,
+    "check": 4,
+    "blocked": 1
+   },
+   "curve": []
+  }
+ ],
+ "packages": [
+  {
+   "name": "django-before",
+   "version": "2.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check"
+   },
+   "ready_since": {
+    "4.2": "2026-01-01",
+    "5.2": "2026-01-01",
+    "6.0": "2026-01-01"
+   }
+  },
+  {
+   "name": "django-blocked",
+   "version": "1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "blocked",
+    "6.0": "blocked",
+    "6.1": "blocked"
+   },
+   "ready_since": {
+    "4.2": "2021-01-01"
+   }
+  },
+  {
+   "name": "django-lagging",
+   "version": "1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check"
+   },
+   "ready_since": {
+    "4.2": "2026-01-01"
+   }
+  },
+  {
+   "name": "django-ready",
+   "version": "1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check"
+   },
+   "ready_since": {
+    "4.2": "2026-01-01",
+    "5.0": "2026-01-01",
+    "5.1": "2026-01-01",
+    "5.2": "2026-01-01"
+   }
+  },
+  {
+   "name": "django-with",
+   "version": "3.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check"
+   },
+   "ready_since": {
+    "5.2": "2026-01-01",
+    "6.0": "2026-01-01"
+   }
+  }
+ ]
+}

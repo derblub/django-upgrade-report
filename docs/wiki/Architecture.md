@@ -34,6 +34,10 @@ render.text / markdown / html / json / explain
 | `render/` | Text, Markdown, HTML, JSON and `--explain`. `render/__init__.py` holds what the formats share, so they stay in the same order. |
 | `cli.py` | Command-line options and exit codes. |
 
+## The ecosystem page
+
+`ecosystem/build.py` is not part of the package. `select` takes the most downloaded Django-related packages from the top-pypi-packages data set into `ecosystem/packages.json`; `build` runs `analyse()` for every Django version from 4.2 on, plus the next one, on a made-up project that pins the newest release of each, and finds when each package first declared a version with a binary search over its releases. It writes `data.json` and a static `index.html` with the report's styles, which `.github/workflows/ecosystem.yml` publishes to GitHub Pages every week, with the PyPI cache kept between runs.
+
 ## Rules that hold everywhere
 
 - New signals never change a package's status silently; they add notes with a source.

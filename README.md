@@ -440,6 +440,12 @@ $ django-upgrade-report --emit dependabot
 [django-upgrade](https://github.com/adamchainz/django-upgrade) rewrites *your* code for a new Django version. django-upgrade-report looks at your *dependencies*. You want both.
 </details>
 
+<details>
+<summary><strong>How ready is the Django ecosystem as a whole?</strong></summary>
+
+Every week, a workflow judges the newest release of the 300 most downloaded Django-related packages against every Django version from 4.2 on, plus the next one, with the rules above, and publishes the result to GitHub Pages: per version the share that is ready, to check or blocked, and how fast packages caught up after the release. The code is in [`ecosystem/`](ecosystem/build.py), outside the package: the tool itself never talks to a server of its own. The package list comes from the public [top-pypi-packages](https://github.com/hugovk/top-pypi-packages) data and is checked in, so runs stay comparable.
+</details>
+
 ## Related projects
 
 | Project | What it does |

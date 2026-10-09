@@ -77,7 +77,7 @@ dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6"]
 packages = ["src/django_upgrade_report"]
 
 [tool.hatch.build.targets.sdist]
-exclude = ["/docs", "/.github"]
+exclude = ["/docs", "/.github", "/ecosystem"]
 
 # PyPI renders the README, but cannot resolve paths relative to the repository.
 [tool.hatch.metadata.hooks.fancy-pypi-readme]

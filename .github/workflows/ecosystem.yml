@@ -1,0 +1,45 @@
+name: Ecosystem
+
+# Publishes how ready the most downloaded Django packages are for each Django version to
+# GitHub Pages, every week. Needs Pages enabled in the repository settings, with
+# "GitHub Actions" as the source. The PyPI answers are cached between runs: releases never
+# change, so a week only asks about what is new.
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ecosystem
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/django-upgrade-report
+          key: ecosystem-${{ github.run_id }}
+          restore-keys: ecosystem-
+      - name: Build
+        run: PYTHONPATH=src uv run --no-project --with packaging python ecosystem/build.py build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ecosystem/site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

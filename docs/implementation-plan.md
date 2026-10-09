@@ -85,7 +85,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 6.2 | 1.0 | Mehrere Projekte | erledigt |
 | 6.2a | 1.0 | `multi.py` (Suche, `MultiReport`), mehrere `PROJECT`, `--recursive`, Text, Markdown, JSON, `--fail-on` | erledigt |
 | 6.2b | 1.0 | HTML mit Übersicht und Ankern, Action-Input `path` mehrzeilig, Bild | erledigt |
-| 6.3 | separat | Öffentliche Readiness-Daten | offen |
+| 6.3 | separat | Öffentliche Readiness-Daten | erledigt |
 
 ---
 
@@ -1649,6 +1649,17 @@ Titel mit allen Zielen. Bild `projects.png` im Wiki.
 **Tests:** `build.py` gegen den Fake-Index mit fünf Paketen (Snapshot der `data.json`).
 
 **Aufwand:** M. **Abhängigkeiten:** keine harten (nutzt `analyse()`), profitiert von 0.2.
+
+**Umsetzung 6.3:** `ecosystem/build.py` mit `select` und `build`. Die Datei kommt über
+`raw.githubusercontent.com` (github.io ist im Sandbox-Netz gesperrt). Damit nicht alle 15.000
+Top-Pakete abgefragt werden, prüft `select` nur Namen mit `django`, `wagtail`, `drf-`, `dj-`
+oder `channels` per `is_django_related` (Pakete wie whitenoise fehlen so, im Docstring
+vermerkt). Bei 4.2 ohne Vorgänger im Index läuft `analyse()` ohne Django-Pin. Das Datum „zum
+ersten Mal READY“ sucht `first_ready` binär über die stabilen Releases (Annahme: Support geht
+selten wieder weg). Kurve bei 0, 30, 60, 90, 180, 270, 365, 540 und 730 Tagen nach GA, nur bis
+heute. Seite mit `_CSS` des HTML-Reports. Erster echter Lauf: 300 Pakete, sieben Versionen,
+etwa eine Minute. Pages muss in den Repository-Einstellungen mit „GitHub Actions“ als Quelle
+eingeschaltet werden; der Link aus dem Report-Footer folgt, sobald die Seite eine feste URL hat.
 
 ---
 
