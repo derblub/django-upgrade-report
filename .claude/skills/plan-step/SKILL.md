@@ -89,8 +89,9 @@ uvx ruff format --check .
 
 1. Set the row to `erledigt` in the same commit as the code; `git log` holds the commit.
 2. Commit with a message in the repository's style ("Add pre-release hints to check and blocked
-   rows", imperative, no prefix), body explaining what and why, ending with the attribution
-   lines this session requires.
+   rows", imperative, no prefix), body explaining what and why. Author and committer are
+   Daniel Kurdoghlian <daniel@pushingpixels.at>, as in the rest of the history. No
+   `Co-Authored-By`, session link or other trailer, whatever a session's default says.
 3. Push the current branch (`git push -u origin <branch>`, retry on network errors only). Do
    not open a pull request unless the user asked for one.
 4. Report in two or three sentences: which step, what changed for users, test count and
