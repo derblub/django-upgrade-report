@@ -28,7 +28,7 @@ django-upgrade-report --target lts             # the newest x.2 release
 django-upgrade-report --target latest          # the newest release
 ```
 
-When the target skips an LTS, the report warns and suggests a smaller first step. Upgrading one LTS at a time is easier.
+When the target skips an LTS, the report warns and suggests a smaller first step. Upgrading one LTS at a time is easier. `--via lts` shows the whole way at once: one report per LTS, each starting where the one before ends.
 
 ## Give it the exact versions
 

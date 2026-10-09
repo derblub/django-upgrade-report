@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- `--via lts` plans an upgrade across several LTS releases in steps: one report per LTS on the way to the target (`--via each`: per feature version), each starting where the one before ends, with its upgrades done and Django on the newest patch. A package blocked in one step says so in the later ones, `--fail-on` looks at every step, and the JSON report of a path has `"kind": "path"` with one report per step. The warning about a skipped LTS mentions it.
 - `--emit renovate` and `--emit dependabot` print a configuration that makes the bots follow the plan: Django held on its series until everything that goes first is upgraded, Django in one pull request with the packages that need it, and upgrades that need each other grouped. Each rule says when to remove it.
 - `--emit uv` (or `poetry`, `pdm`, `pipenv`, `pip`, `auto`) prints the commands that carry out the plan instead of the report: what to upgrade first, one command each in the report's order, upgrades that need each other in one command, then Django with what needs it; dependencies that only come with others are upgraded in the lock. For pip it names the requirement lines to change, with file and line. When the target Django needs a newer Python, the Python upgrades come first. With `--format json` the commands are in the new `commands` field, and the HTML report shows each package's command, with a copy button.
 - The JSON report says on which requirement file line a package is pinned or named: `origin`, such as `"requirements/base.txt:12"`.
@@ -37,6 +38,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- `--via lts` plans an upgrade across several LTS releases in steps: one report per LTS on the way to the target (`--via each`: per feature version), each starting where the one before ends, with its upgrades done and Django on the newest patch. A package blocked in one step says so in the later ones, `--fail-on` looks at every step, and the JSON report of a path has `"kind": "path"` with one report per step. The warning about a skipped LTS mentions it.
 - Packages whose job Django took over say what Django has instead, for example "built into Django 1.7: its own migrations, remove South" or "built into Django 3.1: models.JSONField" for jsonfield and django-jsonfield. They are shown even when their metadata does not mention Django. The list is short and every entry has a source (the maintainers or Django's release notes): South, django-discover-runner, django-secure, django-uuidfield, django-durationfield, django-transaction-hooks, jsonfield, django-jsonfield, django-jsonfield-backport and django-template-partials. The JSON report has it under `built_into_django`.
 
 ### Changed
@@ -48,6 +50,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- `--via lts` plans an upgrade across several LTS releases in steps: one report per LTS on the way to the target (`--via each`: per feature version), each starting where the one before ends, with its upgrades done and Django on the newest patch. A package blocked in one step says so in the later ones, `--fail-on` looks at every step, and the JSON report of a path has `"kind": "path"` with one report per step. The warning about a skipped LTS mentions it.
 - Forks and local packages are judged by what they declare themselves, read locally and never sent anywhere: the installed metadata with `--python`, a local directory's `pyproject.toml`, or the constraints in `poetry.lock` and `pdm.lock`. A fork pinned years ago with `Django<4.1` now shows up as blocked instead of only "not checked", and its requirements on other packages count against their upgrades. The JSON report says where such a package comes from in the new `source` field. When only such packages are blocked, the section says that your copy excludes the target, not that no release supports it.
 
 ### Changed
@@ -101,6 +104,7 @@ First release on PyPI.
 
 ### Added
 
+- `--via lts` plans an upgrade across several LTS releases in steps: one report per LTS on the way to the target (`--via each`: per feature version), each starting where the one before ends, with its upgrades done and Django on the newest patch. A package blocked in one step says so in the later ones, `--fail-on` looks at every step, and the JSON report of a path has `"kind": "path"` with one report per step. The warning about a skipped LTS mentions it.
 - `--target auto`, the new default: the newest LTS above your Django, or the newest release when no LTS is above it.
 - `--from` sets the Django version you run when your requirements only give a range.
 - The project's Python is read from `.python-version`, `uv.lock`, `pyproject.toml` or `Pipfile.lock`. The report warns when the target Django needs a newer Python.
@@ -149,6 +153,7 @@ Preview, not published on PyPI.
 
 ### Added
 
+- `--via lts` plans an upgrade across several LTS releases in steps: one report per LTS on the way to the target (`--via each`: per feature version), each starting where the one before ends, with its upgrades done and Django on the newest patch. A package blocked in one step says so in the later ones, `--fail-on` looks at every step, and the JSON report of a path has `"kind": "path"` with one report per step. The warning about a skipped LTS mentions it.
 - Reads dependencies from `uv.lock`, `poetry.lock`, `pdm.lock`, `Pipfile.lock`, `requirements*.txt`, `requirements/*.txt`, `pyproject.toml` (PEP 621, dependency groups and Poetry) or an installed environment (`--python`).
 - Sorts every Django-related package into blocked, upgrade first, upgrade together with Django, check manually and ready, and names the smallest release that declares support for the target.
 - Targets: `lts` (default), `latest` or an explicit version such as `5.2`.

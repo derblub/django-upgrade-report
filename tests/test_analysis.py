@@ -743,7 +743,7 @@ def test_skipped_lts_is_pointed_out(index):
     assert report.target == "5.2"
     assert (
         "This skips Django 4.2 LTS. Upgrading one LTS at a time is easier: "
-        "run with -t 4.2 for a smaller first step"
+        "run with -t 4.2 for a smaller first step, or with --via lts for a plan per step"
     ) in report.warnings
     assert not any("skips" in w for w in analyse(deps(django="3.2"), index, "4.2").warnings)
 
@@ -828,7 +828,7 @@ def test_skipped_lts_hint_names_the_lowest_skipped_lts(index):
     report = analyse(deps(django="3.2"), index, "latest")
     assert (
         "This skips Django 4.2, 5.2 LTS. Upgrading one LTS at a time is easier: "
-        "run with -t 4.2 for a smaller first step"
+        "run with -t 4.2 for a smaller first step, or with --via lts for a plan per step"
     ) in report.warnings
 
 

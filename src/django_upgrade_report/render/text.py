@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from django_upgrade_report.analysis import PackageReport, Report, Status
+from django_upgrade_report.analysis import PackageReport, PathReport, Report, Status
 from django_upgrade_report.render import (
     change_rows,
     changes_title,
     headline,
     packages_line,
+    path_blocked,
+    path_headline,
     private_index_hint,
     python_hint,
     python_line,
@@ -15,6 +17,7 @@ from django_upgrade_report.render import (
     sections,
     skipped_line,
     source_label,
+    step_title,
     version_cell,
 )
 
@@ -179,3 +182,18 @@ def _shared_notes(packages: list[PackageReport]) -> list[str]:
         return []
     first = row_notes(packages[0])
     return [n for n in first if all(n in row_notes(p) for p in packages[1:])]
+
+
+def render_path(
+    path: PathReport, color: bool = False, verbose: bool = False, quiet: bool = False
+) -> str:
+    """Every step of ``--via`` after a line with the whole path."""
+    bold = (lambda text: f"\033[1m{text}\033[0m") if color else (lambda text: text)
+    blocks = [bold(path_headline(path))]
+    stops = path_blocked(path)
+    if stops:
+        blocks[0] += f"\n! {stops}."
+    for number, step in enumerate(path.steps, 1):
+        body = render(step, color=color, verbose=verbose, quiet=quiet)
+        blocks.append(f"{bold(step_title(path, number))}\n\n{body}")
+    return "\n\n".join(blocks)

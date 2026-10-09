@@ -62,7 +62,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 3.1a | 0.9 | `commands.py`, uv/poetry/pdm/pipenv/pip (ohne Datei und Zeile), `auto`, JSON `commands`, Befehl in den HTML-Details | erledigt |
 | 3.1b | 0.9 | pip mit Datei und Zeile (`Dependency.origin`), Python-Schritt vorne | erledigt |
 | 3.2 | 0.9 | Renovate- und Dependabot-Konfiguration | erledigt |
-| 2.2 | 0.9 | Mehrstufiger Pfad (`--via`) | offen |
+| 2.2 | 0.9 | Mehrstufiger Pfad (`--via`) | in Arbeit |
+| 2.2a | 0.9 | `analyse_path`, `--via`, Text, JSON `"kind": "path"`, `--fail-on` über alle Schritte | erledigt |
+| 2.2b | 0.9 | Markdown und HTML, Action-Input `via` | offen |
 | 1.2 | 0.10 | Schwächere Belege | offen |
 | 1.3 | 0.10 | Upstream-Issues und -PRs | offen |
 | 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | offen |
@@ -730,6 +732,17 @@ bekommt und in Schritt 2 READY ist; ein BLOCKED-Paket über zwei Schritte; JSON-
 `--via lts`.
 
 **Aufwand:** M. **Abhängigkeiten:** 0.3.
+
+**Umsetzung 2.2a:** `analyse_path()` ruft `analyse()` pro Station mit `current` = neueste
+Patchversion der vorigen; Pakete werden über `dataclasses.replace` auf `target_version`
+gesetzt (auch ein bisher fehlender Django-Eintrag). Die Python-Analyse läuft im CLI über den
+Rückruf `after(report, deps)` pro Schritt, weil `python.py` `analysis.py` importiert.
+Unveröffentlichtes Ziel: letzter Schritt, danach endet der Pfad. Fehler: Django unbekannt
+(„pin it, or pass --from“), Ziel nicht über der laufenden Version (statt Health-Check). Der
+Kopf im Text heißt „Step 1 of 2“, darunter die normale Überschrift des Schritts; ein
+blockiertes Paket führt oben zur Zeile „The path stops at step 1: …“. Bis 2.2b geht `--via`
+nicht mit Markdown, HTML, `--baseline`, `--emit` und `--explain`. Die Warnung zum
+übersprungenen LTS nennt `--via lts` (Text der Golden-Tests entsprechend angepasst).
 
 ### 2.3 Risiko pro Schritt und Changelog-Links
 

@@ -108,6 +108,7 @@ django-upgrade-report [PROJECT] [options]
 | --- | --- |
 | `PROJECT` | Project directory, or a single lockfile, requirements file or `pyproject.toml`. Defaults to the current directory. |
 | `-t`, `--target` | `auto` (default), `lts` (the newest x.2 release), `latest`, or a version such as `5.2`. See [Choosing the target](#choosing-the-target). |
+| `--via` | `lts` or `each`: go to the target in steps, one report per LTS (or per feature version) on the way. See [Choosing the target](#choosing-the-target). |
 | `--from VERSION` | The Django version you run today, e.g. `4.2` or `4.2.16`, when your requirements only give a range. `4.2` means the newest 4.2 release. |
 | `--python PATH` | Read the exact installed versions from this interpreter, e.g. `.venv/bin/python`. |
 | `-f`, `--format` | `text` (default), `markdown`, `json` or `html`. |
@@ -154,6 +155,23 @@ So CI can tell "packages need attention" from "the tool could not run".
 | `5.2`, `6.1`, ... | That feature version. The next, unreleased one (6.2 today) is accepted for planning, see [How it decides](#how-it-decides). Unknown versions and versions below yours are an error. |
 
 The report warns when the target skips an LTS (upgrading one LTS at a time is easier), when your own Django requirement excludes the target, and when the target needs a newer Python than your project uses.
+
+`--via lts` plans the whole way in steps, one report per LTS on the way, `--via each` one per feature version:
+
+```console
+$ django-upgrade-report --target 5.2 --via lts
+Django 3.2.25 → 4.2 → 5.2 (2 steps)
+
+Step 1 of 2
+Django 3.2.25 → 4.2
+  ↑ django-filter  21.1 → 23.1  …
+
+Step 2 of 2
+Django 4.2.30 → 5.2
+  ↑ django-filter  23.1 → 25.1  …
+```
+
+Each step starts where the one before ends: its upgrades done, Django on the newest patch of that release. A package blocked in one step says so in the later ones, since the plan stops there. `--fail-on` looks at every step. The JSON report of a path has `"kind": "path"` and one report per step. Markdown and HTML come in a later release.
 
 ### Where versions come from
 

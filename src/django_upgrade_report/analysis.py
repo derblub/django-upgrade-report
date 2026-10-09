@@ -9,7 +9,7 @@ import sys
 import threading
 from collections.abc import Callable, Iterable
 from concurrent.futures import Executor, ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Protocol
 
@@ -527,6 +527,85 @@ def _next_feature(version: Version) -> Version:
     if version.minor >= 2:
         return Version(f"{version.major + 1}.0")
     return Version(f"{version.major}.{version.minor + 1}")
+
+
+@dataclass
+class PathReport:
+    """``--via``: one report per station from the project's Django to the target."""
+
+    via: str
+    """``"lts"`` or ``"each"``."""
+    steps: list[Report]
+    blocked_at: int | None = None
+    """The first step (from 1) with a blocked package: the plan stops there."""
+    generated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    kind: str = "path"
+
+    @property
+    def target(self) -> str:
+        return self.steps[-1].target
+
+
+def stations(django: Project, current: Version, target: Version, via: str) -> list[Version]:
+    """The feature versions to go through from ``current`` (X.Y) to ``target``, ``target``
+    last: every LTS between them for ``lts``, every feature version for ``each``."""
+    between = [
+        v for v in sorted(_series(django)) if current < v < target and (via == "each" or _is_lts(v))
+    ]
+    return [*between, target]
+
+
+def analyse_path(
+    deps: DependencySet,
+    pypi: PyPI,
+    target: str,
+    via: str,
+    current: str | None = None,
+    after: Callable[[Report, DependencySet], None] | None = None,
+    **options,
+) -> PathReport:
+    """Judge ``deps`` against each station on the way to ``target``, every step starting
+    where the one before ends: the upgrades it proposes done, Django on the newest patch of
+    the station. ``after`` sees each step's report with the dependencies it was made from."""
+    django = pypi.project("django")
+    if django is None:
+        raise RuntimeError("Could not read Django's release history from the package index")
+    start, _ = _current_django(django, deps.dependencies.get("django"), current)
+    start_minor = _minor(start)
+    if start is None or start_minor is None:
+        raise ValueError("--via needs the Django you run: pin it, or pass --from")
+    goal = resolve_target(django, target, start_minor)
+    if goal <= start_minor:
+        raise ValueError(f"--via needs a target above Django {start_minor}, the one you run")
+    series = _series(django)
+    path = PathReport(via, [])
+    blocked: dict[str, int] = {}
+    for number, station in enumerate(stations(django, start_minor, goal, via), 1):
+        report = analyse(deps, pypi, str(station), current=start, **options)
+        for p in report.packages:
+            if p.name in blocked:
+                p.notes.append(f"blocked since step {blocked[p.name]}")
+            elif p.status is Status.BLOCKED:
+                blocked[p.name] = number
+        if after is not None:
+            after(report, deps)
+        path.steps.append(report)
+        if station not in series:
+            break  # not released: nothing to start the next step from
+        start = str(series[station][-1])
+        upgraded = {
+            p.name: p.target_version
+            for p in report.packages
+            if p.status is Status.UPGRADE and p.target_version
+        }
+        upgraded["django"] = start
+        moved = dict(deps.dependencies)
+        for name, version in upgraded.items():
+            dep = moved.get(name) or Dependency(name, None)
+            moved[name] = replace(dep, version=version, spec="")
+        deps = replace(deps, dependencies=moved)
+    path.blocked_at = min(blocked.values(), default=None)
+    return path
 
 
 def skipped_lts(django: Project, current: Version, target: Version) -> list[Version]:
@@ -1155,7 +1234,8 @@ def _warnings(
             step = min(skipped)
             warnings.append(
                 f"This skips Django {', '.join(map(str, sorted(skipped)))} LTS. Upgrading one "
-                f"LTS at a time is easier: run with -t {step} for a smaller first step"
+                f"LTS at a time is easier: run with -t {step} for a smaller first step, or "
+                "with --via lts for a plan per step"
             )
     dep = deps.dependencies.get("django")
     alternatives = spec_sets(dep.spec) if dep and dep.spec and not dep.version else None

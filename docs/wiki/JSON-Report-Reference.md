@@ -77,6 +77,12 @@
   `"search"`, `"phase"` or `"result"`) and `text`, in the order they happened. Empty
   without `--explain`.
 
+A path (`--via`) is a document of its own, `"kind": "path"`: `schema_version`, `kind`,
+`tool`, `generated`, `target`, `via` (`"lts"` or `"each"`), `blocked_at` (the
+first step, from 1, with a blocked package, or null) and `steps`: one report as above per
+step, each with `"kind": "report"`, the first from the Django you run, every later one from
+where the step before ends.
+
 ## Reading it
 
 ```console

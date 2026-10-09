@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from django_upgrade_report.analysis import PackageReport, Phase, Report, Status
+from django_upgrade_report.analysis import PackageReport, PathReport, Phase, Report, Status
 from django_upgrade_report.projects import safe_url
 
 
@@ -225,3 +225,32 @@ def _minor_label(version: str | None) -> str:
     if not version:
         return "your current version"
     return ".".join(version.split(".")[:2])
+
+
+def path_headline(path: PathReport) -> str:
+    """``Django 3.2.25 → 4.2 → 5.2 (2 steps)``."""
+    first = path.steps[0].current_django
+    stops = " → ".join(step.target for step in path.steps)
+    count = len(path.steps)
+    return f"Django {first} → {stops} ({count} step{'s' if count != 1 else ''})"
+
+
+def step_title(path: PathReport, number: int) -> str:
+    """``Step 2 of 3``, ``number`` from 1: the step's own headline follows it."""
+    return f"Step {number} of {len(path.steps)}"
+
+
+def path_blocked(path: PathReport) -> str | None:
+    """Where the plan stops, when a step has a blocked package."""
+    if path.blocked_at is None:
+        return None
+    names = [
+        p.display_name
+        for p in path.steps[path.blocked_at - 1].packages
+        if p.status is Status.BLOCKED
+    ]
+    return (
+        f"The path stops at step {path.blocked_at}: {', '.join(names)} "
+        f"{'is' if len(names) == 1 else 'are'} blocked there, and the steps after it assume "
+        "they are not"
+    )

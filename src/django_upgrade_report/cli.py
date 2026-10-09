@@ -22,7 +22,15 @@ from django_upgrade_report import (
     commands,
     sources,
 )
-from django_upgrade_report.analysis import SEVERITY, Status, analyse, from_other_index
+from django_upgrade_report.analysis import (
+    SEVERITY,
+    PathReport,
+    Report,
+    Status,
+    analyse,
+    analyse_path,
+    from_other_index,
+)
 from django_upgrade_report.diff import BaselineError, compare, load_baseline
 from django_upgrade_report.prompts import ask_missing, terminal_ask
 from django_upgrade_report.pypi import (
@@ -71,6 +79,12 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="VERSION",
         help="the Django version you run today, e.g. 4.2 or 4.2.16, when your requirements "
         "only give a range",
+    )
+    parser.add_argument(
+        "--via",
+        choices=["lts", "each"],
+        help="go to the target in steps, one report each: through every LTS on the way, or "
+        "through each feature version",
     )
     parser.add_argument(
         "--python",
@@ -249,6 +263,17 @@ def _run(args: argparse.Namespace) -> int:
         raise Error(f"--emit {args.emit} prints a configuration, it cannot go with --format json")
     if args.emit and args.only_changes:
         raise Error("--emit prints the whole plan, it cannot go with --only-changes")
+    if args.via:
+        flags = {
+            "--baseline": args.baseline,
+            "--emit": args.emit,
+            "--explain": args.explain,
+            "--format markdown": args.format == "markdown",
+            "--format html": args.format == "html",
+        }
+        clash = next((flag for flag, given in flags.items() if given), None)
+        if clash:
+            raise Error(f"--via shows one report per step, it cannot go with {clash} yet")
     if args.static and args.format != "html":
         raise Error("--static goes with --format html")
     if args.only_changes and (args.format == "html" or args.explain):
@@ -293,6 +318,8 @@ def _run(args: argparse.Namespace) -> int:
     progress = _Progress(
         total=sum(1 for name, d in deps.dependencies.items() if name != "django" and checked(d))
     )
+    if args.via:
+        return _run_path(args, deps, pypi, private_index, progress)
     try:
         report = analyse(
             deps,
@@ -387,6 +414,73 @@ def _run(args: argparse.Namespace) -> int:
     changed = report.changes is not None and bool(report.changes.items)
     if changed and (args.fail_on_change == "any" or (args.fail_on_change and report.changes.worse)):
         return 1
+    return 0
+
+
+def _run_path(
+    args: argparse.Namespace,
+    deps: sources.DependencySet,
+    pypi: PyPI,
+    private_index: bool,
+    progress: _Progress,
+) -> int:
+    """``--via``: one report per step; ``--fail-on`` and friends look at every step."""
+
+    def after(report: Report, step_deps: sources.DependencySet) -> None:
+        progress.done = 0  # each step checks every package again
+        python = python_target(args.python_target, report)
+        if python is not None:
+            report.python = plan_python(python, report, step_deps, pypi)
+
+    try:
+        path = analyse_path(
+            deps,
+            pypi,
+            args.target,
+            args.via,
+            current=args.current,
+            after=after,
+            progress=progress,
+            private_index=private_index,
+        )
+    except NotCached as exc:
+        raise Error(f"{pypi.redact(str(exc))}, run once without --offline") from None
+    except (PyPIError, ValueError, RuntimeError, OSError) as exc:
+        raise Error(pypi.redact(str(exc))) from None
+    finally:
+        progress.clear()
+    if args.format == "json":
+        output = json.render_path(path)
+    else:
+        use_color = args.output is None and sys.stdout.isatty() and "NO_COLOR" not in os.environ
+        output = text.render_path(path, color=use_color, verbose=args.verbose, quiet=args.quiet)
+        output += "\n"
+    if args.output:
+        _write(args.output, output)
+        print(f"Wrote {args.output}", file=sys.stderr)
+    else:
+        sys.stdout.write(output)
+        sys.stdout.flush()
+    return _path_status(args, path)
+
+
+def _path_status(args: argparse.Namespace, path: PathReport) -> int:
+    """The exit status for the worst step."""
+    if args.fail_on:
+        threshold = SEVERITY[_FAIL_ON[args.fail_on]]
+        if any(SEVERITY[p.status] >= threshold for step in path.steps for p in step.packages):
+            return 1
+    if args.fail_on_python:
+        threshold = SEVERITY[_FAIL_ON[args.fail_on_python]]
+        rows = [p for step in path.steps if step.python for p in step.python.packages]
+        if any(SEVERITY[p.status] >= threshold for p in rows):
+            return 1
+    failed = sorted({name for step in path.steps for name in step.failed})
+    if args.fail_on and failed:
+        raise Error(
+            f"--fail-on: {len(failed)} dependencies could not be checked ({', '.join(failed)}): "
+            "run again later."
+        )
     return 0
 
 
