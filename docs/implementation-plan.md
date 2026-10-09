@@ -42,7 +42,10 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 5.1b | 0.6 | Trace der Suche und Phase, `--explain` im Text | erledigt |
 | 5.1c | 0.6 | FAQ, CONTRIBUTING, Issue-Template | erledigt |
 | 7.3 | 0.6 | Fehlende Angaben nachfragen | erledigt |
-| 2.1 | 0.7 | Python-Readiness | offen |
+| 2.1 | 0.7 | Python-Readiness | in Arbeit |
+| 2.1a | 0.7 | Regel: läuft ein Release auf Python X.Y (`python.py`) | erledigt |
+| 2.1b | 0.7 | Python-Plan in der Analyse, `--python-target`, Text | offen |
+| 2.1c | 0.7 | Markdown/HTML/JSON, `--fail-on-python`, Action, Doku, Golden-Tests | offen |
 | 4.1 | 0.8 | Baseline-Diff | offen |
 | 4.2 | 0.8 | Sticky PR-Kommentar | offen |
 | 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | offen |
@@ -543,6 +546,15 @@ Django 4.2.7 runs on Python 3.12 from 4.2.8: update Django 4.2 first.
 5. Nur reines Python (`py3-none-any`) und `requires_python` lässt P zu → `LIKELY`,
    `"pure Python"`.
 6. Sonst `UNKNOWN`.
+
+**2.1a umgesetzt** in `src/django_upgrade_report/python.py`: `python_supports(python,
+requires_python, classifiers, wheel_tags, has_sdist)` in der Reihenfolge oben, und
+`PythonRule(python)` für die Suchen aus 0.5 (`side()` schickt die Suche bei einer
+Obergrenze zu neueren, bei einer Untergrenze zu älteren Releases). Ergänzt: Gibt es nur Wheels
+für andere Pythons **und sicher kein Sdist** (`has_sdist is False`), ist das `NO` („no wheel …
+and no source to build“), denn installieren lässt es sich dann nicht. Ein Wheel zählt nur für
+CPython unter Linux x86_64 (wie die Marker); `py3XY-none-any` zählt als rein ab Python 3.XY,
+PyPy- und Free-Threading-Wheels (`cp313t`) nicht.
 
 **Status pro Paket** (wie bei Django):
 
