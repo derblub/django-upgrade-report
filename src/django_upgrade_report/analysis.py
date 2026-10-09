@@ -138,6 +138,8 @@ class PackageReport:
     repository_url: str | None = None
     direct: bool | None = None
     """Whether the project names the package itself; ``None`` when its source does not say."""
+    origin: str | None = None
+    """The requirement file line that pins or names it, as ``path:line``."""
 
     @property
     def stale(self) -> bool:
@@ -185,6 +187,8 @@ class Report:
     """What the dependencies need on a newer Python, when the target Django needs one."""
     explanations: dict[str, list[ExplainLine]] = field(default_factory=dict)
     """For each package asked about with ``--explain``, how its verdict came about."""
+    django_origin: str | None = None
+    """The requirement file line that pins or names Django, as ``path:line``."""
 
     def by_status(self, status: Status) -> list[PackageReport]:
         return [p for p in self.packages if p.status is status]
@@ -768,6 +772,7 @@ def analyse(
     for p in packages:
         if p.name in deps.dependencies:
             p.direct = deps.dependencies[p.name].direct
+            p.origin = deps.dependencies[p.name].origin
         p.successor = successor(p.name, goal.version)
         if p.successor is not None:  # what a newer release declares no longer matters
             p.notes = [p.successor.note(), *(n for n in p.notes if not n.startswith("latest "))]
@@ -787,8 +792,10 @@ def analyse(
     packages.sort(key=lambda p: (-SEVERITY[p.status], p.phase is Phase.WITH, rank[p.name], p.name))
     _explain_results(traces, packages, missing, failed)
 
+    django_dep = deps.dependencies.get("django")
     return Report(
         target=goal.label,
+        django_origin=django_dep.origin if django_dep else None,
         current_django=current_django,
         django_requires_python=goal.requires_python,
         source=deps.source,

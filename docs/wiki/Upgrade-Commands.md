@@ -13,7 +13,7 @@ uv add 'django>=5.2,<5.3' 'django-with>=3.0'
 # Not included, they need a person: django-taggit (blocked), django-lagging (check)
 ```
 
-The steps follow the report. What can be upgraded before Django comes first, one package per command, in the order of the report, so you can run your tests after each. Packages that need each other ("upgrade together with …") share one command. Then Django and what needs the new Django, in one command. Each package moves to the oldest release that supports the target: `>=` that release, so the tool may pick a newer one. Packages to check, blocked packages and packages not from PyPI are named at the end: they need a person.
+The steps follow the report. When the target Django needs a newer Python than your project uses, step 0 upgrades what needs it, says whether your Django patch release declares that Python, and ends with the switch ([Upgrading Python](Upgrading-Python)). What can be upgraded before Django comes first, one package per command, in the order of the report, so you can run your tests after each. Packages that need each other ("upgrade together with …") share one command. Then Django and what needs the new Django, in one command. Each package moves to the oldest release that supports the target: `>=` that release, so the tool may pick a newer one. Packages to check, blocked packages and packages not from PyPI are named at the end: they need a person.
 
 ## Tools
 
@@ -25,9 +25,9 @@ The steps follow the report. What can be upgraded before Django comes first, one
 | `poetry` | `poetry add 'p@>=v'` | `poetry update p` | `poetry add 'django@~5.2'` |
 | `pdm` | `pdm add 'p>=v'` | `pdm update p` | `pdm add 'django~=5.2.0'` |
 | `pipenv` | `pipenv install 'p>=v'` | `pipenv update p` | `pipenv install 'django~=5.2.0'` |
-| `pip` | the line to change, `# p==1.0  →  p==2.0` | a line for a constraints file | `# Django==4.2.7  →  Django~=5.2.0` |
+| `pip` | the line to change, `# requirements/base.txt:12  p==1.0  →  p==2.0` | a line for a constraints file | `# requirements.txt:1  Django==4.2.7  →  Django~=5.2.0` |
 
-pip has no command that changes a requirement file safely, so for pip the lines are comments that say what to change. Whether a package is one you name or one that comes with another is read from the project, see [Dependency sources](Dependency-Sources#direct-or-not); when the project does not say, every package is treated as one you name.
+pip has no command that changes a requirement file safely, so for pip the lines are comments that say what to change, and where: the file and line that pin the package, which is the constraints file when a `-c` file pins it. Whether a package is one you name or one that comes with another is read from the project, see [Dependency sources](Dependency-Sources#direct-or-not); when the project does not say, every package is treated as one you name.
 
 ## In scripts and the HTML report
 

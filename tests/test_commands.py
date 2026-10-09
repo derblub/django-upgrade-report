@@ -60,11 +60,37 @@ def test_other_tools(plan_project, capsys, tool, first, together):
 def test_pip_says_which_lines_to_change(plan_project, capsys):
     lines = emit(plan_project, capsys, "pip").splitlines()
     assert lines[2:6] == [
-        "# django-before==1.0  →  django-before==2.0",
+        "# requirements.txt:3  django-before==1.0  →  django-before==2.0",
         "# 2. Together with Django: one change",
-        "# Django==4.2.7  →  Django~=5.2.0",
-        "# django-with==2.0  →  django-with==3.0",
+        "# requirements.txt:1  Django==4.2.7  →  Django~=5.2.0",
+        "# requirements.txt:4  django-with==2.0  →  django-with==3.0",
     ]
+
+
+def test_pip_points_at_the_pin_in_an_included_file(plan_project, capsys):
+    base = plan_project / "requirements" / "base.txt"
+    base.parent.mkdir()
+    base.write_text("# shared\nDjango==4.2.7\n\ndjango-before \\\n    ==1.0\n")
+    (plan_project / "constraints.txt").write_text("django-with==2.0\n")
+    (plan_project / "requirements.txt").write_text(
+        "-r requirements/base.txt\n-c constraints.txt\ndjango-with\n"
+    )
+    lines = emit(plan_project, capsys, "pip").splitlines()
+    assert "# requirements/base.txt:4  django-before==1.0  →  django-before==2.0" in lines
+    assert "# requirements/base.txt:2  Django==4.2.7  →  Django~=5.2.0" in lines
+    assert "# constraints.txt:1  django-with==2.0  →  django-with==3.0" in lines  # the pin
+
+
+def test_python_comes_first(plan_project, index, capsys):
+    (plan_project / ".python-version").write_text("3.10\n")
+    for r in index.packages["django-before"][:3]:
+        r["requires_python"] = "<3.12"
+    out = emit(plan_project, capsys, "uv", "--python-target", "3.12")
+    lines = out.splitlines()
+    assert lines[1] == "# 0. Python 3.12 first: upgrade these, then switch to Python 3.12"
+    assert lines[2].startswith("# No Django 4.2 release declares Python 3.12")  # django_note
+    assert lines[3] == "uv add 'django-before>=2.1'"
+    assert lines[4] == "# 1. Upgrade first: one at a time, run your tests after each"
 
 
 def test_auto_follows_the_source(plan_project, capsys):

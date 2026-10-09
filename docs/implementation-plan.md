@@ -58,9 +58,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 7.1a | 0.8 | Suche, Filter-Chips, Kacheln als Filter, URL-Fragment, `/` und `Esc`, Skript als `html_report.js`, eingebettetes JSON, `--static` | erledigt |
 | 7.1b | 0.8 | Sortierbare Spalten, aufklappbare Zeilen mit Links und Kopier-Knopf, `j`/`k`/`Enter`, Playwright-Test als eigener CI-Job, Beispielreport neu | erledigt |
 | 0.4 | 0.9 | Direkte und transitive Abhängigkeiten | erledigt |
-| 3.1 | 0.9 | Befehle ausgeben (`--emit`) | in Arbeit |
+| 3.1 | 0.9 | Befehle ausgeben (`--emit`) | erledigt |
 | 3.1a | 0.9 | `commands.py`, uv/poetry/pdm/pipenv/pip (ohne Datei und Zeile), `auto`, JSON `commands`, Befehl in den HTML-Details | erledigt |
-| 3.1b | 0.9 | pip mit Datei und Zeile (`Dependency.origin`), Python-Schritt vorne | offen |
+| 3.1b | 0.9 | pip mit Datei und Zeile (`Dependency.origin`), Python-Schritt vorne | erledigt |
 | 3.2 | 0.9 | Renovate- und Dependabot-Konfiguration | offen |
 | 2.2 | 0.9 | Mehrstufiger Pfad (`--via`) | offen |
 | 1.2 | 0.10 | Schwächere Belege | offen |
@@ -946,6 +946,14 @@ blockiert, nicht von PyPI. Ein Health-Check hat keinen Django-Schritt. `--emit` 
 Text und JSON (nicht mit `--quiet`, `--explain`, `--only-changes`); das JSON-Feld `commands`
 ist sonst `null`. Der HTML-Report zeigt den Befehl pro Paket in den Details (aus 7.1), wenn
 `auto` das Werkzeug kennt.
+
+**Umsetzung 3.1b:** `Dependency.origin` ist `path:zeile` (Zeile, auf der eine fortgesetzte
+Zeile beginnt), relativ zum Projekt; `_combine()` behält die Herkunft des Pins, bei einem
+`-c`-Constraint also die Constraints-Datei. `PackageReport.origin` und JSON `origin` sind
+additiv; `Report.django_origin` liefert die Zeile für Django. Schritt 0 (Phase `python`):
+zuerst die `django_note` als Kommentar („update Django 4.2 first“), dann die Upgrades für die
+neue Python, eins pro Befehl; blockierte oder zu prüfende Python-Zeilen stehen unter „Not
+included“ mit „on Python 3.12“.
 
 ### 3.2 Renovate- und Dependabot-Konfiguration
 

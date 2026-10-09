@@ -46,6 +46,9 @@ class Dependency:
     """What an external package declares itself, when that can be read locally: its installed
     metadata, a local directory's ``pyproject.toml`` or the constraints a lockfile records.
     """
+    origin: str | None = None
+    """Where a requirement file pins or names it, as ``path:line``; the path is relative to
+    the project when :func:`load` reads a directory."""
     direct: bool | None = None
     """Whether the project names it itself (``False``: only something it depends on does).
     ``None`` when the source does not say, such as a lockfile without its project file.
@@ -125,6 +128,7 @@ def load(
             _merge(found, deps)
     if not found:
         raise NoDependenciesFound(f"No {SUPPORTED} dependencies found in {project}")
+    found = _relative_origins(found, project)
     _apply_project_index(found, _environment_index() or _pyproject_index(project))
     return _dependency_set(", ".join(used), found, py, py_source)
 
@@ -145,7 +149,7 @@ def _load_file(path: Path, python_version: str | None = None) -> DependencySet:
         _apply_project_index(deps, _environment_index() or _pyproject_index(path.parent))
     if not deps:
         raise NoDependenciesFound(f"No dependencies found in {path}")
-    return _dependency_set(str(path), deps, py, py_source)
+    return _dependency_set(str(path), _relative_origins(deps, path.parent), py, py_source)
 
 
 def _dependency_set(
@@ -208,7 +212,7 @@ def _precision(dep: Dependency) -> int:
 
 def _combine(old: Dependency, new: Dependency) -> Dependency:
     """A pin beats a range beats nothing, regardless of order; the first pin wins."""
-    best = old if _precision(old) >= _precision(new) else new
+    best, other = (old, new) if _precision(old) >= _precision(new) else (new, old)
     # One source naming the package makes it direct; "not direct" beats "does not say".
     known = [d for d in (old.direct, new.direct) if d is not None]
     direct = any(known) if known else None
@@ -216,6 +220,7 @@ def _combine(old: Dependency, new: Dependency) -> Dependency:
         best,
         external=old.external or new.external,
         metadata=old.metadata or new.metadata,
+        origin=best.origin or other.origin,  # where the pin is, the line to change
         direct=direct,
     )
 
@@ -228,6 +233,20 @@ def _add(into: dict[str, Dependency], dep: Dependency) -> None:
 def _merge(into: dict[str, Dependency], deps: dict[str, Dependency]) -> None:
     for dep in deps.values():
         _add(into, dep)
+
+
+def _relative_origins(deps: dict[str, Dependency], base: Path) -> dict[str, Dependency]:
+    """``origin`` paths relative to ``base`` where they are inside it, with ``/``."""
+    base = base.resolve()
+    result = {}
+    for name, dep in deps.items():
+        if dep.origin:
+            where, _, number = dep.origin.rpartition(":")
+            path = Path(where)
+            if path.is_relative_to(base):
+                dep = replace(dep, origin=f"{path.relative_to(base).as_posix()}:{number}")
+        result[name] = dep
+    return result
 
 
 # --- direct dependencies ------------------------------------------------------
@@ -922,7 +941,7 @@ def _parse_requirement_file(
     seen.add(path)
 
     deps: dict[str, Dependency] = {}
-    for line in _logical_lines(_read_text(path)):
+    for number, line in _logical_lines(_read_text(path)):
         index = re.match(r"^(-i|--index-url)(?:\s*=\s*|\s*)(\S+)", line)
         if index is not None:
             indexes.append(index.group(2))
@@ -934,7 +953,7 @@ def _parse_requirement_file(
         if include is None:
             dep = _parse_line(line, path, python)
             if dep is not None:
-                _add(deps, dep)
+                _add(deps, replace(dep, origin=f"{path}:{number}"))
             continue
         target = path.parent / include.group(2)
         if include.group(1) in ("-c", "--constraint"):
@@ -950,11 +969,15 @@ def _parse_requirement_file(
     return deps
 
 
-def _logical_lines(text: str) -> list[str]:
-    """Lines without comments, with backslash continuations joined like pip does."""
-    lines: list[str] = []
+def _logical_lines(text: str) -> list[tuple[int, str]]:
+    """Lines without comments, with backslash continuations joined like pip does, each with
+    the number of the line it starts on."""
+    lines: list[tuple[int, str]] = []
     pending = ""
-    for raw in text.splitlines():
+    start = 1
+    for number, raw in enumerate(text.splitlines(), 1):
+        if not pending:
+            start = number
         line = re.sub(r"(^|\s)#.*$", "", raw).rstrip()
         if line.endswith("\\"):
             pending += line[:-1] + " "
@@ -962,9 +985,9 @@ def _logical_lines(text: str) -> list[str]:
         line = (pending + line).strip()
         pending = ""
         if line:
-            lines.append(line)
+            lines.append((start, line))
     if pending.strip():
-        lines.append(pending.strip())
+        lines.append((start, pending.strip()))
     return lines
 
 

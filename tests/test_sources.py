@@ -1422,3 +1422,20 @@ def test_environment_takes_direct_dependencies_from_the_project(tmp_path):
     write(project / "uv.lock", UV_LOCK)  # wins over pyproject.toml, like for the versions
     found = direct(sources.load(project, python=python))
     assert (found["django"], found["sqlparse"]) == (True, False)
+
+
+def test_requirement_lines_remember_where_they_are(tmp_path):
+    write(tmp_path / "requirements" / "base.txt", "# the framework\nDjango==4.2.7\n")
+    write(
+        tmp_path / "requirements.txt",
+        "-r requirements/base.txt\n-c constraints.txt\ndjango-filter \\\n  >=23\ndjango-allauth\n",
+    )
+    write(tmp_path / "constraints.txt", "django-allauth==0.57.0\n")
+    origins = {name: d.origin for name, d in sources.load(tmp_path).dependencies.items()}
+    assert origins == {
+        "django": "requirements/base.txt:2",
+        "django-filter": "requirements.txt:3",  # where a continued line starts
+        "django-allauth": "constraints.txt:1",  # where the pin is
+    }
+    single = sources.load(tmp_path / "requirements" / "base.txt").dependencies["django"]
+    assert single.origin == "base.txt:2"

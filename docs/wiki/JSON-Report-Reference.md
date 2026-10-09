@@ -42,6 +42,8 @@
   come from the project's own metadata on the index. `direct` (bool or null): true when
   the project names the package itself, false when only another dependency needs it, null
   when the source does not say (a lockfile without its `pyproject.toml` or `Pipfile`).
+  `origin` (str or null): the requirement file line that pins or names it, as
+  `"requirements/base.txt:12"`, relative to the project; null for other sources.
 - `not_on_index` (list of str): dependencies the package index does not know.
 - `not_checked` (list of str): dependencies the index could not answer for, even after
   retries. When not empty, the report is incomplete; `warnings` says why.
@@ -66,9 +68,10 @@
   patch release declares the target Python, or which one does).
 - `commands` (object or null): with `--emit`, the commands that carry out the plan:
   `tool` (`"uv"`, `"poetry"`, `"pdm"`, `"pip"` or `"pipenv"`), `steps`, in
-  order, each with `phase` (`"before"`, `"with"` or `"upgrade"`) and `commands` (list
-  of str, shell-quoted; for pip, comments with the lines to change), and `left_out` (str,
-  e.g. `"django-taggit (blocked)"`: packages that need a person).
+  order, each with `phase` (`"python"`, `"before"`, `"with"` or `"upgrade"`) and
+  `commands` (list of str, shell-quoted; for pip, comments with the lines to change, with
+  the file and line when known), and `left_out` (str, e.g. `"django-taggit (blocked)"`:
+  packages that need a person).
 - `explain` (object): for each package given with `--explain`, by canonical name, how its
   verdict came about: a list of objects with `section` (`"inputs"`, `"release"`,
   `"search"`, `"phase"` or `"result"`) and `text`, in the order they happened. Empty
