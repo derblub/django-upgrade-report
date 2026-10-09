@@ -955,8 +955,8 @@ def test_html_carries_the_pushing_pixels_signature(project, capsys):
     assert page.count('<a class="brand" href="https://pushingpixels.at"><svg class="pp-mark"') == 1
     icon = page.split('<link rel="icon" href="data:image/svg+xml,', 1)[1].split('"', 1)[0]
     assert "#" not in icon and " " not in icon  # a raw "#" would end the data URL
-    assert unquote(icon).startswith("<svg ") and 'fill="#f4f4f5"' in unquote(icon)
-    assert "Gradient" not in page  # one colour: the text's
+    assert unquote(icon).startswith("<svg ") and 'fill="url(#p)"' in unquote(icon)
+    assert "Gradient" not in page.replace(icon, "")  # the mark has one colour: the text's
 
 
 def test_html_script_is_small_and_shipped_in_the_package():

@@ -498,10 +498,13 @@ _MARK = (
     'stroke-dasharray="3 3" stroke-opacity=".45"/></svg>'
 )
 _LOGO = (
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" '
-    'rx="14" fill="#1d1d20"/><g fill="#f4f4f5"><rect x="7" y="16" width="15" height="15" '
-    'rx="3"/><rect x="7" y="34" width="15" height="15" rx="3"/><rect x="25" y="34" width="15" '
-    'height="15" rx="3"/><rect x="43" y="16" width="15" height="15" rx="3"/></g></svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="p" '
+    'x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" '
+    'stop-color="#22d3ee"/></linearGradient></defs><rect width="64" height="64" rx="14" '
+    'fill="#1d1d20"/><g fill="#f4f4f5"><rect x="7" y="16" width="15" height="15" rx="3"/>'
+    '<rect x="7" y="34" width="15" height="15" rx="3"/><rect x="25" y="34" width="15" '
+    'height="15" rx="3"/></g><rect x="43" y="16" width="15" height="15" rx="3" fill="url(#p)"/>'
+    "</svg>"
 )
 FAVICON = f'<link rel="icon" href="data:image/svg+xml,{quote(_LOGO, safe=":/=")}">'
 """The Pushing Pixels tile as the page's icon, inside the page: it stays one file."""
