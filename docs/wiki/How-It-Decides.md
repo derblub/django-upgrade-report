@@ -70,6 +70,12 @@ The list is kept in `src/django_upgrade_report/data/django_removals.json`, made 
 
 Some packages did a job Django now does itself, and no metadata says so: South, django-jsonfield, django-secure and a few more. Their rows say what Django has instead. Every entry in [`successors.py`](https://github.com/derblub/django-upgrade-report/blob/main/src/django_upgrade_report/successors.py) needs a source: the package's maintainers pointing to Django, or Django's release notes.
 
+## Wagtail and django CMS
+
+With `--framework wagtail` or `--framework django-cms` the same rules apply to that framework: its `Framework :: Wagtail` or `Framework :: Django CMS` classifiers, its requirement in `Requires-Dist`, and only packages that depend on it. One rule differs for Wagtail, whose classifiers name major versions only. `Framework :: Wagtail :: 6` means **yes** for 6.3 when the release came out after Wagtail 6.3 did; before that, it is **not declared**, since nobody could have tested 6.3 yet.
+
+`auto` picks the newest Wagtail LTS ([release schedule](https://github.com/wagtail/wagtail/wiki/Release-schedule)), and the newest django CMS release, which has no LTS. Packages Django took over, the Python plan, `--evidence` and what Django removed are about Django and are left out.
+
 ## Seeing it for one package
 
 ```console

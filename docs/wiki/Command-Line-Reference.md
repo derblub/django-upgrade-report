@@ -12,6 +12,7 @@ Every option, as `django-upgrade-report --help` describes it. The pages [Getting
 | `PROJECT` | `PROJECT` | `.` | Project directory with a lockfile, requirements*.txt or pyproject.toml (default: current directory). |
 | `-t`, `--target` | `TARGET` | `auto` | Django version to upgrade to: 'auto' (default: the newest LTS above your Django, or the newest release when no LTS is above it), 'lts', 'latest' or e.g. '5.2'. |
 | `--from` | `VERSION` |  | The Django version you run today, e.g. 4.2 or 4.2.16, when your requirements only give a range. |
+| `--framework` | `django` `wagtail` `django-cms` | `django` | What to plan the upgrade of: django (default), or wagtail or django-cms, whose packages are then checked against --target and --from of that framework. |
 | `--via` | `lts` `each` |  | Go to the target in steps, one report each: through every LTS on the way, or through each feature version. |
 | `--python` | `PATH` |  | Read exact versions from the packages installed for this interpreter, e.g. .venv/bin/python. |
 | `-f`, `--format` | `text` `markdown` `json` `html` | `text` | Output format (default: text). |

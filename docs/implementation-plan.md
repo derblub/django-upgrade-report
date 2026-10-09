@@ -79,7 +79,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 2.5 | 0.11 | Was Django entfernt hat | erledigt |
 | 2.5a | 0.11 | Daten aus den Release-Notes (Skript, JSON im Paket), Abgleich mit dem Code, Text und JSON | erledigt |
 | 2.5b | 0.11 | Markdown und HTML | erledigt |
-| 6.1 | 1.0 | Wagtail und django CMS als Ziel | offen |
+| 6.1 | 1.0 | Wagtail und django CMS als Ziel | in Arbeit |
+| 6.1a | 1.0 | `frameworks.py`, `--framework`, Analyse, Texte, Befehle, JSON | erledigt |
+| 6.1b | 1.0 | Django-Bereich des Ziel-Frameworks, Zeile für das Framework, django-CMS-Details, Golden-Fixtures, Action-Input | offen |
 | 6.2 | 1.0 | Mehrere Projekte | offen |
 | 6.3 | separat | Öffentliche Readiness-Daten | offen |
 
@@ -1528,6 +1530,16 @@ bestehenden Django-Tests unverändert.
 **Doku:** README neuer Abschnitt „Wagtail and django CMS“. CHANGELOG.
 
 **Aufwand:** L. **Abhängigkeiten:** 0.5.
+
+**Umsetzung 6.1a:** `Framework` hält `lts_versions` als Menge statt einer Funktion, `is_lts()`
+und `next_feature()` kennen die Django-Regel selbst; statt `versions` gibt es
+`major_classifiers`. Die Funktionen in `analysis.py` behalten ihre Namen
+(`django_requirement`, `is_django_related`) und bekommen `framework` als Parameter mit Default
+`DJANGO`, `Target` trägt sein Framework, Texte nutzen `target.name` und `report.name`.
+`successor`, die Framework-Notiz und die README-Hinweise laufen nur für Django; Python-Plan,
+`--evidence` und Django-Entfernungen ebenso (für `--evidence` mit Hinweis). `auto` ist wie bei
+Django das neueste LTS, mit Warnung beim Überspringen. Die Django-Prüfung des Ziel-Wagtail,
+die Wagtail-Zeile, django-CMS-Details, Golden-Fixtures und der Action-Input folgen in 6.1b.
 
 ### 6.2 Mehrere Projekte
 

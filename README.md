@@ -233,6 +233,14 @@ Python 3.12 first (2)
 
 For each installed release, in this order: a `Requires-Python` that excludes the Python means no; a `Programming Language :: Python :: 3.12` classifier means yes; so does a wheel built for it. An `abi3` wheel for an older Python, or a pure-Python wheel, runs too. Wheels only for other Pythons mean pip builds the package from source, which needs a compiler and often fails; without a source distribution it cannot be installed at all. Wheels count when they install on CPython under Linux on x86_64. A dependency that needs something gets the oldest newer release that runs on the Python, with a note when that release no longer runs on the Python you use today, so it goes together with the switch. It needs a project Python (see above); `--python-target 3.13` checks any Python you name.
 
+### Wagtail and django CMS
+
+`--framework wagtail` (or `django-cms`) plans the upgrade of that framework instead of Django's: `--target`, the sections, the commands and the bot configurations are about Wagtail, and only packages that depend on Wagtail or declare `Framework :: Wagtail` are checked. Wagtail's LTS releases come from its [release schedule](https://github.com/wagtail/wagtail/wiki/Release-schedule), so `auto` is the newest of them; django CMS has none, so `auto` is its newest release. The Python plan, `--evidence` and the list of what Django removed stay Django's and are left out.
+
+```console
+django-upgrade-report --framework wagtail --target 7.0
+```
+
 ### Commands to run
 
 `--emit uv` (or `poetry`, `pdm`, `pipenv`, `pip`, or `auto` to pick by the lockfile) prints the commands that carry out the plan instead of the report: the upgrades that go first, one command each, then Django with what needs it, in one command; blocked packages and ones to check are named at the end. For pip it says which requirement lines to change. With `--format json` they go into the `commands` field. See [Upgrade commands](docs/wiki/Upgrade-Commands.md).
@@ -349,7 +357,7 @@ A direct dependency that your code never names gets the note "not imported or co
 
 After the packages, the report lists what Django removed on the way to the target, from the "Features removed" sections of its release notes, and which of it your code still uses: "The model's Meta.index_together option is removed  shop/models.py:11 · django-upgrade fixes this". Only the used ones are shown, the rest as a link to the release notes; `-v` shows all. A removal counts as used only when the code names the very thing that is gone: an import, a setting, a `Meta` option, a template filter, a method. Rewriting the code is the job of [django-upgrade](https://github.com/adamchainz/django-upgrade).
 
-A package counts as Django-related when it depends on Django or has a `Framework :: Django` classifier. Packages that only depend on Wagtail or django CMS are included too, with a note to check them against that framework. Everything else is skipped.
+A package counts as Django-related when it depends on Django or has a `Framework :: Django` classifier. Packages that only depend on Wagtail or django CMS are included too, with a note to check them against that framework. Everything else is skipped. With `--framework wagtail` the same rules apply to Wagtail, with one difference: Wagtail's classifiers name major versions only (`Framework :: Wagtail :: 6`), so such a classifier means **yes** for 6.3 when the release came out after 6.3 did, and **not declared** before.
 
 > [!NOTE]
 > The report shows what maintainers declare, not whether your tests pass. Use it to plan the upgrade, then run [django-upgrade](https://github.com/adamchainz/django-upgrade) on your code and your test suite with `python -W error::DeprecationWarning`.

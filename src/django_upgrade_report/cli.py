@@ -37,6 +37,7 @@ from django_upgrade_report.analysis import (
     from_other_index,
 )
 from django_upgrade_report.diff import BaselineError, compare, load_baseline
+from django_upgrade_report.frameworks import DJANGO, FRAMEWORKS
 from django_upgrade_report.prompts import ask_missing, terminal_ask
 from django_upgrade_report.pypi import (
     OFFLINE,
@@ -84,6 +85,13 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="VERSION",
         help="the Django version you run today, e.g. 4.2 or 4.2.16, when your requirements "
         "only give a range",
+    )
+    parser.add_argument(
+        "--framework",
+        choices=list(FRAMEWORKS),
+        default="django",
+        help="what to plan the upgrade of: django (default), or wagtail or django-cms, whose "
+        "packages are then checked against --target and --from of that framework",
     )
     parser.add_argument(
         "--via",
@@ -385,12 +393,9 @@ def _run(args: argparse.Namespace) -> int:
             current=args.current,
             private_index=private_index,
             explain=explained,
+            framework=FRAMEWORKS[args.framework],
         )
-        python = python_target(args.python_target, report)
-        if python is not None:
-            report.python = plan_python(python, report, deps, pypi)
-        _evidence(args, report, deps, mode)
-        _usage(args, report, deps)
+        _extras(args, report, deps, pypi, mode)
     except NotCached as exc:
         raise Error(f"{pypi.redact(str(exc))}, run once without --offline") from None
     except (PyPIError, ValueError, RuntimeError, OSError) as exc:
@@ -408,12 +413,15 @@ def _run(args: argparse.Namespace) -> int:
         from django_upgrade_report import tui
 
         def recompute(target: str) -> Report:
-            again = analyse(deps, pypi, target, current=args.current, private_index=private_index)
-            python = python_target(args.python_target, again)
-            if python is not None:
-                again.python = plan_python(python, again, deps, pypi)
-            _evidence(args, again, deps, mode)
-            _usage(args, again, deps)
+            again = analyse(
+                deps,
+                pypi,
+                target,
+                current=args.current,
+                private_index=private_index,
+                framework=FRAMEWORKS[args.framework],
+            )
+            _extras(args, again, deps, pypi, mode)
             return again
 
         where = args.project if args.project.is_dir() else args.project.parent
@@ -494,13 +502,13 @@ def _usage(args: argparse.Namespace, report: Report, deps: sources.DependencySet
     And what Django removed on the way, with where the code still uses it."""
     root = args.scan_code or (args.project if args.project.is_dir() else None)
     if args.no_scan_code or root is None:
-        if not report.health_check:
+        if not report.health_check and report.framework == DJANGO.key:
             report.removals = removals.check(report.current_django, report.target, None)
         return
     if not hasattr(args, "_scan"):  # one scan per run, however many steps or targets
         args._scan = usage.scan(root)
     found = args._scan
-    if not report.health_check:
+    if not report.health_check and report.framework == DJANGO.key:
         report.removals = removals.check(report.current_django, report.target, found)
     report.code_read = found.complete and found.python > 0
     if not found.complete:
@@ -524,6 +532,32 @@ def _usage(args: argparse.Namespace, report: Report, deps: sources.DependencySet
             lines.append(ExplainLine("result", f"your code uses it: {where}"))
         elif name in gone:
             lines.append(ExplainLine("result", f"your code never names it: {usage.NOTE}"))
+
+
+def _extras(
+    args: argparse.Namespace,
+    report: Report,
+    deps: sources.DependencySet,
+    pypi: PyPI,
+    mode: str,
+) -> None:
+    """What comes after judging the packages: the Python plan, signs of support, the code.
+
+    The Python plan, the signs and what Django removed read Django's versions only, so for
+    Wagtail or django CMS they are left out (the report says so where it was asked for).
+    """
+    if report.framework != DJANGO.key:
+        django = deps.dependencies.get("django")
+        report.project_django = django.version if django else None
+        if args.evidence:
+            report.notices.append(f"--evidence reads Django versions only: not for {report.name}")
+        _usage(args, report, deps)
+        return
+    python = python_target(args.python_target, report)
+    if python is not None:
+        report.python = plan_python(python, report, deps, pypi)
+    _evidence(args, report, deps, mode)
+    _usage(args, report, deps)
 
 
 def _evidence(
@@ -558,11 +592,7 @@ def _run_path(
 
     def after(report: Report, step_deps: sources.DependencySet) -> None:
         progress.done = 0  # each step checks every package again
-        python = python_target(args.python_target, report)
-        if python is not None:
-            report.python = plan_python(python, report, step_deps, pypi)
-        _evidence(args, report, step_deps, pypi.mode)
-        _usage(args, report, step_deps)
+        _extras(args, report, step_deps, pypi, pypi.mode)
 
     try:
         path = analyse_path(
@@ -574,6 +604,7 @@ def _run_path(
             after=after,
             progress=progress,
             private_index=private_index,
+            framework=FRAMEWORKS[args.framework],
         )
     except NotCached as exc:
         raise Error(f"{pypi.redact(str(exc))}, run once without --offline") from None

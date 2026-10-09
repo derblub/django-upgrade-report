@@ -18,6 +18,7 @@ class Section:
 
 
 def sections(report: Report) -> list[Section]:
+    name = report.name
     upgrades = report.by_status(Status.UPGRADE)
     ready = report.by_status(Status.READY)
     unpinned = any(not p.current for p in ready)
@@ -27,36 +28,36 @@ def sections(report: Report) -> list[Section]:
         Section(
             "blocked",
             "Blocked",
-            f"Your copy excludes Django {report.target}. Fix its requirement, or go back to a "
+            f"Your copy excludes {name} {report.target}. Fix its requirement, or go back to a "
             "release on PyPI."
             if blocked and all(p.source for p in blocked)
-            else f"No release declares support for Django {report.target}.",
+            else f"No release declares support for {name} {report.target}.",
             blocked,
         ),
         Section(
             "before",
             "Upgrade first",
-            f"These releases still run on Django {current}. Upgrade them before Django, "
+            f"These releases still run on {name} {current}. Upgrade them before {name}, "
             "one at a time.",
             [p for p in upgrades if p.phase is Phase.BEFORE],
         ),
         Section(
             "with",
-            "Upgrade together with Django",
-            f"These releases no longer run on Django {current}. Bump them in the same change "
-            "as Django.",
+            f"Upgrade together with {name}",
+            f"These releases no longer run on {name} {current}. Bump them in the same change "
+            f"as {name}.",
             [p for p in upgrades if p.phase is Phase.WITH],
         ),
         Section(
             "upgrade",
             "Upgrade",
-            f"A newer release declares support for Django {report.target}.",
+            f"A newer release declares support for {name} {report.target}.",
             [p for p in upgrades if p.phase is None],
         ),
         Section(
             "check",
             "Check manually",
-            f"You already run these on Django {report.target}, but their metadata does not say "
+            f"You already run these on {name} {report.target}, but their metadata does not say "
             "so. If your test suite passes, there is nothing to do."
             if report.health_check
             else "The metadata does not say either way. Read the changelog or run the test suite."
@@ -66,7 +67,7 @@ def sections(report: Report) -> list[Section]:
         Section(
             "ready",
             "Ready",
-            f"Your version declares support for Django {report.target}"
+            f"Your version declares support for {name} {report.target}"
             + (" (unpinned: the newest release your requirement allows)." if unpinned else "."),
             ready,
         ),
@@ -121,8 +122,8 @@ def changes_title(report: Report) -> str:
     changes = report.changes
     if not changes.compared:
         return (
-            f"The baseline was for Django {changes.target}, this report for {report.target}: "
-            "nothing compared"
+            f"The baseline was for {report.name} {changes.target}, this report for "
+            f"{report.target}: nothing compared"
         )
     if not changes.items:
         return f"No changes since {since_label(report)}"
@@ -174,7 +175,7 @@ def python_summary(report: Report) -> list[str]:
 
 def packages_line(report: Report) -> str:
     n = len(report.packages)
-    return f"{n} Django-related {'package' if n == 1 else 'packages'}"
+    return f"{n} {report.name}-related {'package' if n == 1 else 'packages'}"
 
 
 def private_index_hint(report: Report) -> str | None:
@@ -194,13 +195,18 @@ def split_noted(packages: list[PackageReport]) -> tuple[list[PackageReport], lis
 
 def skipped_line(report: Report) -> str:
     n = report.skipped
-    return f"{n} {'dependency' if n == 1 else 'dependencies'} without a Django requirement skipped"
+    return (
+        f"{n} {'dependency' if n == 1 else 'dependencies'} without a {report.name} "
+        "requirement skipped"
+    )
 
 
 def python_line(report: Report) -> str | None:
     parts = []
     if report.django_requires_python:
-        parts.append(f"Django {report.target} requires Python {report.django_requires_python}")
+        parts.append(
+            f"{report.name} {report.target} requires Python {report.django_requires_python}"
+        )
     if report.project_python:
         parts.append(f"your project uses Python {report.project_python}")
     if not parts:
@@ -211,8 +217,8 @@ def python_line(report: Report) -> str | None:
 
 def headline(report: Report) -> str:
     if report.health_check:
-        return f"Django {report.target} · health check"
-    start = f"Django {report.current_django}" if report.current_django else "Django"
+        return f"{report.name} {report.target} · health check"
+    start = f"{report.name} {report.current_django}" if report.current_django else report.name
     return f"{start} → {report.target}"
 
 
@@ -248,7 +254,7 @@ def path_headline(path: PathReport) -> str:
     first = path.steps[0].current_django
     stops = " → ".join(step.target for step in path.steps)
     count = len(path.steps)
-    return f"Django {first} → {stops} ({count} step{'s' if count != 1 else ''})"
+    return f"{path.steps[0].name} {first} → {stops} ({count} step{'s' if count != 1 else ''})"
 
 
 def step_title(path: PathReport, number: int) -> str:

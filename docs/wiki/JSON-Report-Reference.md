@@ -10,10 +10,16 @@
   rest: later versions may write documents of other kinds.
 - `tool`: `name`, `version` and `author` of the tool that wrote the report.
 - `generated` (str): ISO 8601 timestamp, UTC.
-- `target` (str): the Django version checked against, e.g. `"5.2"`.
+- `framework` (str): what the report is about: `"django"`, `"wagtail"` or
+  `"django-cms"` (`--framework`).
+- `target` (str): the version of that framework checked against, e.g. `"5.2"`.
+- `current_framework` (str | null) and `framework_requires_python` (str | null): the
+  project's version of the framework and what the target needs of Python; for Django the
+  same as the two fields below.
 - `target_released` (bool): false for a version that is not out yet (only classifiers count).
 - `current_django` (str | null): the project's Django version: pinned, given with
-  `--from`, or assumed from a range (a warning says so).
+  `--from`, or assumed from a range (a warning says so). For Wagtail or django CMS, the
+  Django the project pins.
 - `django_requires_python` (str | null): `Requires-Python` of the target Django.
 - `project_python` (str | null): the project's Python as `X.Y`, when known.
 - `source` (str): where the dependencies were read from.

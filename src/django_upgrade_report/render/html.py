@@ -417,7 +417,8 @@ def _toolbar(reports: list[Report]) -> str:
     rows = [p for r in reports for p in [*r.packages, *(r.python.packages if r.python else ())]]
     present = [k for k in _FILTERS if k in {_filter(p) for p in rows}]
     chips = "".join(
-        f'<button type="button" data-chip="{key}" aria-pressed="false">{_FILTERS[key]}</button>'
+        f'<button type="button" data-chip="{key}" aria-pressed="false">'
+        f"{_FILTERS[key].replace('Django', reports[0].name)}</button>"
         for key in present
     )
     direct = (

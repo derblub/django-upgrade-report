@@ -72,7 +72,7 @@ def render(
         for p in packages:
             details = [terse(n) for n in row_notes(p) if n not in shared]
             # "2.0 declares Django 5.2" on an upgrade to 2.0 repeats the version column.
-            if p.reason != f"{p.target_version} declares Django {report.target}":
+            if p.reason != f"{p.target_version} declares {report.name} {report.target}":
                 details.insert(0, terse(p.reason))
             first, *rest = details or [""]
             if verbose:  # URLs make a row long: only on request, and on their own lines

@@ -13,8 +13,11 @@ import shlex
 from dataclasses import dataclass, field
 from pathlib import PurePath
 
+from packaging.version import Version
+
 from django_upgrade_report import __version__
 from django_upgrade_report.analysis import PackageReport, Phase, Report, Status
+from django_upgrade_report.frameworks import DJANGO, FRAMEWORKS, Framework
 from django_upgrade_report.render import headline
 
 TOOLS = ("uv", "poetry", "pdm", "pip", "pipenv")
@@ -100,9 +103,9 @@ def plan(report: Report, tool: str) -> Commands:
         steps.append(step)
     together = [p for p in upgrades if p.phase is Phase.WITH]
     if not report.health_check:
-        step = Step("with", "Together with Django: one change")
+        step = Step("with", f"Together with {report.name}: one change")
         django = (report.current_django, report.target, report.django_origin)
-        step.commands += _install(tool, together, django=django)
+        step.commands += _install(tool, together, django=django, framework=_framework(report))
         steps.append(step)
     loose = [p for p in upgrades if p.phase is None]
     if loose:
@@ -162,6 +165,7 @@ def _install(
     tool: str,
     packages: list[PackageReport],
     django: tuple[str | None, str, str | None] | None = None,
+    framework: Framework = DJANGO,
 ) -> list[str]:
     """The lines that move ``packages`` up together, and Django from ``django[0]`` (the
     current version, if known) to ``django[1]`` (X.Y); ``django[2]`` is where it is pinned."""
@@ -176,14 +180,15 @@ def _install(
             for p in direct
         ]
         if django:
-            lines.insert(0, _change(django[2], _pin("Django", django[0]), f"Django~={django[1]}.0"))
+            named = "Django" if framework is DJANGO else framework.package
+            lines.insert(0, _change(django[2], _pin(named, django[0]), f"{named}~={django[1]}.0"))
         lines += [
             f"# in a constraints file: {p.display_name}=={p.target_version}" for p in transitive
         ]
         return lines
     specs = [_spec(tool, p) for p in direct]
     if django:
-        specs.insert(0, _django(tool, django[1]))
+        specs.insert(0, _django(tool, django[1], framework))
     lines = []
     if specs:
         add = {"uv": "uv add", "poetry": "poetry add", "pdm": "pdm add", "pipenv": "pipenv install"}
@@ -214,13 +219,14 @@ def _spec(tool: str, p: PackageReport) -> str:
     return f"{p.name}>={p.target_version}"
 
 
-def _django(tool: str, target: str) -> str:
+def _django(tool: str, target: str, framework: Framework = DJANGO) -> str:
     major, _, minor = target.partition(".")
+    name = framework.package
     if tool == "uv":
-        return f"django>={target},<{major}.{int(minor) + 1}"
+        return f"{name}>={target},<{major}.{int(minor) + 1}"
     if tool == "poetry":
-        return f"django@~{target}"
-    return f"django~={target}.0"
+        return f"{name}@~{target}"
+    return f"{name}~={target}.0"
 
 
 # --- configuration for the pull request bots ------------------------------------------
@@ -235,9 +241,9 @@ def renovate(report: Report) -> str:
     if hold:
         rules.append(
             {
-                "description": f"django-upgrade-report: hold Django at {hold[0]} until the "
-                "'upgrade first' list is done, then remove this rule",
-                "matchPackageNames": ["django"],
+                "description": f"django-upgrade-report: hold {report.name} at {hold[0]} until "
+                "the 'upgrade first' list is done, then remove this rule",
+                "matchPackageNames": [_framework(report).package],
                 "allowedVersions": f"<{hold[1]}",
             }
         )
@@ -278,9 +284,9 @@ def dependabot(report: Report) -> str:
     if hold:
         lines += [
             "    ignore:",
-            f"      # Hold Django at {hold[0]} until the 'upgrade first' list is done, "
+            f"      # Hold {report.name} at {hold[0]} until the 'upgrade first' list is done, "
             "then remove this.",
-            '      - dependency-name: "django"',
+            f'      - dependency-name: "{_framework(report).package}"',
             f'        versions: [">={hold[1]}"]',
         ]
     if not groups and not hold:
@@ -302,8 +308,8 @@ def _hold(report: Report) -> tuple[str, str] | None:
         major, minor = (int(part) for part in report.current_django.split(".")[:2])
     except ValueError:
         return None
-    following = f"{major + 1}.0" if minor >= 2 else f"{major}.{minor + 1}"  # 4.2 is followed by 5.0
-    return f"{major}.{minor}", following
+    following = _framework(report).next_feature(Version(f"{major}.{minor}"))  # 4.2: 5.0
+    return f"{major}.{minor}", str(following)
 
 
 def _bot_groups(report: Report) -> list[tuple[list[str], str, str]]:
@@ -313,14 +319,19 @@ def _bot_groups(report: Report) -> list[tuple[list[str], str, str]]:
     upgrades = _upgrades(report)
     together = [p.name for p in upgrades if p.phase is Phase.WITH]
     if together and not report.health_check:
-        why = f"these go together with Django {report.target}"
-        groups.append((["django", *together], f"Django {report.target}", why))
+        fw = _framework(report)
+        why = f"these go together with {fw.display} {report.target}"
+        groups.append(([fw.package, *together], f"{fw.display} {report.target}", why))
     for group in _groups([p for p in upgrades if p.phase is not Phase.WITH]):
         if len(group) > 1:
             names = [p.name for p in group]
             title = f"{' and '.join(names)} together"
             groups.append((names, title, f"{title}: each needs the other"))
     return groups
+
+
+def _framework(report: Report) -> Framework:
+    return FRAMEWORKS[report.framework]
 
 
 def _slug(title: str) -> str:
