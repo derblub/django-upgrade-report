@@ -95,6 +95,36 @@ def row_links(package: PackageReport) -> list[tuple[str, str]]:
     return [("changelog", safe_url(package.changelog_url))] if package.changelog_url else []
 
 
+def python_hint(report: Report) -> str:
+    plan = report.python
+    return f"These dependencies need something before they run on Python {plan.target}."
+
+
+def python_summary(report: Report) -> list[str]:
+    """What the rows of the Python section leave out: the ready ones, the silent ones, Django."""
+    plan = report.python
+    lines = []
+    ready = plan.ready + plan.pure
+    if ready:
+        if plan.pure == ready:
+            pure = ", all pure Python" if ready > 1 else ", pure Python"
+        else:
+            pure = f", {plan.pure} of them pure Python" if plan.pure else ""
+        what = "dependency runs" if ready == 1 else "dependencies run"
+        more = "more " if plan.packages else ""
+        lines.append(f"{ready} {more}{what} on Python {plan.target}{pure}")
+    if plan.silent:
+        says = "says" if len(plan.silent) == 1 else "say"
+        lines.append(
+            f"{len(plan.silent)} {says} nothing about Python versions: {', '.join(plan.silent)}"
+        )
+    if plan.unknown:
+        lines.append(f"Could not check, run again later: {', '.join(plan.unknown)}")
+    if plan.django_note:
+        lines.append(plan.django_note)
+    return lines
+
+
 def packages_line(report: Report) -> str:
     n = len(report.packages)
     return f"{n} Django-related {'package' if n == 1 else 'packages'}"

@@ -5,7 +5,9 @@ from django_upgrade_report.render import (
     headline,
     packages_line,
     private_index_hint,
+    python_hint,
     python_line,
+    python_summary,
     row_links,
     row_notes,
     sections,
@@ -41,7 +43,10 @@ def render(report: Report, color: bool = False, verbose: bool = False, quiet: bo
         """The section already says the target is missing: ", not 5.2" adds nothing."""
         return text.removesuffix(f", not {report.target}")
 
-    def rows(packages: list[PackageReport], mark: str, code: str, shared: list[str]) -> list[str]:
+    def rows(
+        packages: list[PackageReport], mark: str | None, code: str | None, shared: list[str]
+    ) -> list[str]:
+        """``mark`` and ``code`` None: each row is styled by its own status."""
         name_width = max(len(p.display_name) for p in packages)
         version_width = max(len(version_cell(p)) for p in packages)
         indent = " " * (8 + name_width + version_width)
@@ -54,8 +59,9 @@ def render(report: Report, color: bool = False, verbose: bool = False, quiet: bo
             first, *rest = details or [""]
             if verbose:  # URLs make a row long: only on request, and on their own lines
                 rest += [f"{label} {url}" for label, url in row_links(p)]
+            row_mark, row_code = (mark, code) if mark else _STYLE[p.status.value]
             lines.append(
-                f"  {paint(mark, code)} {p.display_name.ljust(name_width)}  "
+                f"  {paint(row_mark, row_code)} {p.display_name.ljust(name_width)}  "
                 f"{version_cell(p).ljust(version_width)}  {paint(first, '2')}".rstrip()
             )
             lines += [paint(f"{indent}{note}", "2") for note in rest]
@@ -70,6 +76,19 @@ def render(report: Report, color: bool = False, verbose: bool = False, quiet: bo
         lines.append(paint(" · ".join(about), "2"))
     lines += [paint(f"! {warning}", "1;33") for warning in report.warnings]
     lines.append("")
+    plan = report.python
+    shown = [p for p in plan.packages if p.status is Status.BLOCKED or not quiet] if plan else []
+    if plan is not None and (shown or not quiet):
+        if shown:
+            lines.append(paint(f"Python {plan.target} first ({len(shown)})", "1;35"))
+            lines.append(paint(f"  {python_hint(report)}", "2"))
+            lines += rows(shown, None, None, [])
+        else:
+            lines.append(paint(f"Python {plan.target}", "1;35"))
+        if not quiet:
+            summary = python_summary(report)
+            lines += [paint(f"  {line[0].upper()}{line[1:]}.", "2") for line in summary]
+        lines.append("")
     for section in sections(report):
         if quiet and section.key != "blocked":
             continue

@@ -44,7 +44,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 7.3 | 0.6 | Fehlende Angaben nachfragen | erledigt |
 | 2.1 | 0.7 | Python-Readiness | in Arbeit |
 | 2.1a | 0.7 | Regel: läuft ein Release auf Python X.Y (`python.py`) | erledigt |
-| 2.1b | 0.7 | Python-Plan in der Analyse, `--python-target`, Text | offen |
+| 2.1b | 0.7 | Python-Plan in der Analyse, `--python-target`, Text | erledigt |
 | 2.1c | 0.7 | Markdown/HTML/JSON, `--fail-on-python`, Action, Doku, Golden-Tests | offen |
 | 4.1 | 0.8 | Baseline-Diff | offen |
 | 4.2 | 0.8 | Sticky PR-Kommentar | offen |
@@ -555,6 +555,27 @@ für andere Pythons **und sicher kein Sdist** (`has_sdist is False`), ist das `N
 and no source to build“), denn installieren lässt es sich dann nicht. Ein Wheel zählt nur für
 CPython unter Linux x86_64 (wie die Marker); `py3XY-none-any` zählt als rein ab Python 3.XY,
 PyPy- und Free-Threading-Wheels (`cp313t`) nicht.
+
+**2.1b umgesetzt** (`python.plan_python`, von der CLI nach `analyse()` aufgerufen, Ergebnis in
+`Report.python`), mit diesen Abweichungen:
+
+- Releases, die gar nichts über Python sagen (nur Sdist, kein Classifier), werden **nicht** als
+  CHECK-Zeilen gezeigt, sondern in einer Zeile gezählt und genannt („1 says nothing about
+  Python versions: pycrypto“). Als Zeilen hätten sie den Abschnitt bei vielen alten Projekten
+  geflutet. Zeilen gibt es für NO und „builds from source“.
+- Ist die Projekt-Python unbekannt, gibt es bei `auto` keinen Hinweis: Die letzte Zeile des
+  Reports sagt schon, welche Python Django braucht, und fast jedes Projekt ohne
+  `.python-version` hätte ihn bekommen.
+- Die Suche nach dem ersten passenden Release läuft im Speicher über die `Release`-Daten des
+  Projekt-JSON (`requires_python`, Wheels, Sdist), ohne Release-Anfragen und ohne Classifier.
+  Bei einem installierten Release, das die Python ausschließt, zählt auch ein Release, das sie
+  nur nicht mehr ausschließt oder aus dem Sdist baut (mit Notiz).
+- Django selbst steht nicht in den Zeilen, sondern in der Notiz zu seiner Patchversion
+  (Bisektion über die Patches der Serie).
+- `--python-target` wird vor allen Anfragen geprüft (nur `3.X`, `auto`, `none`). Antworten, die
+  der Index schuldig bleibt, nennt eine Zeile „Could not check, run again later“.
+- Im Quiet-Modus erscheinen nur blockierte Python-Zeilen. Markdown, HTML, JSON und
+  `--fail-on-python` folgen in 2.1c.
 
 **Status pro Paket** (wie bei Django):
 

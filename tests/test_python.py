@@ -10,6 +10,7 @@ from django_upgrade_report.pypi import ReleaseInfo
 from django_upgrade_report.python import PURE, PythonRule, _wheel_fits, python_supports
 
 LINUX = "manylinux_2_17_x86_64"
+PY = "Programming Language :: Python"
 
 
 @pytest.mark.parametrize(
@@ -100,3 +101,166 @@ def test_python_rule_judges_and_steers_the_search():
     assert rule.side(info(">=3.8")) == 0
     assert rule.side(info("!=3.12.*")) == 0
     assert rule.side(info()) == 0
+
+
+# --- the plan for a newer Python ---------------------------------------------------
+
+
+def wheel(name, version, python):
+    return f"{name}-{version}-cp{python}-cp{python}-{LINUX}.whl"
+
+
+def py_index():
+    """Django 4.2.7 does not declare Python 3.12, 4.2.8 does."""
+    from conftest import FakePyPI, release
+
+    django = [
+        release("Django", "4.2.7", uploaded="2023-11-01"),
+        release("Django", "4.2.8", uploaded="2023-12-04"),
+        release("Django", "4.2.9", uploaded="2024-01-02"),
+        release("Django", "5.2", uploaded="2025-04-02"),
+    ]
+    for r in django[1:]:
+        r["classifiers"] = [*r["classifiers"], f"{PY} :: 3.12"]
+    return FakePyPI(
+        {
+            "django": django,
+            # Only wheels up to 3.11 in 1.0, a 3.12 wheel from 2.0 on.
+            "numpylike": [
+                release(
+                    "numpylike",
+                    "1.0",
+                    requires_python=">=3.8",
+                    files=[wheel("numpylike", "1.0", 311), "numpylike-1.0.tar.gz"],
+                ),
+                release(
+                    "numpylike",
+                    "2.0",
+                    requires_python=">=3.9",
+                    files=[wheel("numpylike", "2.0", 312)],
+                ),
+            ],
+            # Every release caps Python below 3.12.
+            "oldlib": [
+                release("oldlib", "0.4", requires_python="<3.11", files=["oldlib-0.4.tar.gz"]),
+            ],
+            # 3.0 runs on 3.12 but no longer on 3.10, the project's Python.
+            "jumpy": [
+                release("jumpy", "1.0", requires_python=">=3.8,<3.12", files=["jumpy-1.0.tar.gz"]),
+                release(
+                    "jumpy", "3.0", requires_python=">=3.11", files=["jumpy-3.0-py3-none-any.whl"]
+                ),
+            ],
+            "purelib": [
+                release("purelib", "1.0", requires_python=">=3.8", files=["p-1.0-py3-none-any.whl"])
+            ],
+            "silentlib": [release("silentlib", "1.0", requires_python=None, files=["s.tar.gz"])],
+        }
+    )
+
+
+def py_plan(index, python="3.10", target="3.12", **pins):
+    from django_upgrade_report.analysis import Report
+    from django_upgrade_report.python import plan_python
+    from django_upgrade_report.sources import Dependency, DependencySet
+
+    deps = DependencySet(
+        "test",
+        {"django": Dependency("django", "4.2.7")}
+        | {name: Dependency(name, v) for name, v in pins.items()},
+        python=python,
+    )
+    report = Report("5.2", "4.2.7", ">=3.12", "test", [], 0, [], project_python=python)
+    return plan_python(target, report, deps, index)
+
+
+def test_plan_upgrades_blocks_and_counts():
+    from django_upgrade_report.analysis import Status
+
+    index = py_index()
+    plan = py_plan(
+        index, numpylike="1.0", oldlib="0.4", jumpy="1.0", purelib="1.0", silentlib="1.0"
+    )
+    rows = {p.name: p for p in plan.packages}
+    assert [p.name for p in plan.packages] == ["oldlib", "jumpy", "numpylike"]  # worst first
+    assert (rows["oldlib"].status, rows["oldlib"].reason) == (
+        Status.BLOCKED,
+        "0.4 requires Python <3.11",
+    )
+    assert (rows["numpylike"].status, rows["numpylike"].target_version) == (Status.UPGRADE, "2.0")
+    assert rows["numpylike"].reason == "1.0 no wheel for Python 3.12, pip builds it from source"
+    assert rows["jumpy"].notes == ["goes together with the switch to Python 3.12"]
+    assert (plan.ready, plan.pure, plan.silent) == (0, 1, ["silentlib"])
+    assert plan.django_note == (
+        "Django 4.2.7 does not declare Python 3.12, 4.2.8 does: update Django 4.2 first"
+    )
+
+
+def test_plan_reads_release_histories_only_where_needed():
+    index = py_index()
+    py_plan(index, purelib="1.0", silentlib="1.0")
+    histories = [u for u in index.requests if u.count("/") == 5 and "/django/" not in u]
+    assert histories == []  # no project JSON for packages that need nothing
+
+
+@pytest.mark.parametrize(
+    ("requested", "project", "needs", "expected"),
+    [
+        ("auto", "3.10", ">=3.12", "3.12"),
+        ("auto", "3.12", ">=3.12", None),
+        ("auto", None, ">=3.12", None),
+        ("none", "3.10", ">=3.12", None),
+        ("3.13", "3.12", ">=3.10", "3.13"),
+        ("3.13.1", "3.12", ">=3.10", "3.13"),
+    ],
+)
+def test_python_target(requested, project, needs, expected):
+    from django_upgrade_report.analysis import Report
+    from django_upgrade_report.python import python_target
+
+    report = Report("6.1", "5.2.7", needs, "test", [], 0, [], project_python=project)
+    assert python_target(requested, report) == expected
+
+
+def test_python_target_that_is_not_a_version():
+    from django_upgrade_report.analysis import Report
+    from django_upgrade_report.python import python_target
+
+    with pytest.raises(ValueError, match="'three' is not a Python version"):
+        python_target("three", Report("6.1", None, None, "test", [], 0, []))
+
+
+def test_a_step_past_an_exclusion_may_build_from_source():
+    from conftest import FakePyPI, release
+
+    from django_upgrade_report.analysis import Status
+
+    index = FakePyPI(
+        {
+            "django": py_index().packages["django"],
+            "lib": [
+                release("lib", "1.0", requires_python="<3.12", files=["lib-1.0.tar.gz"]),
+                release("lib", "2.0", files=[wheel("lib", "2.0", 311), "lib-2.0.tar.gz"]),
+            ],
+        }
+    )
+    (row,) = py_plan(index, lib="1.0").packages
+    assert (row.status, row.target_version) == (Status.UPGRADE, "2.0")
+    assert row.notes == ["2.0 no wheel for Python 3.12, pip builds it from source"]
+
+
+def test_an_unanswered_lookup_is_said_and_django_note_survives_it():
+    index = py_index()
+    fetch = index._fetch
+
+    def flaky(url):
+        if "/purelib/" in url or "/django/4.2.8/" in url:
+            from django_upgrade_report.pypi import PyPIError
+
+            raise PyPIError("HTTP 503")
+        return fetch(url)
+
+    index._fetch = flaky
+    plan = py_plan(index, purelib="1.0")
+    assert plan.unknown == ["purelib"]
+    assert plan.django_note is None or "4.2" in plan.django_note

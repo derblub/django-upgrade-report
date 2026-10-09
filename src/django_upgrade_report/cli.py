@@ -25,6 +25,7 @@ from django_upgrade_report.pypi import (
     PyPIError,
     default_cache_dir,
 )
+from django_upgrade_report.python import check_python_target, plan_python, python_target
 from django_upgrade_report.render import explain, html, json, markdown, text
 
 _FAIL_ON = {"blocked": Status.BLOCKED, "upgrade": Status.UPGRADE, "check": Status.CHECK}
@@ -83,6 +84,13 @@ def build_parser() -> argparse.ArgumentParser:
         "(errors exit with status 2)",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="list ready packages too")
+    parser.add_argument(
+        "--python-target",
+        default="auto",
+        metavar="VERSION",
+        help="check every dependency on this Python too, e.g. 3.12: 'auto' (default) when the "
+        "target Django needs a newer Python than your project uses, 'none' never",
+    )
     parser.add_argument(
         "--explain",
         action="append",
@@ -177,6 +185,11 @@ def _run(args: argparse.Namespace) -> int:
     except (sources.NoDependenciesFound, sources.SourceError, OSError, ValueError) as exc:
         raise Error(exc) from None
 
+    if args.python_target not in ("auto", "none"):
+        try:
+            check_python_target(args.python_target)
+        except ValueError as exc:
+            raise Error(exc) from None
     explained = [canonicalize_name(name) for name in args.explain]
     if explained and args.format in ("markdown", "html"):
         raise Error("--explain prints text, or with --format json the explain field")
@@ -222,6 +235,9 @@ def _run(args: argparse.Namespace) -> int:
             private_index=private_index,
             explain=explained,
         )
+        python = python_target(args.python_target, report)
+        if python is not None:
+            report.python = plan_python(python, report, deps, pypi)
     except NotCached as exc:
         raise Error(f"{pypi.redact(str(exc))}, run once without --offline") from None
     except (PyPIError, ValueError, RuntimeError, OSError) as exc:

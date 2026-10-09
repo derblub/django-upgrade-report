@@ -794,3 +794,27 @@ def test_explain_a_package_from_another_index(project, capsys):
     out = capsys.readouterr().out
     assert "not from PyPI: index https://pkgs.example.com/simple" in out
     assert "it comes from another index; pass --check-private-on-pypi" in out
+
+
+def test_python_section(project, index, capsys):
+    (project / ".python-version").write_text("3.10\n")
+    before = index.packages["django-before"]  # 1.0, 1.5, 2.0, 2.1
+    for r in before[:3]:
+        r["requires_python"] = "<3.12"
+    assert cli.main([str(project), "--python-target", "3.12"]) == 0
+    out = capsys.readouterr().out
+    section = out.split("Python 3.12 first (1)\n")[1].split("\n\n")[0]
+    assert "These dependencies need something before they run on Python 3.12." in section
+    assert "↑ django-before  1.0 → 2.1  1.0 requires Python <3.12" in section
+    assert "say nothing about Python versions: django-blocked, django-ready" in section
+    # The Django plan's step to 2.0 would not run on Python 3.12 either.
+    assert "2.0 requires Python <3.12" in out.split("Upgrade first")[1]
+    assert cli.main([str(project), "--python-target", "none"]) == 0
+    assert "Python 3.12" not in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("value", ["three", "3", "2.7", "4.0"])
+def test_python_target_is_checked_before_anything_is_fetched(project, index, capsys, value):
+    assert cli.main([str(project), "--python-target", value]) == 2
+    assert "is not a Python version such as 3.12" in capsys.readouterr().err
+    assert index.requests == []

@@ -11,7 +11,7 @@ from collections.abc import Callable, Iterable
 from concurrent.futures import Executor, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from packaging.markers import Marker
 from packaging.requirements import InvalidRequirement, Requirement
@@ -23,6 +23,9 @@ from django_upgrade_report.projects import changelog_url, repository_url
 from django_upgrade_report.pypi import Project, PyPI, PyPIError, ReleaseInfo
 from django_upgrade_report.sources import Dependency, DependencySet
 from django_upgrade_report.successors import Successor, successor
+
+if TYPE_CHECKING:
+    from django_upgrade_report.python import PythonPlan
 
 _CLASSIFIER = re.compile(r"^Framework :: Django :: (\d+\.\d+)$")
 _MAJOR_CLASSIFIER = re.compile(r"^Framework :: Django :: (\d+)$")
@@ -173,6 +176,8 @@ class Report:
     generated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     kind: str = "report"
     """What the JSON document holds: one report. Other kinds will wrap several reports."""
+    python: PythonPlan | None = None
+    """What the dependencies need on a newer Python, when the target Django needs one."""
     explanations: dict[str, list[ExplainLine]] = field(default_factory=dict)
     """For each package asked about with ``--explain``, how its verdict came about."""
 
