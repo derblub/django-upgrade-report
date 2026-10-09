@@ -95,7 +95,10 @@ Commit only in the same `&&` chain as the checks, so a red check stops the commi
 uvx ruff check . && uvx ruff format --check . && uv run --group dev pytest -q && git add -A && git commit ...
 ```
 
-Never put a check before `;` or on a line of its own and the commit after it.
+Never put a check before `;` or on a line of its own and the commit after it. A check piped
+into `tail` or `grep` hides its failure from `&&`: start the chain with `set -o pipefail`, and
+run the browser tests (`CHROMIUM=/opt/pw-browsers/chromium uv run --group dev --with playwright
+pytest -m browser`) in it when the step touches the HTML report.
 
 1. Set the row to `erledigt` in the same commit as the code; `git log` holds the commit.
 2. Commit with a message in the repository's style ("Add pre-release hints to check and blocked

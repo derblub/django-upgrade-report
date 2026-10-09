@@ -86,7 +86,7 @@ def test_rows_open_from_the_keyboard(page):
     summary = page.locator("tr.current summary")
     assert summary.get_attribute("aria-expanded") == "false"
     page.keyboard.press("Enter")
-    assert summary.get_attribute("aria-expanded") == "true"
+    sync_api.expect(summary).to_have_attribute("aria-expanded", "true")  # set on "toggle"
     assert page.locator("tr.current details.more").get_attribute("open") == ""
     assert "https://pypi.org/project/" in page.inner_html("tr.current details.more")
 
