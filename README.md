@@ -48,7 +48,7 @@ uvx django-upgrade-report
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/report-dark.png">
-    <img src="docs/assets/report-light.png" alt="HTML report for an upgrade from Django 4.2.7 to 5.2: 15 packages to upgrade before Django, 3 to check manually" width="820">
+    <img src="docs/assets/report-light.png" alt="HTML report for an upgrade from Django 4.2.7 to 5.2: 15 packages to upgrade before Django and 3 to check, a search field and status filters, two packages ticked off as done, and one row opened to its links, newest release and the line to pin" width="820">
   </picture>
 </p>
 

@@ -6,6 +6,7 @@
 <title>Django 4.2.7 → 5.2 · upgrade report</title>
 <style>
 :root {
+  color-scheme: light dark;
   --bg: #f7f7f5; --panel: #ffffff; --text: #1b1d1c; --muted: #6a706d; --line: #e4e4e0;
   --python: #6b46c1; --ready: #1f7a4d; --upgrade: #a15c00; --check: #22639e; --blocked: #b3261e;
   --ready-bg: #e5f3ec; --upgrade-bg: #fbefdc; --check-bg: #e3eef8; --blocked-bg: #fbe4e2;
@@ -53,7 +54,7 @@ thead th { border-top: 0; font-size: 12px; text-transform: uppercase; letter-spa
 td.name { font-weight: 600; white-space: nowrap; }
 td.version { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
   white-space: nowrap; }
-.note { display: inline-block; margin: 4px 6px 0 0; padding: 1px 8px; border-radius: 99px;
+.note { display: inline-block; margin: 4px 6px 0 0; padding: 1px 8px; border-radius: 10px;
   font-size: 12px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
 a.link { color: var(--muted); font-size: 13px; }
 .note.warn { background: var(--blocked-bg); color: var(--blocked); border-color: transparent; }
@@ -109,6 +110,11 @@ th button.sort { font: inherit; color: inherit; text-transform: inherit; letter-
 th[aria-sort=ascending] button.sort::after { content: " ↑"; }
 th[aria-sort=descending] button.sort::after { content: " ↓"; }
 tr.current { box-shadow: inset 3px 0 0 var(--check); }
+.overview { margin: 0 0 40px; }
+.overview td.name a { color: inherit; }
+.tiles.single { grid-template-columns: minmax(140px, 220px); }
+h2.step { font-size: 22px; margin: 56px 0 0; }
+section.step > .tiles { margin: 16px 0 8px; }
 @media screen { .filtered { display: none !important; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 @media print {
@@ -131,8 +137,8 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
 </header>
 <div class="tiles"><div class="tile ready zero"><b>0</b><span>ready</span></div><div class="tile upgrade" data-tile="before" aria-pressed="false"><b>15</b><span>to upgrade</span></div><div class="tile check" data-tile="check" aria-pressed="false"><b>3</b><span>to check</span></div><div class="tile blocked zero"><b>0</b><span>blocked</span></div><div class="tile progress"><b><span id="done">0</span> / 18</b><span>done</span></div></div>
 <div class="toolbar" id="toolbar" role="search" hidden><input type="search" id="q" placeholder="Search packages, reasons, notes  ( / )" aria-label="Search packages, reasons and notes"><button type="button" data-chip="before" aria-pressed="false">upgrade first</button><button type="button" data-chip="check" aria-pressed="false">to check</button><label><input type="checkbox" id="notes"> only with notes</label><button type="button" id="reset">Reset (Esc)</button><span id="shown" aria-live="polite"></span></div>
-<section id="before" data-rows><h2><span class="dot upgrade"></span>Upgrade first <span class="count">15</span></h2><p class="hint">These releases still run on Django 4.2. Upgrade them before Django, one at a time.</p><div class="table"><table><thead><tr><th class="tick"><span class="sr">Done</span></th><th data-sort="name">Package</th><th data-sort="majors" title="sorted by major versions crossed">Version</th><th data-sort="released" title="sorted by last release">Why</th></tr></thead><tbody><tr data-filter="before" data-search="django-allauth django-allauth 65.7.0 declares django 5.2 crosses 8 major versions requires django&gt;=4.2.16, you have 4.2.7: update django 4.2 first" data-notes data-name="django-allauth" data-majors="8" data-released="2026-10-01"><td class="tick"><input type="checkbox" data-todo="django:django-allauth" aria-label="django-allauth done"></td><td class="name">django-allauth</td><td class="version">0.57.0 → 65.7.0</td><td>65.7.0 declares Django 5.2 <a class="link" href="https://codeberg.org/allauth/django-allauth/src/branch/main/ChangeLog.rst">changelog</a><br><span class="note">crosses 8 major versions</span><span class="note">requires Django&gt;=4.2.16, you have 4.2.7: update Django 4.2 first</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-allauth/">PyPI</a> · <a href="https://codeberg.org/allauth/django-allauth/src/branch/main/ChangeLog.rst">changelog</a></dd><dt>Newest</dt><dd>65.19.7</dd><dt>Last release</dt><dd>2026-10-01</dd><dt>Pin</dt><dd><code>django-allauth==65.7.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-celery-beat django-celery-beat 2.8.0 declares django 5.2" data-name="django-celery-beat" data-majors="0" data-released="2026-02-28"><td class="tick"><input type="checkbox" data-todo="django:django-celery-beat" aria-label="django-celery-beat done"></td><td class="name">django-celery-beat</td><td class="version">2.5.0 → 2.8.0</td><td>2.8.0 declares Django 5.2 <a class="link" href="https://github.com/celery/django-celery-beat/releases">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-celery-beat/">PyPI</a> · <a href="https://github.com/celery/django-celery-beat/releases">changelog</a> · <a href="https://github.com/celery/django-celery-beat">repository</a></dd><dt>Newest</dt><dd>2.9.0</dd><dt>Last release</dt><dd>2026-02-28</dd><dt>Pin</dt><dd><code>django-celery-beat==2.8.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-ckeditor django-ckeditor 6.7.3 declares django 5.2" data-name="django-ckeditor" data-majors="0" data-released="2025-06-06"><td class="tick"><input type="checkbox" data-todo="django:django-ckeditor" aria-label="django-ckeditor done"></td><td class="name">django-ckeditor</td><td class="version">6.7.0 → 6.7.3</td><td>6.7.3 declares Django 5.2 <a class="link" href="https://github.com/django-ckeditor/django-ckeditor/releases">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-ckeditor/">PyPI</a> · <a href="https://github.com/django-ckeditor/django-ckeditor/releases">changelog</a> · <a href="https://github.com/django-ckeditor/django-ckeditor">repository</a></dd><dt>Newest</dt><dd>6.7.3</dd><dt>Last release</dt><dd>2025-06-06</dd><dt>Pin</dt><dd><code>django-ckeditor==6.7.3</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-cors-headers django-cors-headers 4.7.0 declares django 5.2" data-name="django-cors-headers" data-majors="0" data-released="2025-09-18"><td class="tick"><input type="checkbox" data-todo="django:django-cors-headers" aria-label="django-cors-headers done"></td><td class="name">django-cors-headers</td><td class="version">4.3.0 → 4.7.0</td><td>4.7.0 declares Django 5.2 <a class="link" href="https://github.com/adamchainz/django-cors-headers/blob/main/CHANGELOG.rst">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-cors-headers/">PyPI</a> · <a href="https://github.com/adamchainz/django-cors-headers/blob/main/CHANGELOG.rst">changelog</a> · <a href="https://github.com/adamchainz/django-cors-headers">repository</a></dd><dt>Newest</dt><dd>4.9.0</dd><dt>Last release</dt><dd>2025-09-18</dd><dt>Pin</dt><dd><code>django-cors-headers==4.7.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-crispy-forms django-crispy-forms 2.4 declares django 5.2" data-name="django-crispy-forms" data-majors="0" data-released="2026-07-29"><td class="tick"><input type="checkbox" data-todo="django:django-crispy-forms" aria-label="django-crispy-forms done"></td><td class="name">django-crispy-forms</td><td class="version">2.0 → 2.4</td><td>2.4 declares Django 5.2 <a class="link" href="https://github.com/django-crispy-forms/django-crispy-forms/releases">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-crispy-forms/">PyPI</a> · <a href="https://github.com/django-crispy-forms/django-crispy-forms/releases">changelog</a> · <a href="https://github.com/django-crispy-forms/django-crispy-forms">repository</a></dd><dt>Newest</dt><dd>2.7</dd><dt>Last release</dt><dd>2026-07-29</dd><dt>Pin</dt><dd><code>django-crispy-forms==2.4</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="crispy-bootstrap5 crispy-bootstrap5 2025.4 declares django 5.2 calendar versions, read the changelog needs django-crispy-forms&gt;=2.3, you have 2.0: upgrade django-crispy-forms first" data-notes data-name="crispy-bootstrap5" data-majors="-1" data-released="2026-09-02"><td class="tick"><input type="checkbox" data-todo="django:crispy-bootstrap5" aria-label="crispy-bootstrap5 done"></td><td class="name">crispy-bootstrap5</td><td class="version">0.7 → 2025.4</td><td>2025.4 declares Django 5.2 <a class="link" href="https://github.com/django-crispy-forms/crispy-bootstrap5/releases">changelog</a><br><span class="note">calendar versions, read the changelog</span><span class="note">needs django-crispy-forms&gt;=2.3, you have 2.0: upgrade django-crispy-forms first</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/crispy-bootstrap5/">PyPI</a> · <a href="https://github.com/django-crispy-forms/crispy-bootstrap5/releases">changelog</a> · <a href="https://github.com/django-crispy-forms/crispy-bootstrap5">repository</a></dd><dt>Newest</dt><dd>2026.9</dd><dt>Last release</dt><dd>2026-09-02</dd><dt>Pin</dt><dd><code>crispy-bootstrap5==2025.4</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-debug-toolbar django-debug-toolbar 5.1.0 declares django 5.2 crosses a major version requires django&gt;=4.2.9, you have 4.2.7: update django 4.2 first" data-notes data-name="django-debug-toolbar" data-majors="1" data-released="2026-09-01"><td class="tick"><input type="checkbox" data-todo="django:django-debug-toolbar" aria-label="django-debug-toolbar done"></td><td class="name">django-debug-toolbar</td><td class="version">4.2.0 → 5.1.0</td><td>5.1.0 declares Django 5.2 <a class="link" href="https://django-debug-toolbar.readthedocs.io/en/latest/changes.html">changelog</a><br><span class="note">crosses a major version</span><span class="note">requires Django&gt;=4.2.9, you have 4.2.7: update Django 4.2 first</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-debug-toolbar/">PyPI</a> · <a href="https://django-debug-toolbar.readthedocs.io/en/latest/changes.html">changelog</a> · <a href="https://github.com/django-commons/django-debug-toolbar">repository</a></dd><dt>Newest</dt><dd>8.0.0</dd><dt>Last release</dt><dd>2026-09-01</dd><dt>Pin</dt><dd><code>django-debug-toolbar==5.1.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-environ django-environ 0.13.0 declares django 5.2 crosses 2 major versions" data-notes data-name="django-environ" data-majors="2" data-released="2026-06-18"><td class="tick"><input type="checkbox" data-todo="django:django-environ" aria-label="django-environ done"></td><td class="name">django-environ</td><td class="version">0.11.2 → 0.13.0</td><td>0.13.0 declares Django 5.2 <a class="link" href="https://django-environ.readthedocs.org/en/latest/changelog.html">changelog</a><br><span class="note">crosses 2 major versions</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-environ/">PyPI</a> · <a href="https://django-environ.readthedocs.org/en/latest/changelog.html">changelog</a> · <a href="https://github.com/joke2k/django-environ">repository</a></dd><dt>Newest</dt><dd>0.14.0</dd><dt>Last release</dt><dd>2026-06-18</dd><dt>Pin</dt><dd><code>django-environ==0.13.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-extensions django-extensions 4.0 declares django 5.2 crosses a major version" data-notes data-name="django-extensions" data-majors="1" data-released="2025-04-11"><td class="tick"><input type="checkbox" data-todo="django:django-extensions" aria-label="django-extensions done"></td><td class="name">django-extensions</td><td class="version">3.2.3 → 4.0</td><td>4.0 declares Django 5.2 <a class="link" href="https://github.com/django-extensions/django-extensions/blob/main/CHANGELOG.md">changelog</a><br><span class="note">crosses a major version</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-extensions/">PyPI</a> · <a href="https://github.com/django-extensions/django-extensions/blob/main/CHANGELOG.md">changelog</a> · <a href="https://github.com/django-extensions/django-extensions">repository</a></dd><dt>Newest</dt><dd>4.1</dd><dt>Last release</dt><dd>2025-04-11</dd><dt>Pin</dt><dd><code>django-extensions==4.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-filter django-filter 25.1 declares django 5.2 crosses 2 major versions" data-notes data-name="django-filter" data-majors="2" data-released="2026-10-03"><td class="tick"><input type="checkbox" data-todo="django:django-filter" aria-label="django-filter done"></td><td class="name">django-filter</td><td class="version">23.3 → 25.1</td><td>25.1 declares Django 5.2 <a class="link" href="https://github.com/carltongibson/django-filter/blob/main/CHANGES.rst">changelog</a><br><span class="note">crosses 2 major versions</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-filter/">PyPI</a> · <a href="https://github.com/carltongibson/django-filter/blob/main/CHANGES.rst">changelog</a> · <a href="https://github.com/carltongibson/django-filter">repository</a></dd><dt>Newest</dt><dd>26.2</dd><dt>Last release</dt><dd>2026-10-03</dd><dt>Pin</dt><dd><code>django-filter==25.1</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-import-export django-import-export 4.3.6 declares django 5.2 crosses a major version" data-notes data-name="django-import-export" data-majors="1" data-released="2026-05-05"><td class="tick"><input type="checkbox" data-todo="django:django-import-export" aria-label="django-import-export done"></td><td class="name">django-import-export</td><td class="version">3.3.1 → 4.3.6</td><td>4.3.6 declares Django 5.2 <a class="link" href="https://github.com/django-import-export/django-import-export/blob/main/docs/changelog.rst">changelog</a><br><span class="note">crosses a major version</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-import-export/">PyPI</a> · <a href="https://github.com/django-import-export/django-import-export/blob/main/docs/changelog.rst">changelog</a> · <a href="https://github.com/django-import-export/django-import-export">repository</a></dd><dt>Newest</dt><dd>4.4.1</dd><dt>Last release</dt><dd>2026-05-05</dd><dt>Pin</dt><dd><code>django-import-export==4.3.6</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-polymorphic django-polymorphic 4.2.0 declares django 5.2 crosses a major version" data-notes data-name="django-polymorphic" data-majors="1" data-released="2026-08-01"><td class="tick"><input type="checkbox" data-todo="django:django-polymorphic" aria-label="django-polymorphic done"></td><td class="name">django-polymorphic</td><td class="version">3.1.0 → 4.2.0</td><td>4.2.0 declares Django 5.2 <a class="link" href="https://django-polymorphic.readthedocs.io/en/stable/changelog/index.html">changelog</a><br><span class="note">crosses a major version</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-polymorphic/">PyPI</a> · <a href="https://django-polymorphic.readthedocs.io/en/stable/changelog/index.html">changelog</a> · <a href="https://github.com/django-commons/django-polymorphic">repository</a></dd><dt>Newest</dt><dd>4.11.7</dd><dt>Last release</dt><dd>2026-08-01</dd><dt>Pin</dt><dd><code>django-polymorphic==4.2.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-reversion django-reversion 6.2.0 declares django 5.2 crosses a major version" data-notes data-name="django-reversion" data-majors="1" data-released="2026-06-12"><td class="tick"><input type="checkbox" data-todo="django:django-reversion" aria-label="django-reversion done"></td><td class="name">django-reversion</td><td class="version">5.0.6 → 6.2.0</td><td>6.2.0 declares Django 5.2 <a class="link" href="https://github.com/etianen/django-reversion/releases">changelog</a><br><span class="note">crosses a major version</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-reversion/">PyPI</a> · <a href="https://github.com/etianen/django-reversion/releases">changelog</a> · <a href="https://github.com/etianen/django-reversion">repository</a></dd><dt>Newest</dt><dd>6.3.0</dd><dt>Last release</dt><dd>2026-06-12</dd><dt>Pin</dt><dd><code>django-reversion==6.2.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="djangorestframework djangorestframework 3.16.0 declares django 5.2" data-name="djangorestframework" data-majors="0" data-released="2026-10-06"><td class="tick"><input type="checkbox" data-todo="django:djangorestframework" aria-label="djangorestframework done"></td><td class="name">djangorestframework</td><td class="version">3.14.0 → 3.16.0</td><td>3.16.0 declares Django 5.2 <a class="link" href="https://www.django-rest-framework.org/community/release-notes/">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/djangorestframework/">PyPI</a> · <a href="https://www.django-rest-framework.org/community/release-notes/">changelog</a> · <a href="https://github.com/encode/django-rest-framework">repository</a></dd><dt>Newest</dt><dd>3.18.3</dd><dt>Last release</dt><dd>2026-10-06</dd><dt>Pin</dt><dd><code>djangorestframework==3.16.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="djangorestframework-simplejwt djangorestframework-simplejwt 5.5.1 declares django 5.2" data-name="djangorestframework-simplejwt" data-majors="0" data-released="2025-07-21"><td class="tick"><input type="checkbox" data-todo="django:djangorestframework-simplejwt" aria-label="djangorestframework-simplejwt done"></td><td class="name">djangorestframework-simplejwt</td><td class="version">5.3.0 → 5.5.1</td><td>5.5.1 declares Django 5.2 <a class="link" href="https://github.com/jazzband/djangorestframework-simplejwt/releases">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/djangorestframework-simplejwt/">PyPI</a> · <a href="https://github.com/jazzband/djangorestframework-simplejwt/releases">changelog</a> · <a href="https://github.com/jazzband/djangorestframework-simplejwt">repository</a></dd><dt>Newest</dt><dd>5.5.1</dd><dt>Last release</dt><dd>2025-07-21</dd><dt>Pin</dt><dd><code>djangorestframework-simplejwt==5.5.1</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr></tbody></table></div></section><section id="check" data-rows><h2><span class="dot check"></span>Check manually <span class="count">3</span></h2><p class="hint">The metadata does not say either way. Read the changelog or run the test suite.</p><div class="table"><table><thead><tr><th class="tick"><span class="sr">Done</span></th><th data-sort="name">Package</th><th data-sort="majors" title="sorted by major versions crossed">Version</th><th data-sort="released" title="sorted by last release">Why</th></tr></thead><tbody><tr data-filter="check" data-search="django-model-utils django-model-utils declares django up to 4.1, not 5.2 no release in 2 years latest 5.0.0 declares django up to 5.1, not 5.2" data-notes data-name="django-model-utils" data-majors="-1" data-released="2024-09-04"><td class="tick"><input type="checkbox" data-todo="django:django-model-utils" aria-label="django-model-utils done"></td><td class="name">django-model-utils</td><td class="version">4.3.1</td><td>declares Django up to 4.1, not 5.2 <a class="link" href="https://github.com/jazzband/django-model-utils/releases">changelog</a><br><span class="note warn">no release in 2 years</span><span class="note">latest 5.0.0 declares Django up to 5.1, not 5.2</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-model-utils/">PyPI</a> · <a href="https://github.com/jazzband/django-model-utils/releases">changelog</a> · <a href="https://github.com/jazzband/django-model-utils">repository</a></dd><dt>Newest</dt><dd>5.0.0</dd><dt>Last release</dt><dd>2024-09-04</dd></dl></details></td></tr><tr data-filter="check" data-search="django-storages django-storages declares django up to 4.2, not 5.2 latest 1.14.6 declares django up to 5.1, not 5.2" data-notes data-name="django-storages" data-majors="-1" data-released="2025-04-02"><td class="tick"><input type="checkbox" data-todo="django:django-storages" aria-label="django-storages done"></td><td class="name">django-storages</td><td class="version">1.14.2</td><td>declares Django up to 4.2, not 5.2 <a class="link" href="https://github.com/jschneier/django-storages/releases">changelog</a><br><span class="note">latest 1.14.6 declares Django up to 5.1, not 5.2</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-storages/">PyPI</a> · <a href="https://github.com/jschneier/django-storages/releases">changelog</a> · <a href="https://github.com/jschneier/django-storages">repository</a></dd><dt>Newest</dt><dd>1.14.6</dd><dt>Last release</dt><dd>2025-04-02</dd></dl></details></td></tr><tr data-filter="check" data-search="django-taggit django-taggit declares django up to 4.1, not 5.2 no release in 2 years latest 6.1.0 declares django up to 5.0, not 5.2" data-notes data-name="django-taggit" data-majors="-1" data-released="2024-09-29"><td class="tick"><input type="checkbox" data-todo="django:django-taggit" aria-label="django-taggit done"></td><td class="name">django-taggit</td><td class="version">4.0.0</td><td>declares Django up to 4.1, not 5.2 <a class="link" href="https://github.com/jazzband/django-taggit/releases">changelog</a><br><span class="note warn">no release in 2 years</span><span class="note">latest 6.1.0 declares Django up to 5.0, not 5.2</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-taggit/">PyPI</a> · <a href="https://github.com/jazzband/django-taggit/releases">changelog</a> · <a href="https://github.com/jazzband/django-taggit">repository</a></dd><dt>Newest</dt><dd>6.1.0</dd><dt>Last release</dt><dd>2024-09-29</dd></dl></details></td></tr></tbody></table></div></section>
-<p class="meta">Dependencies from <code>requirements.txt</code>. Django 5.2 requires Python &gt;=3.10. Generated 2026-10-09 16:56 UTC by <a href="https://github.com/derblub/django-upgrade-report">django-upgrade-report</a> 0.4.0 by Daniel Kurdoghlian, <a href="https://pushingpixels.at">Pushing Pixels</a>, from the metadata packages publish on PyPI. A green row means the maintainers declare support, not that your tests pass.</p>
+<section id="before" data-rows><h2><span class="dot upgrade"></span>Upgrade first <span class="count">15</span></h2><p class="hint">These releases still run on Django 4.2. Upgrade them before Django, one at a time.</p><div class="table"><table><thead><tr><th class="tick"><span class="sr">Done</span></th><th data-sort="name">Package</th><th data-sort="majors" title="sorted by major versions crossed">Version</th><th data-sort="released" title="sorted by last release">Why</th></tr></thead><tbody><tr data-filter="before" data-search="django-allauth django-allauth 65.7.0 declares django 5.2 crosses 8 major versions requires django&gt;=4.2.16, you have 4.2.7: update django 4.2 first" data-notes data-direct data-name="django-allauth" data-majors="8" data-released="2026-10-01"><td class="tick"><input type="checkbox" data-todo="django:django-allauth" aria-label="django-allauth done"></td><td class="name">django-allauth</td><td class="version">0.57.0 → 65.7.0</td><td>65.7.0 declares Django 5.2 <a class="link" href="https://codeberg.org/allauth/django-allauth/src/branch/main/ChangeLog.rst">changelog</a><br><span class="note">crosses 8 major versions</span><span class="note">requires Django&gt;=4.2.16, you have 4.2.7: update Django 4.2 first</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-allauth/">PyPI</a> · <a href="https://codeberg.org/allauth/django-allauth/src/branch/main/ChangeLog.rst">changelog</a></dd><dt>Newest</dt><dd>65.19.7</dd><dt>Last release</dt><dd>2026-10-01</dd><dt>Pin</dt><dd><code>django-allauth==65.7.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-celery-beat django-celery-beat 2.8.0 declares django 5.2" data-direct data-name="django-celery-beat" data-majors="0" data-released="2026-02-28"><td class="tick"><input type="checkbox" data-todo="django:django-celery-beat" aria-label="django-celery-beat done"></td><td class="name">django-celery-beat</td><td class="version">2.5.0 → 2.8.0</td><td>2.8.0 declares Django 5.2 <a class="link" href="https://github.com/celery/django-celery-beat/releases">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-celery-beat/">PyPI</a> · <a href="https://github.com/celery/django-celery-beat/releases">changelog</a> · <a href="https://github.com/celery/django-celery-beat">repository</a></dd><dt>Newest</dt><dd>2.9.0</dd><dt>Last release</dt><dd>2026-02-28</dd><dt>Pin</dt><dd><code>django-celery-beat==2.8.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-ckeditor django-ckeditor 6.7.3 declares django 5.2" data-direct data-name="django-ckeditor" data-majors="0" data-released="2025-06-06"><td class="tick"><input type="checkbox" data-todo="django:django-ckeditor" aria-label="django-ckeditor done"></td><td class="name">django-ckeditor</td><td class="version">6.7.0 → 6.7.3</td><td>6.7.3 declares Django 5.2 <a class="link" href="https://github.com/django-ckeditor/django-ckeditor/releases">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-ckeditor/">PyPI</a> · <a href="https://github.com/django-ckeditor/django-ckeditor/releases">changelog</a> · <a href="https://github.com/django-ckeditor/django-ckeditor">repository</a></dd><dt>Newest</dt><dd>6.7.3</dd><dt>Last release</dt><dd>2025-06-06</dd><dt>Pin</dt><dd><code>django-ckeditor==6.7.3</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-cors-headers django-cors-headers 4.7.0 declares django 5.2" data-direct data-name="django-cors-headers" data-majors="0" data-released="2025-09-18"><td class="tick"><input type="checkbox" data-todo="django:django-cors-headers" aria-label="django-cors-headers done"></td><td class="name">django-cors-headers</td><td class="version">4.3.0 → 4.7.0</td><td>4.7.0 declares Django 5.2 <a class="link" href="https://github.com/adamchainz/django-cors-headers/blob/main/CHANGELOG.rst">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-cors-headers/">PyPI</a> · <a href="https://github.com/adamchainz/django-cors-headers/blob/main/CHANGELOG.rst">changelog</a> · <a href="https://github.com/adamchainz/django-cors-headers">repository</a></dd><dt>Newest</dt><dd>4.9.0</dd><dt>Last release</dt><dd>2025-09-18</dd><dt>Pin</dt><dd><code>django-cors-headers==4.7.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-crispy-forms django-crispy-forms 2.4 declares django 5.2" data-direct data-name="django-crispy-forms" data-majors="0" data-released="2026-07-29"><td class="tick"><input type="checkbox" data-todo="django:django-crispy-forms" aria-label="django-crispy-forms done"></td><td class="name">django-crispy-forms</td><td class="version">2.0 → 2.4</td><td>2.4 declares Django 5.2 <a class="link" href="https://github.com/django-crispy-forms/django-crispy-forms/releases">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-crispy-forms/">PyPI</a> · <a href="https://github.com/django-crispy-forms/django-crispy-forms/releases">changelog</a> · <a href="https://github.com/django-crispy-forms/django-crispy-forms">repository</a></dd><dt>Newest</dt><dd>2.7</dd><dt>Last release</dt><dd>2026-07-29</dd><dt>Pin</dt><dd><code>django-crispy-forms==2.4</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="crispy-bootstrap5 crispy-bootstrap5 2025.4 declares django 5.2 calendar versions, read the changelog needs django-crispy-forms&gt;=2.3, you have 2.0: upgrade django-crispy-forms first" data-notes data-direct data-name="crispy-bootstrap5" data-majors="-1" data-released="2026-09-02"><td class="tick"><input type="checkbox" data-todo="django:crispy-bootstrap5" aria-label="crispy-bootstrap5 done"></td><td class="name">crispy-bootstrap5</td><td class="version">0.7 → 2025.4</td><td>2025.4 declares Django 5.2 <a class="link" href="https://github.com/django-crispy-forms/crispy-bootstrap5/releases">changelog</a><br><span class="note">calendar versions, read the changelog</span><span class="note">needs django-crispy-forms&gt;=2.3, you have 2.0: upgrade django-crispy-forms first</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/crispy-bootstrap5/">PyPI</a> · <a href="https://github.com/django-crispy-forms/crispy-bootstrap5/releases">changelog</a> · <a href="https://github.com/django-crispy-forms/crispy-bootstrap5">repository</a></dd><dt>Newest</dt><dd>2026.9</dd><dt>Last release</dt><dd>2026-09-02</dd><dt>Pin</dt><dd><code>crispy-bootstrap5==2025.4</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-debug-toolbar django-debug-toolbar 5.1.0 declares django 5.2 crosses a major version requires django&gt;=4.2.9, you have 4.2.7: update django 4.2 first" data-notes data-direct data-name="django-debug-toolbar" data-majors="1" data-released="2026-09-01"><td class="tick"><input type="checkbox" data-todo="django:django-debug-toolbar" aria-label="django-debug-toolbar done"></td><td class="name">django-debug-toolbar</td><td class="version">4.2.0 → 5.1.0</td><td>5.1.0 declares Django 5.2 <a class="link" href="https://django-debug-toolbar.readthedocs.io/en/latest/changes.html">changelog</a><br><span class="note">crosses a major version</span><span class="note">requires Django&gt;=4.2.9, you have 4.2.7: update Django 4.2 first</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-debug-toolbar/">PyPI</a> · <a href="https://django-debug-toolbar.readthedocs.io/en/latest/changes.html">changelog</a> · <a href="https://github.com/django-commons/django-debug-toolbar">repository</a></dd><dt>Newest</dt><dd>8.0.0</dd><dt>Last release</dt><dd>2026-09-01</dd><dt>Pin</dt><dd><code>django-debug-toolbar==5.1.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-environ django-environ 0.13.0 declares django 5.2 crosses 2 major versions" data-notes data-direct data-name="django-environ" data-majors="2" data-released="2026-06-18"><td class="tick"><input type="checkbox" data-todo="django:django-environ" aria-label="django-environ done"></td><td class="name">django-environ</td><td class="version">0.11.2 → 0.13.0</td><td>0.13.0 declares Django 5.2 <a class="link" href="https://django-environ.readthedocs.org/en/latest/changelog.html">changelog</a><br><span class="note">crosses 2 major versions</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-environ/">PyPI</a> · <a href="https://django-environ.readthedocs.org/en/latest/changelog.html">changelog</a> · <a href="https://github.com/joke2k/django-environ">repository</a></dd><dt>Newest</dt><dd>0.14.0</dd><dt>Last release</dt><dd>2026-06-18</dd><dt>Pin</dt><dd><code>django-environ==0.13.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-extensions django-extensions 4.0 declares django 5.2 crosses a major version" data-notes data-direct data-name="django-extensions" data-majors="1" data-released="2025-04-11"><td class="tick"><input type="checkbox" data-todo="django:django-extensions" aria-label="django-extensions done"></td><td class="name">django-extensions</td><td class="version">3.2.3 → 4.0</td><td>4.0 declares Django 5.2 <a class="link" href="https://github.com/django-extensions/django-extensions/blob/main/CHANGELOG.md">changelog</a><br><span class="note">crosses a major version</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-extensions/">PyPI</a> · <a href="https://github.com/django-extensions/django-extensions/blob/main/CHANGELOG.md">changelog</a> · <a href="https://github.com/django-extensions/django-extensions">repository</a></dd><dt>Newest</dt><dd>4.1</dd><dt>Last release</dt><dd>2025-04-11</dd><dt>Pin</dt><dd><code>django-extensions==4.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-filter django-filter 25.1 declares django 5.2 crosses 2 major versions" data-notes data-direct data-name="django-filter" data-majors="2" data-released="2026-10-03"><td class="tick"><input type="checkbox" data-todo="django:django-filter" aria-label="django-filter done"></td><td class="name">django-filter</td><td class="version">23.3 → 25.1</td><td>25.1 declares Django 5.2 <a class="link" href="https://github.com/carltongibson/django-filter/blob/main/CHANGES.rst">changelog</a><br><span class="note">crosses 2 major versions</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-filter/">PyPI</a> · <a href="https://github.com/carltongibson/django-filter/blob/main/CHANGES.rst">changelog</a> · <a href="https://github.com/carltongibson/django-filter">repository</a></dd><dt>Newest</dt><dd>26.2</dd><dt>Last release</dt><dd>2026-10-03</dd><dt>Pin</dt><dd><code>django-filter==25.1</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-import-export django-import-export 4.3.6 declares django 5.2 crosses a major version" data-notes data-direct data-name="django-import-export" data-majors="1" data-released="2026-05-05"><td class="tick"><input type="checkbox" data-todo="django:django-import-export" aria-label="django-import-export done"></td><td class="name">django-import-export</td><td class="version">3.3.1 → 4.3.6</td><td>4.3.6 declares Django 5.2 <a class="link" href="https://github.com/django-import-export/django-import-export/blob/main/docs/changelog.rst">changelog</a><br><span class="note">crosses a major version</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-import-export/">PyPI</a> · <a href="https://github.com/django-import-export/django-import-export/blob/main/docs/changelog.rst">changelog</a> · <a href="https://github.com/django-import-export/django-import-export">repository</a></dd><dt>Newest</dt><dd>4.4.1</dd><dt>Last release</dt><dd>2026-05-05</dd><dt>Pin</dt><dd><code>django-import-export==4.3.6</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-polymorphic django-polymorphic 4.2.0 declares django 5.2 crosses a major version" data-notes data-direct data-name="django-polymorphic" data-majors="1" data-released="2026-08-01"><td class="tick"><input type="checkbox" data-todo="django:django-polymorphic" aria-label="django-polymorphic done"></td><td class="name">django-polymorphic</td><td class="version">3.1.0 → 4.2.0</td><td>4.2.0 declares Django 5.2 <a class="link" href="https://django-polymorphic.readthedocs.io/en/stable/changelog/index.html">changelog</a><br><span class="note">crosses a major version</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-polymorphic/">PyPI</a> · <a href="https://django-polymorphic.readthedocs.io/en/stable/changelog/index.html">changelog</a> · <a href="https://github.com/django-commons/django-polymorphic">repository</a></dd><dt>Newest</dt><dd>4.11.7</dd><dt>Last release</dt><dd>2026-08-01</dd><dt>Pin</dt><dd><code>django-polymorphic==4.2.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="django-reversion django-reversion 6.2.0 declares django 5.2 crosses a major version" data-notes data-direct data-name="django-reversion" data-majors="1" data-released="2026-06-12"><td class="tick"><input type="checkbox" data-todo="django:django-reversion" aria-label="django-reversion done"></td><td class="name">django-reversion</td><td class="version">5.0.6 → 6.2.0</td><td>6.2.0 declares Django 5.2 <a class="link" href="https://github.com/etianen/django-reversion/releases">changelog</a><br><span class="note">crosses a major version</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-reversion/">PyPI</a> · <a href="https://github.com/etianen/django-reversion/releases">changelog</a> · <a href="https://github.com/etianen/django-reversion">repository</a></dd><dt>Newest</dt><dd>6.3.0</dd><dt>Last release</dt><dd>2026-06-12</dd><dt>Pin</dt><dd><code>django-reversion==6.2.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="djangorestframework djangorestframework 3.16.0 declares django 5.2" data-direct data-name="djangorestframework" data-majors="0" data-released="2026-10-06"><td class="tick"><input type="checkbox" data-todo="django:djangorestframework" aria-label="djangorestframework done"></td><td class="name">djangorestframework</td><td class="version">3.14.0 → 3.16.0</td><td>3.16.0 declares Django 5.2 <a class="link" href="https://www.django-rest-framework.org/community/release-notes/">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/djangorestframework/">PyPI</a> · <a href="https://www.django-rest-framework.org/community/release-notes/">changelog</a> · <a href="https://github.com/encode/django-rest-framework">repository</a></dd><dt>Newest</dt><dd>3.18.3</dd><dt>Last release</dt><dd>2026-10-06</dd><dt>Pin</dt><dd><code>djangorestframework==3.16.0</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr><tr data-filter="before" data-search="djangorestframework-simplejwt djangorestframework-simplejwt 5.5.1 declares django 5.2" data-direct data-name="djangorestframework-simplejwt" data-majors="0" data-released="2025-07-21"><td class="tick"><input type="checkbox" data-todo="django:djangorestframework-simplejwt" aria-label="djangorestframework-simplejwt done"></td><td class="name">djangorestframework-simplejwt</td><td class="version">5.3.0 → 5.5.1</td><td>5.5.1 declares Django 5.2 <a class="link" href="https://github.com/jazzband/djangorestframework-simplejwt/releases">changelog</a><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/djangorestframework-simplejwt/">PyPI</a> · <a href="https://github.com/jazzband/djangorestframework-simplejwt/releases">changelog</a> · <a href="https://github.com/jazzband/djangorestframework-simplejwt">repository</a></dd><dt>Newest</dt><dd>5.5.1</dd><dt>Last release</dt><dd>2025-07-21</dd><dt>Pin</dt><dd><code>djangorestframework-simplejwt==5.5.1</code><button type="button" class="copy" hidden>copy</button></dd></dl></details></td></tr></tbody></table></div></section><section id="check" data-rows><h2><span class="dot check"></span>Check manually <span class="count">3</span></h2><p class="hint">The metadata does not say either way. Read the changelog or run the test suite.</p><div class="table"><table><thead><tr><th class="tick"><span class="sr">Done</span></th><th data-sort="name">Package</th><th data-sort="majors" title="sorted by major versions crossed">Version</th><th data-sort="released" title="sorted by last release">Why</th></tr></thead><tbody><tr data-filter="check" data-search="django-model-utils django-model-utils declares django up to 4.1, not 5.2 no release in 2 years latest 5.0.0 declares django up to 5.1, not 5.2" data-notes data-direct data-name="django-model-utils" data-majors="-1" data-released="2024-09-04"><td class="tick"><input type="checkbox" data-todo="django:django-model-utils" aria-label="django-model-utils done"></td><td class="name">django-model-utils</td><td class="version">4.3.1</td><td>declares Django up to 4.1, not 5.2 <a class="link" href="https://github.com/jazzband/django-model-utils/releases">changelog</a><br><span class="note warn">no release in 2 years</span><span class="note">latest 5.0.0 declares Django up to 5.1, not 5.2</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-model-utils/">PyPI</a> · <a href="https://github.com/jazzband/django-model-utils/releases">changelog</a> · <a href="https://github.com/jazzband/django-model-utils">repository</a></dd><dt>Newest</dt><dd>5.0.0</dd><dt>Last release</dt><dd>2024-09-04</dd></dl></details></td></tr><tr data-filter="check" data-search="django-storages django-storages declares django up to 4.2, not 5.2 latest 1.14.6 declares django up to 5.1, not 5.2" data-notes data-direct data-name="django-storages" data-majors="-1" data-released="2025-04-02"><td class="tick"><input type="checkbox" data-todo="django:django-storages" aria-label="django-storages done"></td><td class="name">django-storages</td><td class="version">1.14.2</td><td>declares Django up to 4.2, not 5.2 <a class="link" href="https://github.com/jschneier/django-storages/releases">changelog</a><br><span class="note">latest 1.14.6 declares Django up to 5.1, not 5.2</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-storages/">PyPI</a> · <a href="https://github.com/jschneier/django-storages/releases">changelog</a> · <a href="https://github.com/jschneier/django-storages">repository</a></dd><dt>Newest</dt><dd>1.14.6</dd><dt>Last release</dt><dd>2025-04-02</dd></dl></details></td></tr><tr data-filter="check" data-search="django-taggit django-taggit declares django up to 4.1, not 5.2 no release in 2 years latest 6.1.0 declares django up to 5.0, not 5.2" data-notes data-direct data-name="django-taggit" data-majors="-1" data-released="2024-09-29"><td class="tick"><input type="checkbox" data-todo="django:django-taggit" aria-label="django-taggit done"></td><td class="name">django-taggit</td><td class="version">4.0.0</td><td>declares Django up to 4.1, not 5.2 <a class="link" href="https://github.com/jazzband/django-taggit/releases">changelog</a><br><span class="note warn">no release in 2 years</span><span class="note">latest 6.1.0 declares Django up to 5.0, not 5.2</span><details class="more"><summary>details</summary><dl><dt>Links</dt><dd><a href="https://pypi.org/project/django-taggit/">PyPI</a> · <a href="https://github.com/jazzband/django-taggit/releases">changelog</a> · <a href="https://github.com/jazzband/django-taggit">repository</a></dd><dt>Newest</dt><dd>6.1.0</dd><dt>Last release</dt><dd>2024-09-29</dd></dl></details></td></tr></tbody></table></div></section>
+<p class="meta">Dependencies from <code>requirements.txt</code>. Django 5.2 requires Python &gt;=3.10. Generated 2026-10-09 17:26 UTC by <a href="https://github.com/derblub/django-upgrade-report">django-upgrade-report</a> 0.4.0 by Daniel Kurdoghlian, <a href="https://pushingpixels.at">Pushing Pixels</a>, from the metadata packages publish on PyPI. A green row means the maintainers declare support, not that your tests pass.</p>
 </main>
 <script type="application/json" id="report-data">{
   "schema_version": 1,
@@ -142,7 +148,7 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
     "version": "0.4.0",
     "author": "Daniel Kurdoghlian, Pushing Pixels (https://pushingpixels.at)"
   },
-  "generated": "2026-10-09T16:56:33.508388+00:00",
+  "generated": "2026-10-09T17:26:10.481975+00:00",
   "target": "5.2",
   "target_released": true,
   "current_django": "4.2.7",
@@ -177,7 +183,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 8,
       "changelog_url": "https://codeberg.org/allauth/django-allauth/src/branch/main/ChangeLog.rst",
-      "repository_url": null
+      "repository_url": null,
+      "direct": true,
+      "origin": "requirements.txt:2"
     },
     {
       "name": "django-celery-beat",
@@ -195,7 +203,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 0,
       "changelog_url": "https://github.com/celery/django-celery-beat/releases",
-      "repository_url": "https://github.com/celery/django-celery-beat"
+      "repository_url": "https://github.com/celery/django-celery-beat",
+      "direct": true,
+      "origin": "requirements.txt:3"
     },
     {
       "name": "django-ckeditor",
@@ -213,7 +223,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 0,
       "changelog_url": "https://github.com/django-ckeditor/django-ckeditor/releases",
-      "repository_url": "https://github.com/django-ckeditor/django-ckeditor"
+      "repository_url": "https://github.com/django-ckeditor/django-ckeditor",
+      "direct": true,
+      "origin": "requirements.txt:4"
     },
     {
       "name": "django-cors-headers",
@@ -231,7 +243,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 0,
       "changelog_url": "https://github.com/adamchainz/django-cors-headers/blob/main/CHANGELOG.rst",
-      "repository_url": "https://github.com/adamchainz/django-cors-headers"
+      "repository_url": "https://github.com/adamchainz/django-cors-headers",
+      "direct": true,
+      "origin": "requirements.txt:5"
     },
     {
       "name": "django-crispy-forms",
@@ -249,7 +263,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 0,
       "changelog_url": "https://github.com/django-crispy-forms/django-crispy-forms/releases",
-      "repository_url": "https://github.com/django-crispy-forms/django-crispy-forms"
+      "repository_url": "https://github.com/django-crispy-forms/django-crispy-forms",
+      "direct": true,
+      "origin": "requirements.txt:6"
     },
     {
       "name": "crispy-bootstrap5",
@@ -270,7 +286,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": null,
       "changelog_url": "https://github.com/django-crispy-forms/crispy-bootstrap5/releases",
-      "repository_url": "https://github.com/django-crispy-forms/crispy-bootstrap5"
+      "repository_url": "https://github.com/django-crispy-forms/crispy-bootstrap5",
+      "direct": true,
+      "origin": "requirements.txt:7"
     },
     {
       "name": "django-debug-toolbar",
@@ -291,7 +309,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 1,
       "changelog_url": "https://django-debug-toolbar.readthedocs.io/en/latest/changes.html",
-      "repository_url": "https://github.com/django-commons/django-debug-toolbar"
+      "repository_url": "https://github.com/django-commons/django-debug-toolbar",
+      "direct": true,
+      "origin": "requirements.txt:8"
     },
     {
       "name": "django-environ",
@@ -311,7 +331,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 2,
       "changelog_url": "https://django-environ.readthedocs.org/en/latest/changelog.html",
-      "repository_url": "https://github.com/joke2k/django-environ"
+      "repository_url": "https://github.com/joke2k/django-environ",
+      "direct": true,
+      "origin": "requirements.txt:9"
     },
     {
       "name": "django-extensions",
@@ -331,7 +353,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 1,
       "changelog_url": "https://github.com/django-extensions/django-extensions/blob/main/CHANGELOG.md",
-      "repository_url": "https://github.com/django-extensions/django-extensions"
+      "repository_url": "https://github.com/django-extensions/django-extensions",
+      "direct": true,
+      "origin": "requirements.txt:10"
     },
     {
       "name": "django-filter",
@@ -351,7 +375,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 2,
       "changelog_url": "https://github.com/carltongibson/django-filter/blob/main/CHANGES.rst",
-      "repository_url": "https://github.com/carltongibson/django-filter"
+      "repository_url": "https://github.com/carltongibson/django-filter",
+      "direct": true,
+      "origin": "requirements.txt:11"
     },
     {
       "name": "django-import-export",
@@ -371,7 +397,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 1,
       "changelog_url": "https://github.com/django-import-export/django-import-export/blob/main/docs/changelog.rst",
-      "repository_url": "https://github.com/django-import-export/django-import-export"
+      "repository_url": "https://github.com/django-import-export/django-import-export",
+      "direct": true,
+      "origin": "requirements.txt:12"
     },
     {
       "name": "django-polymorphic",
@@ -391,7 +419,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 1,
       "changelog_url": "https://django-polymorphic.readthedocs.io/en/stable/changelog/index.html",
-      "repository_url": "https://github.com/django-commons/django-polymorphic"
+      "repository_url": "https://github.com/django-commons/django-polymorphic",
+      "direct": true,
+      "origin": "requirements.txt:13"
     },
     {
       "name": "django-reversion",
@@ -411,7 +441,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 1,
       "changelog_url": "https://github.com/etianen/django-reversion/releases",
-      "repository_url": "https://github.com/etianen/django-reversion"
+      "repository_url": "https://github.com/etianen/django-reversion",
+      "direct": true,
+      "origin": "requirements.txt:14"
     },
     {
       "name": "djangorestframework",
@@ -429,7 +461,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 0,
       "changelog_url": "https://www.django-rest-framework.org/community/release-notes/",
-      "repository_url": "https://github.com/encode/django-rest-framework"
+      "repository_url": "https://github.com/encode/django-rest-framework",
+      "direct": true,
+      "origin": "requirements.txt:15"
     },
     {
       "name": "djangorestframework-simplejwt",
@@ -447,7 +481,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": 0,
       "changelog_url": "https://github.com/jazzband/djangorestframework-simplejwt/releases",
-      "repository_url": "https://github.com/jazzband/djangorestframework-simplejwt"
+      "repository_url": "https://github.com/jazzband/djangorestframework-simplejwt",
+      "direct": true,
+      "origin": "requirements.txt:16"
     },
     {
       "name": "django-model-utils",
@@ -468,7 +504,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": null,
       "changelog_url": "https://github.com/jazzband/django-model-utils/releases",
-      "repository_url": "https://github.com/jazzband/django-model-utils"
+      "repository_url": "https://github.com/jazzband/django-model-utils",
+      "direct": true,
+      "origin": "requirements.txt:17"
     },
     {
       "name": "django-storages",
@@ -488,7 +526,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": null,
       "changelog_url": "https://github.com/jschneier/django-storages/releases",
-      "repository_url": "https://github.com/jschneier/django-storages"
+      "repository_url": "https://github.com/jschneier/django-storages",
+      "direct": true,
+      "origin": "requirements.txt:18"
     },
     {
       "name": "django-taggit",
@@ -509,7 +549,9 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
       "prerelease": null,
       "majors_crossed": null,
       "changelog_url": "https://github.com/jazzband/django-taggit/releases",
-      "repository_url": "https://github.com/jazzband/django-taggit"
+      "repository_url": "https://github.com/jazzband/django-taggit",
+      "direct": true,
+      "origin": "requirements.txt:19"
     }
   ],
   "not_on_index": [],
@@ -518,7 +560,8 @@ tr.current { box-shadow: inset 3px 0 0 var(--check); }
   "skipped_non_django": 0,
   "changes": null,
   "python": null,
-  "explain": {}
+  "explain": {},
+  "commands": null
 }
 </script>
 <script>(function () {
@@ -605,28 +648,29 @@ var bar = document.getElementById("toolbar");
 if (!bar) { return; }
 var items = all("[data-filter]");
 var search = document.getElementById("q");
-var notes = document.getElementById("notes");
+var flags = ["notes", "direct"].filter(function (flag) { return document.getElementById(flag); });
 var chips = all("button[data-chip]");
 var tiles = all(".tile[data-tile]");
 var shown = document.getElementById("shown");
-var state = { status: [], q: "", notes: false };
+function empty() { return { status: [], q: "", notes: false, direct: false }; }
+var state = empty();
 function read() {
 var hash = window.location.hash.slice(1);
-state = { status: [], q: "", notes: false };
+state = empty();
 if (hash.indexOf("=") < 0) { return; }
 hash.split("&").forEach(function (part) {
 var pair = part.split("=");
 var value = decodeURIComponent((pair[1] || "").replace(/\+/g, " "));
 if (pair[0] === "status" && value) { state.status = value.split(","); }
 if (pair[0] === "q") { state.q = value; }
-if (pair[0] === "notes") { state.notes = value === "1"; }
+if (flags.indexOf(pair[0]) >= 0) { state[pair[0]] = value === "1"; }
 });
 }
 function write() {
 var parts = [];
 if (state.status.length) { parts.push("status=" + state.status.join(",")); }
 if (state.q) { parts.push("q=" + encodeURIComponent(state.q)); }
-if (state.notes) { parts.push("notes=1"); }
+flags.forEach(function (flag) { if (state[flag]) { parts.push(flag + "=1"); } });
 var url = window.location.pathname + window.location.search;
 try {
 window.history.replaceState(null, "", parts.length ? url + "#" + parts.join("&") : url);
@@ -641,7 +685,7 @@ var visible = 0;
 items.forEach(function (item) {
 var text = item.getAttribute("data-search") || "";
 var match = (!state.status.length || state.status.indexOf(item.getAttribute("data-filter")) >= 0) &&
-(!state.notes || item.hasAttribute("data-notes")) &&
+flags.every(function (flag) { return !state[flag] || item.hasAttribute("data-" + flag); }) &&
 words.every(function (word) { return text.indexOf(word) >= 0; });
 item.classList.toggle("filtered", !match);
 if (match) { visible += 1; }
@@ -659,13 +703,13 @@ var on = same(tile.getAttribute("data-tile").split(","), state.status);
 tile.setAttribute("aria-pressed", on ? "true" : "false");
 });
 if (search.value !== state.q) { search.value = state.q; }
-notes.checked = state.notes;
-var active = state.status.length || state.q || state.notes;
+flags.forEach(function (flag) { document.getElementById(flag).checked = state[flag]; });
+var active = state.status.length || state.q || state.notes || state.direct;
 shown.textContent = active ? visible + " of " + items.length + " shown" : "";
 }
 function change() { write(); apply(); }
 function reset() {
-state = { status: [], q: "", notes: false };
+state = empty();
 change();
 }
 chips.forEach(function (chip) {
@@ -690,7 +734,10 @@ if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggle
 });
 });
 search.addEventListener("input", function () { state.q = search.value; change(); });
-notes.addEventListener("change", function () { state.notes = notes.checked; change(); });
+flags.forEach(function (flag) {
+var box = document.getElementById(flag);
+box.addEventListener("change", function () { state[flag] = box.checked; change(); });
+});
 document.getElementById("reset").addEventListener("click", reset);
 document.addEventListener("keydown", function (event) {
 var field = event.target;

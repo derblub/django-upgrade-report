@@ -32,6 +32,7 @@ from django_upgrade_report.render import json as json_report
 
 _CSS = """
 :root {
+  color-scheme: light dark;
   --bg: #f7f7f5; --panel: #ffffff; --text: #1b1d1c; --muted: #6a706d; --line: #e4e4e0;
   --python: #6b46c1; --ready: #1f7a4d; --upgrade: #a15c00; --check: #22639e; --blocked: #b3261e;
   --ready-bg: #e5f3ec; --upgrade-bg: #fbefdc; --check-bg: #e3eef8; --blocked-bg: #fbe4e2;
@@ -79,7 +80,7 @@ thead th { border-top: 0; font-size: 12px; text-transform: uppercase; letter-spa
 td.name { font-weight: 600; white-space: nowrap; }
 td.version { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
   white-space: nowrap; }
-.note { display: inline-block; margin: 4px 6px 0 0; padding: 1px 8px; border-radius: 99px;
+.note { display: inline-block; margin: 4px 6px 0 0; padding: 1px 8px; border-radius: 10px;
   font-size: 12px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
 a.link { color: var(--muted); font-size: 13px; }
 .note.warn { background: var(--blocked-bg); color: var(--blocked); border-color: transparent; }
