@@ -87,6 +87,14 @@ uvx ruff format --check .
 
 ## 5. Finish the step
 
+Commit only in the same `&&` chain as the checks, so a red check stops the commit:
+
+```console
+uvx ruff check . && uvx ruff format --check . && uv run --group dev pytest -q && git add -A && git commit ...
+```
+
+Never put a check before `;` or on a line of its own and the commit after it.
+
 1. Set the row to `erledigt` in the same commit as the code; `git log` holds the commit.
 2. Commit with a message in the repository's style ("Add pre-release hints to check and blocked
    rows", imperative, no prefix), body explaining what and why. Author and committer are
