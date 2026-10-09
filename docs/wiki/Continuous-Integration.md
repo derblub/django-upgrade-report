@@ -69,7 +69,7 @@ django-upgrade-report:
 
 ```yaml
 - repo: https://github.com/derblub/django-upgrade-report
-  rev: v1.0.0
+  rev: v1.1.0
   hooks:
     - id: django-upgrade-report
 ```

@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-09
+
 ### Added
 
 - The footer of the Markdown and HTML reports and the README link the weekly page on how ready the Django ecosystem is.
@@ -182,7 +184,8 @@ Preview, not published on PyPI.
 - GitHub Action that writes the report to the job summary.
 - 24 hour cache for PyPI responses.
 
-[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/derblub/django-upgrade-report/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/derblub/django-upgrade-report/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/derblub/django-upgrade-report/compare/v0.4.0...v1.0.0
 [0.4.0]: https://github.com/derblub/django-upgrade-report/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/derblub/django-upgrade-report/compare/v0.2.4...v0.3.0
