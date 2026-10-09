@@ -31,7 +31,25 @@ def _no_index_from_the_environment(monkeypatch):
 BASE = "https://pypi.test/pypi"
 
 
-def release(name, version, django=None, classifiers=(), extra=(), uploaded="2026-01-01"):
+def release(
+    name,
+    version,
+    django=None,
+    classifiers=(),
+    extra=(),
+    uploaded="2026-01-01",
+    *,
+    requires_python=">=3.10",
+    files=None,
+    project_urls=None,
+    description=None,
+):
+    """One release for :class:`FakePyPI`.
+
+    ``files`` are file names (wheels, sdists); without them the release has one nameless
+    file, which is all most rules need. ``project_urls`` and ``description`` end up in the
+    release's ``info``, as on PyPI.
+    """
     requires = list(extra)
     if django is not None:
         requires.append(f"Django{django}")
@@ -40,8 +58,11 @@ def release(name, version, django=None, classifiers=(), extra=(), uploaded="2026
         "version": version,
         "classifiers": [f"Framework :: Django :: {v}" for v in classifiers],
         "requires_dist": requires,
-        "requires_python": ">=3.10",
+        "requires_python": requires_python,
         "uploaded": uploaded,
+        "files": list(files) if files is not None else None,
+        "project_urls": project_urls,
+        "description": description,
     }
 
 
@@ -61,22 +82,39 @@ class FakePyPI(PyPI):
             return None
         if len(parts) == 3:  # name/version/json
             match = [r for r in releases if r["version"] == parts[1]]
-            return {"info": _info(match[0])} if match else None
+            if not match:
+                return None
+            return {"info": _info(match[0]), "urls": self._files(name, match[0])}
         return {
             "info": _info(releases[-1]),
-            "releases": {
-                r["version"]: []
-                if (name, r["version"]) in self.no_files
-                else [{"upload_time_iso_8601": f"{r['uploaded']}T00:00:00Z"}]
-                for r in releases
-            },
+            "urls": self._files(name, releases[-1]),
+            "releases": {r["version"]: self._files(name, r) for r in releases},
         }
+
+    def _files(self, name: str, r: dict) -> list[dict]:
+        """The release's files as PyPI lists them."""
+        if (name, r["version"]) in self.no_files:
+            return []
+        common = {
+            "upload_time_iso_8601": f"{r['uploaded']}T00:00:00Z",
+            "requires_python": r["requires_python"],
+        }
+        if r.get("files") is None:
+            return [common]
+        return [
+            common
+            | {"filename": f, "packagetype": "bdist_wheel" if f.endswith(".whl") else "sdist"}
+            for f in r["files"]
+        ]
 
 
 def _info(r: dict) -> dict:
-    return {key: r[key] for key in ("name", "version", "classifiers", "requires_dist")} | {
-        "requires_python": r["requires_python"]
-    }
+    info = {key: r[key] for key in ("name", "version", "classifiers", "requires_dist")}
+    info["requires_python"] = r["requires_python"]
+    for key in ("project_urls", "description"):
+        if r.get(key) is not None:
+            info[key] = r[key]
+    return info
 
 
 DJANGO = [

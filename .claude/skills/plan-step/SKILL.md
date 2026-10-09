@@ -46,7 +46,7 @@ these rules, stop and ask (see 6) instead of guessing:
   (GitHub) is opt-in, documented in the README FAQ, and has a test proving no request happens
   without the flag.
 - Tests never touch the network: extend `FakePyPI`/`RecordedPyPI` in `tests/conftest.py` (and
-  `FakeGitHub` once step 0.6 adds it).
+  `FakeGitHub` once step 1.2 adds it).
 - JSON changes are additive; `schema_version` stays 1. Document new fields in the docstring of
   `render/json.py`.
 - Every renderer (text, markdown, html, json) shows new information in the same order, through

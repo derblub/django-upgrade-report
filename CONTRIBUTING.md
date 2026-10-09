@@ -33,7 +33,7 @@ $ uvx ruff format .
 
 The tests never touch the network. Please keep it that way. There are two package indexes in `tests/conftest.py`:
 
-- a small in-memory index for the rules: add the releases you need to it instead of calling PyPI,
+- a small in-memory index for the rules: add the releases you need to it instead of calling PyPI. `release()` also takes `files` (wheel and sdist names), `project_urls`, `description` and `requires_python`,
 - real PyPI metadata recorded in `tests/fixtures/pypi/`, for the golden tests in `tests/test_analysis.py`. To add a package, add it to `CASES` in `tests/fixtures/record.py` and run `PYTHONPATH=src python3 tests/fixtures/record.py`. Re-recording changes the facts the golden tests assert, so check them against the new data.
 
 CI also measures coverage: `uv run --group dev pytest --cov=django_upgrade_report`.

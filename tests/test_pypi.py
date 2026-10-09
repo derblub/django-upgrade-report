@@ -312,3 +312,31 @@ def test_unknown_links_and_files_stay_unknown(monkeypatch, sleeps):
     serve(monkeypatch, legacy)
     info = PyPI("https://pypi.test/pypi").project("django-x").latest
     assert (info.home_page, info.project_urls, info.has_sdist) == (None, (), None)
+
+
+def test_fake_index_serves_files_and_links_like_pypi():
+    """The in-memory index the rule tests use answers in PyPI's shape, files included."""
+    from conftest import FakePyPI, release
+
+    index = FakePyPI(
+        {
+            "pkg": [
+                release("pkg", "1.0", files=["pkg-1.0.tar.gz"], requires_python=">=3.8"),
+                release(
+                    "pkg",
+                    "2.0",
+                    files=["pkg-2.0-cp312-cp312-manylinux_2_17_x86_64.whl", "pkg-2.0.tar.gz"],
+                    project_urls={"Changelog": "https://pkg.test/changes"},
+                    description="Supports Django 5.2.",
+                ),
+            ]
+        }
+    )
+    project = index.project("pkg")
+    old, new = project.releases
+    assert (old.requires_python, old.wheel_tags, old.has_sdist) == (">=3.8", (), True)
+    assert new.wheel_tags == ("cp312-cp312-manylinux_2_17_x86_64",)
+    info = index.release("pkg", "2.0")
+    assert info.project_urls == (("Changelog", "https://pkg.test/changes"),)
+    assert info.django_mentions == ("5.2",)
+    assert (info.wheel_tags, info.has_sdist) == (("cp312-cp312-manylinux_2_17_x86_64",), True)

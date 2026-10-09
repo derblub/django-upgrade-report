@@ -32,7 +32,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 0.1 | 0.5 | HTTP-Client herauslösen | erledigt |
 | 0.2 | 0.5 | Cache-Format v2 und neue Metadaten | erledigt |
 | 0.3 | 0.5 | Erweiterungen am Report-Modell | erledigt |
-| 0.6 | 0.5 | Testinfrastruktur | offen |
+| 0.6 | 0.5 | Testinfrastruktur | erledigt |
 | 1.1 | 0.5 | Pre-Releases | offen |
 | 2.3 | 0.5 | Risiko pro Schritt und Changelog-Links | offen |
 | 4.3 | 0.5 | pre-commit-Hook und `--offline` | offen |
@@ -277,13 +277,18 @@ und `excluded_side(info, self.target)` gebunden.
 
 ### 0.6 Testinfrastruktur
 
-- `conftest.release()` bekommt optionale Parameter `files=[...]` (Wheel-Dateinamen),
-  `project_urls={...}`, `description="..."`, `requires_python=...`. `FakePyPI._fetch` gibt sie
-  in derselben Form zurück wie PyPI (`releases[v][i].filename`, `urls`).
-- `FakeGitHub(JsonClient)` mit einem dict von URL zu Antwort für 1.2, 1.3, 3.3, 4.2, und eine
-  Liste der gestellten Anfragen, damit Tests sicherstellen, dass ohne Opt-in **keine**
+- (umgesetzt) `conftest.release()` hat die Schlüsselwort-Parameter `files=[...]`
+  (Dateinamen von Wheels und Sdists), `project_urls={...}`, `description="..."` und
+  `requires_python=...`. `FakePyPI._fetch` gibt sie in PyPIs Form zurück: Dateien mit
+  `filename`, `packagetype`, `requires_python` und Upload-Zeit unter `releases[v]` und `urls`.
+  Ohne `files` bleibt es bei einer namenlosen Datei, alle bestehenden Tests laufen unverändert.
+- (verschoben auf 1.2) `FakeGitHub` kommt mit dem ersten GitHub-Client. Vorher gibt es keine
+  Schnittstelle, die er nachbilden könnte. Die Anforderung bleibt: ein dict von URL zu Antwort
+  und eine Liste der gestellten Anfragen, damit Tests zeigen, dass ohne Opt-in **keine**
   GitHub-Anfrage passiert.
-- Ein pytest-Marker `network`, der in CI nie läuft, für manuelles Aufzeichnen.
+- (verschoben auf den ersten Schritt, der Fixtures neu aufzeichnet) Der pytest-Marker `network`:
+  `tests/fixtures/record.py` ist ein Skript und kein Test, einen Marker braucht erst ein Test,
+  der wirklich ins Netz geht.
 
 ---
 
@@ -428,7 +433,8 @@ Repo-URL-Normalisierung (zehn Varianten).
 
 **Doku:** README: neuer Abschnitt „Signs of support“, Option `--evidence`, FAQ. CHANGELOG.
 
-**Aufwand:** M–L. **Abhängigkeiten:** 0.1, 0.2, 0.3, 0.6.
+**Aufwand:** M–L. **Abhängigkeiten:** 0.1, 0.2, 0.3, 0.6. Dieser Schritt bringt auch
+`FakeGitHub` in `tests/conftest.py` mit (aus 0.6 verschoben).
 
 ### 1.3 Upstream-Issues und -PRs
 
