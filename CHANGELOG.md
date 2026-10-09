@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- The README has a table of contents, and its links to its own sections now also work on PyPI.
+
 ## [1.0.0] - 2026-10-09
 
 The GitHub Action moves to `@v1`; `@v0` stays on 0.4.0.

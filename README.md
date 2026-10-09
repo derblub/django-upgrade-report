@@ -52,6 +52,33 @@ uvx django-upgrade-report
   </picture>
 </p>
 
+## Contents
+
+- [Highlights](#highlights)
+- [Quick start](#quick-start)
+- [What the statuses mean](#what-the-statuses-mean)
+- [Usage](#usage)
+  - [Exit codes](#exit-codes)
+  - [Choosing the target](#choosing-the-target)
+  - [Where versions come from](#where-versions-come-from)
+  - [Which Python](#which-python)
+  - [Upgrading Python too](#upgrading-python-too)
+  - [Several projects](#several-projects)
+  - [Wagtail and django CMS](#wagtail-and-django-cms)
+  - [Commands to run](#commands-to-run)
+  - [Packages not from PyPI](#packages-not-from-pypi)
+- [In CI](#in-ci)
+  - [GitHub Actions](#github-actions)
+  - [Every week, with what changed](#every-week-with-what-changed)
+  - [pre-commit](#pre-commit)
+  - [GitLab CI](#gitlab-ci)
+  - [Anywhere else](#anywhere-else)
+- [How it decides](#how-it-decides)
+- [FAQ](#faq)
+- [Related projects](#related-projects)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Highlights
 
 - **Knows the order.** Separates upgrades you can ship today, on your current Django, from the ones that have to land in the same change as the Django bump. It also tells you when a release first needs a newer patch of your Django, or a newer version of another package.

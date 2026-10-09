@@ -99,6 +99,10 @@ pattern = 'href="(?!https?://|mailto:)([^"]+)"'
 replacement = 'href="https://github.com/derblub/django-upgrade-report/blob/main/\1"'
 
 [[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '\]\(#([^)]+)\)'
+replacement = '](https://github.com/derblub/django-upgrade-report#\1)'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
 pattern = '\]\((?!https?://|#)([^)]+)\)'
 replacement = '](https://github.com/derblub/django-upgrade-report/blob/main/\1)'
 
