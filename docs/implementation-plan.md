@@ -57,7 +57,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 7.1 | 0.8 | Interaktiver HTML-Report | erledigt |
 | 7.1a | 0.8 | Suche, Filter-Chips, Kacheln als Filter, URL-Fragment, `/` und `Esc`, Skript als `html_report.js`, eingebettetes JSON, `--static` | erledigt |
 | 7.1b | 0.8 | Sortierbare Spalten, aufklappbare Zeilen mit Links und Kopier-Knopf, `j`/`k`/`Enter`, Playwright-Test als eigener CI-Job, Beispielreport neu | erledigt |
-| 0.4 | 0.9 | Direkte und transitive Abhängigkeiten | offen |
+| 0.4 | 0.9 | Direkte und transitive Abhängigkeiten | erledigt |
 | 3.1 | 0.9 | Befehle ausgeben (`--emit`) | offen |
 | 3.2 | 0.9 | Renovate- und Dependabot-Konfiguration | offen |
 | 2.2 | 0.9 | Mehrstufiger Pfad (`--via`) | offen |
@@ -257,6 +257,15 @@ Abhängigkeiten `uv add`, für transitive `uv lock --upgrade-package`), 3.2.
 | `--python` | `importlib.metadata` kennt keine Wurzeln: `None`. Mit `uv.lock` oder `pyproject.toml` im Projekt diese zur Markierung heranziehen (Abgleich nur über den Namen). |
 
 `_combine()` übernimmt `direct=True`, sobald eine Quelle das Paket direkt nennt.
+
+**Umsetzung:** `_combine()` nimmt `True`, wenn eine Quelle es sagt, sonst `False` vor `None`.
+Die Markierung läuft nach dem Lesen (`_mark_direct`), die Leser bleiben unverändert; für
+`poetry.lock` und `pdm.lock` liest `_project_roots` das `pyproject.toml` daneben über
+`_from_pyproject` plus `[tool.pdm.dev-dependencies]`. Über die Regel „jeder Renderer zeigt
+neue Informationen“ hinaus sichtbar ist es nur als JSON-Feld `direct` und als Schalter
+„only direct dependencies“ im HTML-Report (aus 7.1), der nur erscheint, wenn es transitive
+Pakete gibt. Text und Markdown bleiben gleich: Eine Markierung „transitive“ an jeder Zeile
+wäre Rauschen, bis 3.1 und 2.4 sie für Befehle und ungenutzte Pakete brauchen.
 
 **Tests:** je eine Fixture pro Lockfile-Format mit einer direkten und einer transitiven
 Abhängigkeit; Workspace-Fall für uv.

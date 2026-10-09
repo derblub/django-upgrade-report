@@ -291,12 +291,19 @@ def render(report: Report, static: bool = False) -> str:
             f'<button type="button" data-chip="{key}" aria-pressed="false">{_FILTERS[key]}</button>'
             for key in present
         )
+        rows = [*report.packages, *(report.python.packages if report.python else ())]
+        direct = (
+            '<label><input type="checkbox" id="direct"> only direct dependencies</label>'
+            if any(p.direct is False for p in rows)
+            else ""
+        )
         toolbar = (
             '<div class="toolbar" id="toolbar" role="search" hidden>'
             '<input type="search" id="q" placeholder="Search packages, reasons, notes  ( / )" '
             'aria-label="Search packages, reasons and notes">'
             f"{chips if len(present) > 1 else ''}"
             '<label><input type="checkbox" id="notes"> only with notes</label>'
+            f"{direct}"
             '<button type="button" id="reset">Reset (Esc)</button>'
             '<span id="shown" aria-live="polite"></span></div>\n'
         )
@@ -367,6 +374,7 @@ def _data(p: PackageReport) -> str:
     """What the script filters, searches and sorts a row by."""
     words = " ".join([p.name, p.display_name, p.reason, *row_notes(p)]).lower()
     noted = " data-notes" if row_notes(p) else ""
+    noted += " data-direct" if p.direct else ""
     majors = -1 if p.majors_crossed is None else p.majors_crossed
     released = f"{p.last_release:%Y-%m-%d}" if p.last_release else ""
     return (

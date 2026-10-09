@@ -214,6 +214,8 @@ def plan_python(
             plan.packages.append(result)
         else:
             plan.unknown.append(dep.name)
+    for row in plan.packages:
+        row.direct = deps.dependencies[row.name].direct
     plan.packages.sort(key=lambda p: (-SEVERITY[p.status], p.name))
     plan.django_note = _django_on(target, report.current_django, pypi)
     _mark_django_upgrades(target, report, pypi)

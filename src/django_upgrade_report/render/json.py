@@ -38,7 +38,9 @@ Top level (schema_version 1):
   counted by the releases in between, each 0.x minor as one; null without both versions or
   for calendar versions. ``changelog_url`` (the link the project labels as its changelog, else
   its GitHub releases page) and ``repository_url`` (its GitHub repository), or null; both
-  come from the project's own metadata on the index.
+  come from the project's own metadata on the index. ``direct`` (bool or null): true when
+  the project names the package itself, false when only another dependency needs it, null
+  when the source does not say (a lockfile without its ``pyproject.toml`` or ``Pipfile``).
 - ``not_on_index`` (list of str): dependencies the package index does not know.
 - ``not_checked`` (list of str): dependencies the index could not answer for, even after
   retries. When not empty, the report is incomplete; ``warnings`` says why.
@@ -140,6 +142,7 @@ def _package(p: PackageReport) -> dict:
         "majors_crossed": p.majors_crossed,
         "changelog_url": p.changelog_url,
         "repository_url": p.repository_url,
+        "direct": p.direct,
     }
 
 

@@ -46,6 +46,10 @@ class Dependency:
     """What an external package declares itself, when that can be read locally: its installed
     metadata, a local directory's ``pyproject.toml`` or the constraints a lockfile records.
     """
+    direct: bool | None = None
+    """Whether the project names it itself (``False``: only something it depends on does).
+    ``None`` when the source does not say, such as a lockfile without its project file.
+    """
 
 
 @dataclass
@@ -87,7 +91,11 @@ def load(
     ``python_version`` (X.Y) is the project's Python when the person running the tool said so.
     """
     if python:
-        return from_environment(python)
+        found = from_environment(python)
+        roots = _roots(project if project.is_dir() else project.parent)
+        if roots is not None:
+            found.dependencies = _mark_direct(found.dependencies, roots)
+        return found
     if project.is_file():
         return _load_file(project, python_version)
     if not project.is_dir():
@@ -180,6 +188,9 @@ def _load_lockfile(path: Path, python: str | None) -> dict[str, Dependency]:
         "Pipfile.lock": _from_pipfile_lock,
     }
     deps = loaders[path.name](path, python)
+    roots = _uv_roots(path) if path.name == "uv.lock" else _project_roots(path.parent, path.name)
+    if roots is not None:
+        deps = _mark_direct(deps, roots)
     if not deps:
         raise NoDependenciesFound(
             f"{path} lists no packages. It may be empty or written by an unsupported version "
@@ -198,8 +209,14 @@ def _precision(dep: Dependency) -> int:
 def _combine(old: Dependency, new: Dependency) -> Dependency:
     """A pin beats a range beats nothing, regardless of order; the first pin wins."""
     best = old if _precision(old) >= _precision(new) else new
+    # One source naming the package makes it direct; "not direct" beats "does not say".
+    known = [d for d in (old.direct, new.direct) if d is not None]
+    direct = any(known) if known else None
     return replace(
-        best, external=old.external or new.external, metadata=old.metadata or new.metadata
+        best,
+        external=old.external or new.external,
+        metadata=old.metadata or new.metadata,
+        direct=direct,
     )
 
 
@@ -211,6 +228,78 @@ def _add(into: dict[str, Dependency], dep: Dependency) -> None:
 def _merge(into: dict[str, Dependency], deps: dict[str, Dependency]) -> None:
     for dep in deps.values():
         _add(into, dep)
+
+
+# --- direct dependencies ------------------------------------------------------
+
+
+def _mark_direct(deps: dict[str, Dependency], roots: set[str]) -> dict[str, Dependency]:
+    return {name: replace(dep, direct=name in roots) for name, dep in deps.items()}
+
+
+def _roots(directory: Path) -> set[str] | None:
+    """What the project names itself, for an environment that does not say: from its
+    ``uv.lock``, else its ``pyproject.toml``. Matched by name only."""
+    if (directory / "uv.lock").is_file():
+        try:
+            return _uv_roots(directory / "uv.lock")
+        except (SourceError, OSError):
+            return None
+    return _project_roots(directory, "pyproject.toml")
+
+
+def _uv_roots(path: Path) -> set[str] | None:
+    """The dependencies of the project and of every workspace member, from ``uv.lock``."""
+    data = _read_toml(path)
+    members = {
+        canonicalize_name(m)
+        for m in _table(data.get("manifest")).get("members", [])
+        if isinstance(m, str)
+    }
+    roots: set[str] | None = None
+    for package in _tables(data.get("package")) or _tables(data.get("distribution")):
+        source = _table(package.get("source"))
+        name = package.get("name")
+        if not isinstance(name, str):
+            continue
+        root = canonicalize_name(name) in members or "virtual" in source
+        if not root and source.get("editable") != ".":
+            continue  # like _from_uv_lock: the project itself or a workspace member
+        roots = roots or set()
+        lists = [package.get("dependencies")]
+        for key in ("optional-dependencies", "dev-dependencies"):
+            lists += list(_table(package.get(key)).values())
+        for entries in lists:
+            for entry in _tables(entries):
+                if isinstance(entry.get("name"), str):
+                    roots.add(canonicalize_name(entry["name"]))
+    return None if roots is None else roots - members
+
+
+def _project_roots(directory: Path, lockfile: str) -> set[str] | None:
+    """What the file beside a lockfile names: ``Pipfile`` for ``Pipfile.lock``, else
+    ``pyproject.toml``. ``None`` when there is no such file or it cannot be read."""
+    try:
+        if lockfile == "Pipfile.lock":
+            pipfile = directory / "Pipfile"
+            if not pipfile.is_file():
+                return None
+            data = _read_toml(pipfile)
+            return {
+                canonicalize_name(name)
+                for section in ("packages", "dev-packages")
+                for name in _table(data.get(section))
+            }
+        pyproject = directory / "pyproject.toml"
+        if not pyproject.is_file():
+            return None
+        roots = set(_from_pyproject(pyproject, ANY_PYTHON))  # on any platform
+        pdm = _table(_table(_read_toml(pyproject).get("tool")).get("pdm"))
+        for lines in _table(pdm.get("dev-dependencies")).values():
+            roots.update(_parse_lines(lines, ANY_PYTHON))
+        return roots
+    except (SourceError, OSError):
+        return None
 
 
 def _dep(
@@ -579,7 +668,13 @@ def _environment(python: str | None) -> dict[str, str]:
     return env
 
 
+ANY_PYTHON = "any"
+"""For :func:`_marker_matches`: every line counts, whatever its marker (direct dependencies)."""
+
+
 def _marker_matches(marker: str, python: str | None) -> bool:
+    if python == ANY_PYTHON:
+        return True
     try:
         return Marker(marker).evaluate(_environment(python))
     except Exception:  # an invalid marker or one using names packaging does not know
@@ -805,6 +900,7 @@ def parse_requirements(
     for name, dep in deps.items():
         if name in constraints:
             deps[name] = _combine(dep, constraints[name])
+    deps = {name: replace(dep, direct=True) for name, dep in deps.items()}  # all named here
     if NO_INDEX in indexes:  # --no-index wins over any --index-url
         _apply_project_index(deps, NO_INDEX)
     elif indexes:  # like pip, the last --index-url wins, whichever file it is in
@@ -1027,7 +1123,7 @@ def _from_pyproject(path: Path, python: str | None = None) -> dict[str, Dependen
     if primary:  # Poetry 2 installs [project] dependencies from its sources, too
         _all_from_index(deps, primary)
     _apply_uv_sources(deps, _table(tool.get("uv")))
-    return deps
+    return {name: replace(dep, direct=True) for name, dep in deps.items()}
 
 
 def _poetry_primary_index(sources: list[dict]) -> str | None:
@@ -1084,7 +1180,7 @@ def _poetry_spec(constraint: str) -> str:
 
 def _pick_poetry_constraint(options: list[dict], python: str | None) -> dict | None:
     """The constraint whose ``python`` and ``markers`` match the project, else the first."""
-    for option in options if python else []:
+    for option in options if python and python != ANY_PYTHON else []:
         wanted, marker = option.get("python"), option.get("markers")
         if isinstance(wanted, str) and not _python_matches(wanted, python):
             continue

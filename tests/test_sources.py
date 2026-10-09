@@ -1214,3 +1214,211 @@ def test_environment_reads_the_metadata_of_direct_installs_only(tmp_path):
     assert fork.metadata.requires_dist == ("Django<4.1,>=3.2",)
     assert fork.metadata.classifiers == ("Framework :: Django :: 4.0",)
     assert deps["django-ready"].metadata is None  # from an index: looked up there instead
+
+
+# --- direct and transitive dependencies -----------------------------------------------
+
+
+def direct(ds: sources.DependencySet) -> dict[str, bool | None]:
+    return {name: d.direct for name, d in ds.dependencies.items()}
+
+
+UV_LOCK = """
+version = 1
+requires-python = ">=3.10"
+
+[[package]]
+name = "app"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [{ name = "django" }]
+
+[package.optional-dependencies]
+api = [{ name = "djangorestframework" }]
+
+[package.dev-dependencies]
+dev = [{ name = "django-debug-toolbar" }]
+
+[[package]]
+name = "django"
+version = "5.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [{ name = "asgiref" }]
+
+[[package]]
+name = "asgiref"
+version = "3.8.1"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "djangorestframework"
+version = "3.16.0"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "django-debug-toolbar"
+version = "5.1.0"
+source = { registry = "https://pypi.org/simple" }
+"""
+
+
+def test_uv_lock_direct_dependencies(tmp_path):
+    write(tmp_path / "uv.lock", UV_LOCK)
+    assert direct(sources.load(tmp_path)) == {
+        "django": True,
+        "asgiref": False,
+        "djangorestframework": True,
+        "django-debug-toolbar": True,
+    }
+
+
+def test_uv_workspace_members_are_roots(tmp_path):
+    write(
+        tmp_path / "uv.lock",
+        """
+version = 1
+
+[manifest]
+members = ["app", "lib"]
+
+[[package]]
+name = "app"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [{ name = "lib" }, { name = "django" }]
+
+[[package]]
+name = "lib"
+version = "0.1.0"
+source = { editable = "packages/lib" }
+dependencies = [{ name = "django-filter" }]
+
+[[package]]
+name = "django"
+version = "5.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [{ name = "sqlparse" }]
+
+[[package]]
+name = "django-filter"
+version = "25.1"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "sqlparse"
+version = "0.5.0"
+source = { registry = "https://pypi.org/simple" }
+""",
+    )
+    assert direct(sources.load(tmp_path)) == {
+        "django": True,
+        "django-filter": True,
+        "sqlparse": False,
+    }
+
+
+POETRY_LOCK = """
+[[package]]
+name = "django"
+version = "5.2"
+
+[[package]]
+name = "sqlparse"
+version = "0.5.0"
+
+[[package]]
+name = "pytest-django"
+version = "4.9.0"
+"""
+
+
+def test_poetry_lock_direct_dependencies_from_pyproject(tmp_path):
+    write(tmp_path / "poetry.lock", POETRY_LOCK)
+    assert set(direct(sources.load(tmp_path)).values()) == {None}  # nothing says
+    write(
+        tmp_path / "pyproject.toml",
+        """
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.2"
+
+[tool.poetry.group.test.dependencies]
+pytest-django = "*"
+""",
+    )
+    assert direct(sources.load(tmp_path)) == {
+        "django": True,
+        "sqlparse": False,
+        "pytest-django": True,
+    }
+
+
+def test_pdm_lock_direct_dependencies_from_pyproject(tmp_path):
+    write(tmp_path / "pdm.lock", POETRY_LOCK)
+    write(
+        tmp_path / "pyproject.toml",
+        """
+[project]
+dependencies = ["Django>=5.2", "sqlparse; sys_platform == 'never'"]
+
+[tool.pdm.dev-dependencies]
+test = ["pytest-django"]
+""",
+    )
+    assert direct(sources.load(tmp_path)) == {
+        "django": True,
+        "sqlparse": True,  # named for another platform, still the project's own
+        "pytest-django": True,
+    }
+
+
+def test_pipfile_lock_direct_dependencies_from_pipfile(tmp_path):
+    write(
+        tmp_path / "Pipfile.lock",
+        json.dumps(
+            {
+                "default": {"django": {"version": "==5.2"}, "sqlparse": {"version": "==0.5.0"}},
+                "develop": {"pytest-django": {"version": "==4.9.0"}},
+            }
+        ),
+    )
+    assert set(direct(sources.load(tmp_path)).values()) == {None}
+    write(tmp_path / "Pipfile", '[packages]\nDjango = "*"\n\n[dev-packages]\npytest-django = "*"\n')
+    assert direct(sources.load(tmp_path)) == {
+        "django": True,
+        "sqlparse": False,
+        "pytest-django": True,
+    }
+
+
+def test_requirements_and_pyproject_are_all_direct(tmp_path):
+    write(tmp_path / "constraints.txt", "sqlparse==0.5.0\nDjango==5.2\n")
+    write(tmp_path / "requirements.txt", "-c constraints.txt\nDjango\n")
+    write(tmp_path / "pyproject.toml", '[project]\ndependencies = ["django-filter>=25"]\n')
+    ds = sources.load(tmp_path)
+    assert direct(ds) == {"django": True, "django-filter": True}
+    assert versions(ds)["django"] == "5.2"  # a constraint pins, it adds nothing
+
+
+def test_direct_wins_when_sources_disagree():
+    a = sources.Dependency("django", "5.2", direct=False)
+    assert sources._combine(a, sources.Dependency("django", None, ">=5", direct=True)).direct
+    assert sources._combine(a, sources.Dependency("django", None)).direct is False
+    assert sources._combine(sources.Dependency("x", None), a).direct is False
+
+
+@posix_only
+def test_environment_takes_direct_dependencies_from_the_project(tmp_path):
+    site = tmp_path / "site"
+    dist_info(site, "Django", "5.2")
+    dist_info(site, "sqlparse", "0.5.0")
+    python = fake_interpreter(tmp_path, f'PYTHONPATH={site} exec {sys.executable} -S "$@"')
+    project = tmp_path / "project"
+    project.mkdir()
+    assert set(direct(sources.load(project, python=python)).values()) == {None}
+    write(project / "pyproject.toml", '[project]\ndependencies = ["django"]\n')
+    found = direct(sources.load(project, python=python))
+    assert (found["django"], found["sqlparse"]) == (True, False)
+    write(project / "uv.lock", UV_LOCK)  # wins over pyproject.toml, like for the versions
+    found = direct(sources.load(project, python=python))
+    assert (found["django"], found["sqlparse"]) == (True, False)

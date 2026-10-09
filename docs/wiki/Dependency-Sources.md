@@ -28,6 +28,20 @@ Environment markers such as `python_version < "3.12"` decide which requirements 
 
 A range counts as its lower bound. Markers are evaluated for CPython on Linux, where Django apps are deployed, never for the machine running the tool. Against the target, a package is judged on the newer of your project's Python and the oldest Python the target Django supports.
 
+## Direct or not
+
+A lockfile also holds what your dependencies need. The report says which packages your project names itself, "direct" in the JSON report and the "only direct dependencies" switch of the HTML report, because only those are yours to bump in a requirement; the others move when the package that needs them does.
+
+| Source | Direct dependencies |
+| --- | --- |
+| `uv.lock` | What the project lists, with its extras and dev groups; in a workspace, what every member lists. |
+| `poetry.lock`, `pdm.lock` | What `pyproject.toml` beside it lists: `[project]`, Poetry's dependencies and groups, `[dependency-groups]`, PDM's dev dependencies. |
+| `Pipfile.lock` | `[packages]` and `[dev-packages]` of the `Pipfile` beside it. |
+| `requirements*.txt`, `pyproject.toml` | Everything they list. A `-c` constraint only pins a version, it adds nothing. |
+| `--python` | What the project's `uv.lock`, else its `pyproject.toml` lists, matched by name. |
+
+Without the file beside the lockfile, or with `--python` and neither file, the report does not say ("direct": null), and the switch is not there.
+
 ## Packages not from PyPI
 
 Packages from git, a local path, a URL or a private index are never looked up on PyPI and their names are never sent there. This covers `git+https://...`, `-e` and path lines in requirement files, `name @ url` requirements, git, path and URL sources in lockfiles, `--index-url` and `--no-index` in requirement files, a private default index or `no-index` in uv, Poetry, PDM or Pipenv, and the `PIP_INDEX_URL`, `UV_INDEX_URL`, `UV_DEFAULT_INDEX`, `PIP_NO_INDEX` and `UV_NO_INDEX` environment variables. Credentials in those URLs are removed before anything is shown.

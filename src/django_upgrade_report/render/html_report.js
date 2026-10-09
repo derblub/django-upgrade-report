@@ -96,15 +96,18 @@
   if (!bar) { return; }
   var items = all("[data-filter]");
   var search = document.getElementById("q");
-  var notes = document.getElementById("notes");
+  // Switches that keep only rows with data-notes or data-direct; "direct" only when the
+  // report knows which dependencies the project names itself.
+  var flags = ["notes", "direct"].filter(function (flag) { return document.getElementById(flag); });
   var chips = all("button[data-chip]");
   var tiles = all(".tile[data-tile]");
   var shown = document.getElementById("shown");
-  var state = { status: [], q: "", notes: false };
+  function empty() { return { status: [], q: "", notes: false, direct: false }; }
+  var state = empty();
 
   function read() {
     var hash = window.location.hash.slice(1);
-    state = { status: [], q: "", notes: false };
+    state = empty();
     // A plain anchor such as #blocked is not a filter.
     if (hash.indexOf("=") < 0) { return; }
     hash.split("&").forEach(function (part) {
@@ -112,7 +115,7 @@
       var value = decodeURIComponent((pair[1] || "").replace(/\+/g, " "));
       if (pair[0] === "status" && value) { state.status = value.split(","); }
       if (pair[0] === "q") { state.q = value; }
-      if (pair[0] === "notes") { state.notes = value === "1"; }
+      if (flags.indexOf(pair[0]) >= 0) { state[pair[0]] = value === "1"; }
     });
   }
 
@@ -120,7 +123,7 @@
     var parts = [];
     if (state.status.length) { parts.push("status=" + state.status.join(",")); }
     if (state.q) { parts.push("q=" + encodeURIComponent(state.q)); }
-    if (state.notes) { parts.push("notes=1"); }
+    flags.forEach(function (flag) { if (state[flag]) { parts.push(flag + "=1"); } });
     var url = window.location.pathname + window.location.search;
     // Some browsers refuse it on file:// pages.
     try {
@@ -138,7 +141,7 @@
     items.forEach(function (item) {
       var text = item.getAttribute("data-search") || "";
       var match = (!state.status.length || state.status.indexOf(item.getAttribute("data-filter")) >= 0) &&
-        (!state.notes || item.hasAttribute("data-notes")) &&
+        flags.every(function (flag) { return !state[flag] || item.hasAttribute("data-" + flag); }) &&
         words.every(function (word) { return text.indexOf(word) >= 0; });
       item.classList.toggle("filtered", !match);
       if (match) { visible += 1; }
@@ -156,15 +159,15 @@
       tile.setAttribute("aria-pressed", on ? "true" : "false");
     });
     if (search.value !== state.q) { search.value = state.q; }
-    notes.checked = state.notes;
-    var active = state.status.length || state.q || state.notes;
+    flags.forEach(function (flag) { document.getElementById(flag).checked = state[flag]; });
+    var active = state.status.length || state.q || state.notes || state.direct;
     shown.textContent = active ? visible + " of " + items.length + " shown" : "";
   }
 
   function change() { write(); apply(); }
 
   function reset() {
-    state = { status: [], q: "", notes: false };
+    state = empty();
     change();
   }
 
@@ -190,7 +193,10 @@
     });
   });
   search.addEventListener("input", function () { state.q = search.value; change(); });
-  notes.addEventListener("change", function () { state.notes = notes.checked; change(); });
+  flags.forEach(function (flag) {
+    var box = document.getElementById(flag);
+    box.addEventListener("change", function () { state[flag] = box.checked; change(); });
+  });
   document.getElementById("reset").addEventListener("click", reset);
   document.addEventListener("keydown", function (event) {
     var field = event.target;

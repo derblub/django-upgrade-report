@@ -118,3 +118,18 @@ def test_columns_sort(page):
     assert rows.evaluate_all(names) == ["django-silent", "django-lagging"]
     page.click("section#check th[data-sort=released] button")
     assert page.get_attribute(heading, "aria-sort") == "none"
+
+
+def test_only_direct_dependencies(project, browser):
+    from test_cli import lock_with_a_transitive_package
+
+    lock_with_a_transitive_package(project)
+    target = project / "report.html"
+    assert cli.main([str(project), "-f", "html", "-o", str(target)]) == 0
+    page = browser.new_page()
+    page.goto(target.as_uri() + "#direct=1")
+    assert page.is_checked("#direct")
+    assert sorted(shown(page)) == ["django-blocked", "django-ready"]
+    page.uncheck("#direct")
+    assert len(shown(page)) == 3
+    page.close()

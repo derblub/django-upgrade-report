@@ -136,6 +136,8 @@ class PackageReport:
     """Major versions between the current release and :attr:`target_version` (0.x minors count)."""
     changelog_url: str | None = None
     repository_url: str | None = None
+    direct: bool | None = None
+    """Whether the project names the package itself; ``None`` when its source does not say."""
 
     @property
     def stale(self) -> bool:
@@ -764,6 +766,8 @@ def analyse(
 
     packages = [r for r in results if isinstance(r, PackageReport)] + local
     for p in packages:
+        if p.name in deps.dependencies:
+            p.direct = deps.dependencies[p.name].direct
         p.successor = successor(p.name, goal.version)
         if p.successor is not None:  # what a newer release declares no longer matters
             p.notes = [p.successor.note(), *(n for n in p.notes if not n.startswith("latest "))]

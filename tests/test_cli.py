@@ -952,3 +952,47 @@ def test_html_script_is_small_and_shipped_in_the_package():
     script = html.script_source()
     assert len(script.encode()) < 8 * 1024
     assert "// " not in script.replace("file://", "")  # the comments stay in the source
+
+
+# --- direct dependencies ----------------------------------------------------------
+
+
+def lock_with_a_transitive_package(project: Path) -> None:
+    """django-before only comes in through django-ready."""
+    (project / "requirements.txt").unlink()
+    packages = "".join(
+        f'\n[[package]]\nname = "{name}"\nversion = "{version}"\n'
+        'source = { registry = "https://pypi.org/simple" }\n'
+        for name, version in (
+            ("django", "4.2.7"),
+            ("django-ready", "1.0"),
+            ("django-before", "1.0"),
+            ("django-blocked", "1.0"),
+        )
+    )
+    (project / "uv.lock").write_text(
+        'version = 1\n\n[[package]]\nname = "app"\nversion = "0.1.0"\n'
+        'source = { virtual = "." }\n'
+        'dependencies = [{ name = "django" }, { name = "django-ready" }, '
+        '{ name = "django-blocked" }]\n' + packages
+    )
+
+
+def test_json_says_which_dependencies_are_direct(project, capsys):
+    cli.main([str(project), "-f", "json"])
+    assert {p["direct"] for p in json.loads(capsys.readouterr().out)["packages"]} == {True}
+    lock_with_a_transitive_package(project)
+    cli.main([str(project), "-f", "json"])
+    found = {p["name"]: p["direct"] for p in json.loads(capsys.readouterr().out)["packages"]}
+    assert found == {"django-ready": True, "django-before": False, "django-blocked": True}
+
+
+def test_html_filters_direct_dependencies_only_when_some_are_not(project, capsys):
+    cli.main([str(project), "-f", "html"])
+    assert 'id="direct"' not in capsys.readouterr().out  # all of them are
+    lock_with_a_transitive_package(project)
+    cli.main([str(project), "-f", "html"])
+    page = capsys.readouterr().out
+    assert '<input type="checkbox" id="direct"> only direct dependencies' in page
+    assert re.search(r'<tr data-filter="blocked" [^>]* data-direct ', page)
+    assert not re.search(r'<tr data-filter="before" [^>]* data-direct ', page)
