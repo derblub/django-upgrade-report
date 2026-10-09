@@ -229,6 +229,8 @@ The action writes the Markdown report to the job summary, exposes the counts as 
 | `fail-on` | | `blocked`, `upgrade` or `check`. Empty never fails the step because of a package. |
 | `python-target` | `auto` | `auto`, `none` or a version such as `3.12`. |
 | `fail-on-python` | | `blocked`, `upgrade` or `check` on that Python. Empty never fails the step because of it. |
+| `comment` | `false` | `true` puts the report on the pull request as one comment, updated on every push; `on-change` updates it only when a status or step changed. Needs `permissions: pull-requests: write`. A pull request from a fork gets a read-only token: then the comment is left out, and the job goes on. |
+| `comment-key` | the path | Tells comments apart when the action runs more than once for one path in a pull request, such as in a matrix. |
 | `baseline` | | An earlier JSON report, the `report` output of a previous run. The summary then starts with what changed since. A missing file is skipped. |
 | `fail-on-change` | | `any` or `worse`: fail the step when something changed since the baseline. |
 | `check-private-on-pypi` | `false` | `true` looks up packages from another index on PyPI, too. |

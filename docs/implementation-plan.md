@@ -49,7 +49,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 4.1 | 0.8 | Baseline-Diff | erledigt |
 | 4.1a | 0.8 | `diff.py`, `--baseline`, `--only-changes`, `--fail-on-change`, Text, JSON | erledigt |
 | 4.1b | 0.8 | Markdown/HTML, Action-Input `baseline`, Rezept im README | erledigt |
-| 4.2 | 0.8 | Sticky PR-Kommentar | offen |
+| 4.2 | 0.8 | Sticky PR-Kommentar | erledigt |
 | 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | offen |
 | 7.1 | 0.8 | Interaktiver HTML-Report | offen |
 | 0.4 | 0.9 | Direkte und transitive Abhängigkeiten | offen |
@@ -1123,6 +1123,18 @@ jedem Push aktualisiert wird.
     das Job-Summary.
 - Fork-PRs haben ein Read-only-Token: 403 wird erkannt, Hinweis im Log, Schritt schlägt nicht
   fehl.
+
+**Umgesetzt** in `src/django_upgrade_report/ci.py` (`GitHub` als `JsonClient` mit `send()` für
+POST/PATCH, ohne Cache). Der Marker ist `<!-- django-upgrade-report:{path}:{target} fp=… -->`;
+der Fingerabdruck umfasst Status, Phase und `upgrade_to` aller Pakete, auch der Python-Zeilen.
+Jeder Fehler beim Kommentieren (nicht nur 403) lässt den Job weiterlaufen, mit einer Zeile auf
+stderr. Aus dem Review: Der Schlüssel ist nur der Pfad (oder der neue Input `comment-key`, für
+Matrix-Läufe), nicht das Ziel: Sonst entstünde bei `target: auto` nach einem neuen
+Django-Release ein zweiter Kommentar. Gesucht werden nur Kommentare von Bots, nicht Kopien von
+Menschen. Nur der Kommentar-Aufruf bekommt das Token. Unbekannte Werte für `comment` geben
+eine Warnung. Der Fingerabdruck umfasst auch Ziel und Zahlen des Python-Abschnitts. `FakeGitHub` steht jetzt in `tests/conftest.py`, früher als in 0.6 geplant. Das Rezept
+mit Vergleich zum Basis-Branch ist nicht umgesetzt: Es bräuchte einen zweiten Checkout und
+Lauf im Workflow und gehört in die Doku, sobald jemand danach fragt.
 
 **Tests:** `FakeGitHub`: anlegen, aktualisieren, `on-change` ohne Änderung, 403 bei Fork, Kürzung.
 

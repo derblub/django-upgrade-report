@@ -18,6 +18,12 @@ inputs:
   fail-on:
     description: "Fail the step when a package is 'blocked', needs an 'upgrade' or a 'check'. Empty never fails."
     default: ""
+  comment:
+    description: "'true' puts the report on the pull request as one comment, updated on every push; 'on-change' updates it only when a status or step changed. Needs permissions: pull-requests: write. Default 'false'."
+    default: "false"
+  comment-key:
+    description: "Tells comments apart when the action runs more than once for one path in a pull request, e.g. in a matrix. Default: the path."
+    default: ""
   baseline:
     description: "Path to an earlier JSON report (the report output of a previous run). The summary then starts with what changed since. A missing file is skipped, so the first run works too."
     default: ""
@@ -100,6 +106,9 @@ runs:
         DUR_CHECK_PRIVATE: ${{ inputs.check-private-on-pypi }}
         DUR_PYTHON_TARGET: ${{ inputs.python-target }}
         DUR_BASELINE: ${{ inputs.baseline }}
+        DUR_COMMENT: ${{ inputs.comment }}
+        DUR_COMMENT_KEY: ${{ inputs.comment-key }}
+        DUR_TOKEN: ${{ github.token }}
         DUR_FAIL_ON_CHANGE: ${{ inputs.fail-on-change }}
         DUR_FAIL_ON_PYTHON: ${{ inputs.fail-on-python }}
         PYTHONUTF8: "1"
@@ -125,7 +134,19 @@ runs:
         changes = data.get("changes")
         print(f"changes={len(changes['items']) if changes else ''}")
         PY
-        dur "${common[@]}" --format markdown >> "$GITHUB_STEP_SUMMARY"
+        markdown="${report%.json}.md"
+        dur "${common[@]}" --format markdown -o "$markdown"
+        cat "$markdown" >> "$GITHUB_STEP_SUMMARY"
+        case "$DUR_COMMENT" in
+          true|on-change)
+            comment=(--report "$report" --markdown "$markdown" --key "${DUR_COMMENT_KEY:-$DUR_PATH}")
+            if [ "$DUR_COMMENT" = on-change ]; then comment+=(--on-change); fi
+            # Only this command gets the token.
+            GITHUB_TOKEN="$DUR_TOKEN" "$DUR_BIN/python" -m django_upgrade_report.ci comment "${comment[@]}"
+            ;;
+          false|"") ;;
+          *) echo "::warning::django-upgrade-report: comment is '$DUR_COMMENT', expected true, on-change or false" ;;
+        esac
         # Last, so the summary and outputs exist even when this fails the step.
         args=()
         if [ -n "$DUR_FAIL_ON" ]; then args+=(--fail-on "$DUR_FAIL_ON"); fi

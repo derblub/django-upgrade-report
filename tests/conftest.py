@@ -274,3 +274,35 @@ def serve(monkeypatch, *answers) -> FakeHTTP:
     fake = FakeHTTP(*answers)
     monkeypatch.setattr(client.urllib.request, "urlopen", fake)
     return fake
+
+
+# --- a fake GitHub for the pull request comment ------------------------------------
+
+
+class FakeGitHub:
+    """The issue comments API of one repository, in memory; ``refuse`` makes it say 403."""
+
+    def __init__(self, comments: list[dict] | None = None, refuse: bool = False):
+        self.comments = comments or []
+        self.refuse = refuse
+        self.calls: list[tuple[str, str]] = []
+
+    def get(self, path):
+        from urllib.parse import parse_qs, urlsplit
+
+        self.calls.append(("GET", path))
+        page = int(parse_qs(urlsplit(path).query).get("page", ["1"])[0])
+        return self.comments[(page - 1) * 100 : page * 100]
+
+    def send(self, method, path, body):
+        from django_upgrade_report.client import FetchError
+
+        self.calls.append((method, path))
+        if self.refuse:
+            raise FetchError(f"could not fetch https://api.github.com{path}: HTTP 403 Forbidden")
+        if method == "POST":
+            self.comments.append({"id": len(self.comments) + 1, "body": body["body"]})
+        else:
+            comment_id = int(path.rsplit("/", 1)[1])
+            next(c for c in self.comments if c["id"] == comment_id)["body"] = body["body"]
+        return {}
