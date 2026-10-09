@@ -14,6 +14,10 @@ Requirement files follow `-r` includes and `-c` constraint files; constraints on
 
 Unpinned requirements are judged by the newest release they allow and marked as such. When Django itself is only a range with an upper bound, such as `Django>=4.2,<5.0`, the newest release it allows is assumed and a warning says so. `--from` sets the version you run; at a terminal the tool asks for it.
 
+## Several projects
+
+`django-upgrade-report services/api services/worker`, or `-r services` to find them: one report per project, after an overview with each project's step and counts, the packages that block more than one project, and the upgrades several projects share. `--recursive` looks for lockfiles, `requirements*.txt`, `requirements/*.txt` and `pyproject.toml` files with dependencies; it skips virtual environments, `node_modules`, build output and hidden directories, and counts a directory inside a project as part of it unless it has its own lockfile. A project without dependencies is listed as not checked, the others are still reported, and the run exits with 2.
+
 ## Which Python
 
 Environment markers such as `python_version < "3.12"` decide which requirements apply, so the tool needs your project's Python. It takes the first of:

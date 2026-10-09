@@ -6,15 +6,21 @@ import re
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL
 from django_upgrade_report.analysis import PackageReport, PathReport, Report, Status
+from django_upgrade_report.multi import MultiReport
 from django_upgrade_report.removals import DJANGO_UPGRADE
 from django_upgrade_report.render import (
+    BLOCKING_TITLE,
+    SHARED_TITLE,
     UNUSED_HINT,
+    blocking_rows,
     change_rows,
     changes_title,
     headline,
+    multi_headline,
     path_blocked,
     path_headline,
     private_index_hint,
+    project_cells,
     python_hint,
     python_line,
     python_summary,
@@ -23,6 +29,7 @@ from django_upgrade_report.render import (
     row_links,
     row_notes,
     sections,
+    shared_rows,
     skipped_line,
     split_noted,
     step_title,
@@ -194,6 +201,46 @@ def render_path(path: PathReport) -> str:
             f"<summary><b>{escape(step_title(path, n))}: {escape(headline(step))}</b></summary>",
             "",
             render(step, footer=False).rstrip(),
+            "",
+            "</details>",
+            "",
+        ]
+    lines.append(_FOOTER)
+    return "\n".join(lines) + "\n"
+
+
+def render_multi(multi: MultiReport) -> str:
+    """The projects in a table, what blocks or is shared across them, each report folded."""
+    lines = [f"## {escape(multi_headline(multi))}", ""]
+    lines += ["| Project | From → to | Ready | To upgrade | To check | Blocked |"]
+    lines += ["| --- | --- | --- | --- | --- | --- |"]
+    for p in multi.projects:
+        if p.report is None:
+            lines.append(f"| {escape(p.path)} | {escape(project_cells(p)[1])} | | | | |")
+            continue
+        counts = " | ".join(
+            str(p.report.counts[s])
+            for s in (Status.READY, Status.UPGRADE, Status.CHECK, Status.BLOCKED)
+        )
+        lines.append(f"| {escape(p.path)} | {escape(headline(p.report))} | {counts} |")
+    lines.append("")
+    if rows := blocking_rows(multi):
+        lines += [f"### {BLOCKING_TITLE}", "", "| Package | Projects |", "| --- | --- |"]
+        lines += [f"| {escape(name)} | {escape(', '.join(paths))} |" for name, paths in rows]
+        lines.append("")
+    if rows := shared_rows(multi):
+        lines += [f"### {SHARED_TITLE}", "", "| Package | To | Projects |", "| --- | --- | --- |"]
+        lines += [
+            f"| {escape(name)} | {escape(version)} | {escape(', '.join(paths))} |"
+            for name, version, paths in rows
+        ]
+        lines.append("")
+    for path, report in multi.reports:
+        lines += [
+            "<details>",
+            f"<summary><b>{escape(path)}: {escape(headline(report))}</b></summary>",
+            "",
+            render(report, footer=False).rstrip(),
             "",
             "</details>",
             "",

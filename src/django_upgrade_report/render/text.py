@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 from django_upgrade_report.analysis import PackageReport, PathReport, Report, Status
+from django_upgrade_report.multi import MultiReport
 from django_upgrade_report.render import (
+    BLOCKING_TITLE,
+    SHARED_TITLE,
     UNUSED_HINT,
+    blocking_rows,
     change_rows,
     changes_title,
     headline,
+    multi_headline,
     packages_line,
     path_blocked,
     path_headline,
     private_index_hint,
+    project_cells,
     python_hint,
     python_line,
     python_summary,
@@ -19,6 +25,7 @@ from django_upgrade_report.render import (
     row_links,
     row_notes,
     sections,
+    shared_rows,
     skipped_line,
     source_label,
     step_title,
@@ -216,4 +223,39 @@ def render_path(
     for number, step in enumerate(path.steps, 1):
         body = render(step, color=color, verbose=verbose, quiet=quiet)
         blocks.append(f"{bold(step_title(path, number))}\n\n{body}")
+    return "\n\n".join(blocks)
+
+
+def render_multi(
+    multi: MultiReport, color: bool = False, verbose: bool = False, quiet: bool = False
+) -> str:
+    """An overview of the projects, what blocks or is shared across them, then each report."""
+    bold = (lambda text: f"\033[1m{text}\033[0m") if color else (lambda text: text)
+    width = max(len(p.path) for p in multi.projects)
+    cells = [project_cells(p) for p in multi.projects]
+    first = max(len(head) for head, _ in cells)
+    lines = [bold(multi_headline(multi))]
+    for p, (head, rest) in zip(multi.projects, cells, strict=True):
+        lines.append(f"  {p.path.ljust(width)}  {head.ljust(first)}  {rest}".rstrip())
+    blocks = ["\n".join(lines)]
+    if rows := blocking_rows(multi):
+        name_width = max(len(name) for name, _ in rows)
+        blocks.append(
+            "\n".join(
+                [bold(BLOCKING_TITLE)]
+                + [f"  {name.ljust(name_width)}  {', '.join(paths)}" for name, paths in rows]
+            )
+        )
+    if rows := shared_rows(multi):
+        cells = [(f"{name} → {version}", paths) for name, version, paths in rows]
+        name_width = max(len(cell) for cell, _ in cells)
+        blocks.append(
+            "\n".join(
+                [bold(SHARED_TITLE)]
+                + [f"  {cell.ljust(name_width)}  {', '.join(paths)}" for cell, paths in cells]
+            )
+        )
+    for path, report in multi.reports:
+        body = render(report, color=color, verbose=verbose, quiet=quiet)
+        blocks.append(f"{bold(path)}\n\n{body}")
     return "\n\n".join(blocks)

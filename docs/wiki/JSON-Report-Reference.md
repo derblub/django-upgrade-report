@@ -106,6 +106,13 @@ first step, from 1, with a blocked package, or null) and `steps`: one report as 
 step, each with `"kind": "report"`, the first from the Django you run, every later one from
 where the step before ends.
 
+Several projects (more than one `PROJECT`, or `--recursive`) make a document of their own,
+`"kind": "multi"`: `schema_version`, `kind`, `tool`, `generated`, `projects` (one
+per project, in path order: `path` and either `report`, a report as above, or `error`,
+why there is none), `blocking` (every blocked package with the paths of the projects it
+blocks, the most widespread first) and `shared_upgrades` (packages several projects upgrade
+to the same version: `version` and `projects`).
+
 ## Reading it
 
 ```console

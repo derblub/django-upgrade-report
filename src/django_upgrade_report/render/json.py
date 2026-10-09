@@ -104,6 +104,13 @@ A path (``--via``) is a document of its own, ``"kind": "path"``: ``schema_versio
 first step, from 1, with a blocked package, or null) and ``steps``: one report as above per
 step, each with ``"kind": "report"``, the first from the Django you run, every later one from
 where the step before ends.
+
+Several projects (more than one ``PROJECT``, or ``--recursive``) make a document of their own,
+``"kind": "multi"``: ``schema_version``, ``kind``, ``tool``, ``generated``, ``projects`` (one
+per project, in path order: ``path`` and either ``report``, a report as above, or ``error``,
+why there is none), ``blocking`` (every blocked package with the paths of the projects it
+blocks, the most widespread first) and ``shared_upgrades`` (packages several projects upgrade
+to the same version: ``version`` and ``projects``).
 """
 
 from __future__ import annotations
@@ -113,6 +120,7 @@ import json
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, __version__, commands
 from django_upgrade_report.analysis import PackageReport, PathReport, Report
 from django_upgrade_report.commands import Commands
+from django_upgrade_report.multi import MultiReport
 
 SCHEMA_VERSION = 1
 
@@ -121,11 +129,7 @@ def as_dict(report: Report) -> dict:
     return {
         "schema_version": SCHEMA_VERSION,
         "kind": report.kind,
-        "tool": {
-            "name": "django-upgrade-report",
-            "version": __version__,
-            "author": f"{AUTHOR}, {COMPANY} ({COMPANY_URL})",
-        },
+        "tool": _tool(),
         "generated": report.generated.isoformat(),
         "framework": report.framework,
         "target": report.target,
@@ -253,6 +257,14 @@ def _python(report: Report) -> dict | None:
     }
 
 
+def _tool() -> dict:
+    return {
+        "name": "django-upgrade-report",
+        "version": __version__,
+        "author": f"{AUTHOR}, {COMPANY} ({COMPANY_URL})",
+    }
+
+
 def render(report: Report, emitted: Commands | None = None) -> str:
     data = as_dict(report)
     data["commands"] = commands.as_dict(emitted) if emitted else None
@@ -269,5 +281,27 @@ def render_path(path: PathReport) -> str:
         "via": path.via,
         "blocked_at": path.blocked_at,
         "steps": [as_dict(step) for step in path.steps],
+    }
+    return json.dumps(data, indent=2) + "\n"
+
+
+def render_multi(multi: MultiReport) -> str:
+    projects = [
+        {"path": p.path, "report": as_dict(p.report)}
+        if p.report is not None
+        else {"path": p.path, "error": p.error}
+        for p in multi.projects
+    ]
+    data = {
+        "schema_version": SCHEMA_VERSION,
+        "kind": multi.kind,
+        "tool": _tool(),
+        "generated": multi.generated.isoformat(),
+        "projects": projects,
+        "blocking": multi.blocking,
+        "shared_upgrades": {
+            name: {"version": version, "projects": paths}
+            for name, (version, paths) in multi.shared_upgrades.items()
+        },
     }
     return json.dumps(data, indent=2) + "\n"

@@ -9,7 +9,8 @@ Every option, as `django-upgrade-report --help` describes it. The pages [Getting
 
 | Option | Value | Default | What it does |
 | --- | --- | --- | --- |
-| `PROJECT` | `PROJECT` | `.` | Project directory with a lockfile, requirements*.txt or pyproject.toml (default: current directory). |
+| `PROJECTS` | `PROJECT` |  | Project directory with a lockfile, requirements*.txt or pyproject.toml (default: current directory); several make one report with an overview. |
+| `--recursive`, `-r` |  |  | Find the projects under PROJECT (a monorepo, a folder of services): every directory with a lockfile, requirement files or pyproject.toml dependencies. |
 | `-t`, `--target` | `TARGET` | `auto` | Django version to upgrade to: 'auto' (default: the newest LTS above your Django, or the newest release when no LTS is above it), 'lts', 'latest' or e.g. '5.2'. |
 | `--from` | `VERSION` |  | The Django version you run today, e.g. 4.2 or 4.2.16, when your requirements only give a range. |
 | `--framework` | `django` `wagtail` `django-cms` | `django` | What to plan the upgrade of: django (default), or wagtail or django-cms, whose packages are then checked against --target and --from of that framework. |

@@ -22,6 +22,7 @@ from django_upgrade_report import (
     __version__,
     commands,
     evidence,
+    multi,
     removals,
     sources,
     usage,
@@ -65,12 +66,19 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=f"Made by {AUTHOR}, {COMPANY} ({COMPANY_URL}).",
     )
     parser.add_argument(
-        "project",
-        nargs="?",
-        default=".",
+        "projects",
+        nargs="*",
+        metavar="PROJECT",
         type=Path,
         help="project directory with a lockfile, requirements*.txt or pyproject.toml "
-        "(default: current directory)",
+        "(default: current directory); several make one report with an overview",
+    )
+    parser.add_argument(
+        "--recursive",
+        "-r",
+        action="store_true",
+        help="find the projects under PROJECT (a monorepo, a folder of services): every "
+        "directory with a lockfile, requirement files or pyproject.toml dependencies",
     )
     parser.add_argument(
         "-t",
@@ -272,16 +280,21 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _run(args: argparse.Namespace) -> int:
+    projects = args.projects or [Path(".")]
+    if args.recursive:
+        projects = multi.discover(projects)
+        if not projects:
+            where = " ".join(str(p) for p in args.projects or ["."])
+            raise Error(f"--recursive found no project in {where}: no {sources.SUPPORTED}")
+    several = len(projects) > 1
+    if several:
+        _check_multi(args)
+    args.project = projects[0]
     if args.output is not None and args.output.is_dir():
         raise Error(f"{args.output} is a directory, pass a file name to -o")
     mode = OFFLINE if args.offline else PREFER_CACHE if args.prefer_cache else ONLINE
     if args.no_cache and mode != ONLINE:
         raise Error(f"--{mode} reads the cache, it cannot go with --no-cache")
-    try:
-        deps = sources.load(args.project, args.python)
-    except (sources.NoDependenciesFound, sources.SourceError, OSError, ValueError) as exc:
-        raise Error(exc) from None
-
     baseline = None
     if args.baseline is not None:
         try:
@@ -347,6 +360,12 @@ def _run(args: argparse.Namespace) -> int:
             check_python_target(args.python_target)
         except ValueError as exc:
             raise Error(exc) from None
+    if several:
+        return _run_multi(args, projects, mode)
+    try:
+        deps = sources.load(args.project, args.python)
+    except (sources.NoDependenciesFound, sources.SourceError, OSError, ValueError) as exc:
+        raise Error(exc) from None
     explained = [canonicalize_name(name) for name in args.explain]
     if explained and args.format in ("markdown", "html"):
         raise Error("--explain prints text, or with --format json the explain field")
@@ -636,6 +655,86 @@ def _run_path(
         sys.stdout.write(output)
         sys.stdout.flush()
     return _path_status(args, path)
+
+
+def _check_multi(args: argparse.Namespace) -> None:
+    """What does not go with several projects."""
+    flags = {
+        "-i": args.interactive,
+        "--emit": args.emit,
+        "--explain": args.explain,
+        "--via": args.via,
+        "--baseline": args.baseline or args.only_changes or args.fail_on_change,
+        "--python": args.python,
+        "--scan-code": args.scan_code,
+        "--format html": args.format == "html",
+    }
+    clash = next((flag for flag, given in flags.items() if given), None)
+    if clash:
+        raise Error(f"several projects make one report each, that cannot go with {clash}")
+
+
+def _run_multi(args: argparse.Namespace, projects: list[Path], mode: str) -> int:
+    """One report per project with one index client, then the overview."""
+    index_url = args.index_url or PYPI_JSON
+    pypi = PyPI(index_url, cache_dir=None if args.no_cache else default_cache_dir(), mode=mode)
+    private_index = args.index_url is not None or args.check_private_on_pypi
+    results = []
+    for project in projects:
+        label = project.as_posix()
+        try:
+            deps = sources.load(project, None)
+        except (sources.NoDependenciesFound, sources.SourceError, OSError, ValueError) as exc:
+            results.append(multi.ProjectResult(label, error=str(exc)))
+            continue
+        one = argparse.Namespace(**vars(args))  # its own code scan
+        one.project = project
+        progress = _Progress(total=len(deps.dependencies))
+        try:
+            report = analyse(
+                deps,
+                pypi,
+                args.target,
+                progress=progress,
+                current=args.current,
+                private_index=private_index,
+                framework=FRAMEWORKS[args.framework],
+            )
+            _extras(one, report, deps, pypi, mode)
+        except NotCached as exc:
+            error = f"{pypi.redact(str(exc))}, run once without --offline"
+            results.append(multi.ProjectResult(label, error=error))
+            continue
+        except (PyPIError, ValueError, RuntimeError, OSError) as exc:
+            results.append(multi.ProjectResult(label, error=pypi.redact(str(exc))))
+            continue
+        finally:
+            progress.clear()
+        results.append(multi.ProjectResult(label, report=report))
+    found = multi.MultiReport(results)
+    if args.format == "json":
+        output = json.render_multi(found)
+    elif args.format == "markdown":
+        output = markdown.render_multi(found)
+    else:
+        use_color = args.output is None and sys.stdout.isatty() and "NO_COLOR" not in os.environ
+        output = text.render_multi(found, color=use_color, verbose=args.verbose, quiet=args.quiet)
+        output += "\n"
+    if args.output:
+        _write(args.output, output)
+        print(f"Wrote {args.output}", file=sys.stderr)
+    else:
+        sys.stdout.write(output)
+        sys.stdout.flush()
+    reports = [report for _, report in found.reports]
+    status = _path_status(args, PathReport("multi", reports)) if reports else 0
+    failed = [p for p in found.projects if p.report is None]
+    if status == 0 and failed:
+        raise Error(
+            f"{len(failed)} of {len(found.projects)} projects could not be checked: "
+            + "; ".join(f"{p.path}: {p.error}" for p in failed)
+        )
+    return status
 
 
 def _path_status(args: argparse.Namespace, path: PathReport) -> int:

@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 
 from django_upgrade_report.analysis import PackageReport, PathReport, Phase, Report, Status
+from django_upgrade_report.multi import MultiReport, ProjectResult
 from django_upgrade_report.projects import safe_url
 
 
@@ -307,3 +308,34 @@ def removal_note(removal) -> str:
     if removal.fixer:
         parts.append("django-upgrade fixes this")
     return " · ".join(parts)
+
+
+# --- several projects -------------------------------------------------------------------
+
+BLOCKING_TITLE = "Blocking more than one project"
+SHARED_TITLE = "Upgrades several projects share"
+
+
+def multi_headline(multi: MultiReport) -> str:
+    """``3 projects``, and how many could not be checked."""
+    count = len(multi.projects)
+    line = f"{count} project{'s' if count != 1 else ''}"
+    failed = sum(1 for p in multi.projects if p.report is None)
+    return f"{line}, {failed} could not be checked" if failed else line
+
+
+def project_cells(result: ProjectResult) -> tuple[str, str]:
+    """``("Django 4.2.7 → 5.2", "30 ready · 5 to upgrade · ...")`` or the error."""
+    if result.report is None:
+        return "not checked", result.error or "unknown error"
+    return headline(result.report), summary(result.report)
+
+
+def blocking_rows(multi: MultiReport) -> list[tuple[str, list[str]]]:
+    """Packages that block more than one project, with the projects."""
+    return [(name, paths) for name, paths in multi.blocking.items() if len(paths) > 1]
+
+
+def shared_rows(multi: MultiReport) -> list[tuple[str, str, list[str]]]:
+    """``(name, version, projects)`` for an upgrade to one version in several projects."""
+    return [(name, version, paths) for name, (version, paths) in multi.shared_upgrades.items()]

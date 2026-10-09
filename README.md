@@ -112,12 +112,13 @@ Some packages did a job Django now does itself, and no metadata says so. For a s
 ## Usage
 
 ```console
-django-upgrade-report [PROJECT] [options]
+django-upgrade-report [PROJECT ...] [options]
 ```
 
 | Option | Description |
 | --- | --- |
-| `PROJECT` | Project directory, or a single lockfile, requirements file or `pyproject.toml`. Defaults to the current directory. |
+| `PROJECT` | Project directory, or a single lockfile, requirements file or `pyproject.toml`. Defaults to the current directory. Several make one report with an overview, see [Several projects](#several-projects). |
+| `-r`, `--recursive` | Find the projects under `PROJECT`: every directory with a lockfile, requirement files or `pyproject.toml` dependencies. |
 | `-t`, `--target` | `auto` (default), `lts` (the newest x.2 release), `latest`, or a version such as `5.2`. See [Choosing the target](#choosing-the-target). |
 | `--via` | `lts` or `each`: go to the target in steps, one report per LTS (or per feature version) on the way. See [Choosing the target](#choosing-the-target). |
 | `--from VERSION` | The Django version you run today, e.g. `4.2` or `4.2.16`, when your requirements only give a range. `4.2` means the newest 4.2 release. |
@@ -232,6 +233,26 @@ Python 3.12 first (2)
 ```
 
 For each installed release, in this order: a `Requires-Python` that excludes the Python means no; a `Programming Language :: Python :: 3.12` classifier means yes; so does a wheel built for it. An `abi3` wheel for an older Python, or a pure-Python wheel, runs too. Wheels only for other Pythons mean pip builds the package from source, which needs a compiler and often fails; without a source distribution it cannot be installed at all. Wheels count when they install on CPython under Linux on x86_64. A dependency that needs something gets the oldest newer release that runs on the Python, with a note when that release no longer runs on the Python you use today, so it goes together with the switch. It needs a project Python (see above); `--python-target 3.13` checks any Python you name.
+
+### Several projects
+
+For a monorepo or a folder of services, pass several projects, or let `--recursive` find them:
+
+```console
+$ django-upgrade-report -r services --target 5.2
+3 projects
+  services/admin   Django 5.2 · health check  0 ready · 2 to upgrade · 0 to check · 0 blocked
+  services/api     Django 4.2.7 → 5.2         30 ready · 5 to upgrade · 1 to check · 2 blocked
+  services/worker  Django 4.2.7 → 5.2         12 ready · 3 to upgrade · 0 to check · 1 blocked
+
+Blocking more than one project
+  django-taggit  services/api, services/worker
+
+Upgrades several projects share
+  django-filter → 25.1  services/admin, services/api, services/worker
+```
+
+Each project's report follows, folded in Markdown. Every project has its own target (`auto` unless you pass `--target`), and a package several projects use is looked up once. `--recursive` skips virtual environments, `node_modules` and hidden directories, and a directory inside a project, such as `requirements/` or a package with its own `pyproject.toml`, belongs to that project unless it has a lockfile of its own. A project that cannot be checked is listed with the reason, the others are still reported, and the run exits with 2. `--fail-on` looks at every project. The JSON report has `"kind": "multi"`, with `projects`, `blocking` and `shared_upgrades`. `-i`, `--emit`, `--explain`, `--via`, `--baseline`, `--python` and `--scan-code` work on one project.
 
 ### Wagtail and django CMS
 

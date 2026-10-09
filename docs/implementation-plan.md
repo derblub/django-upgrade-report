@@ -82,7 +82,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 6.1 | 1.0 | Wagtail und django CMS als Ziel | erledigt |
 | 6.1a | 1.0 | `frameworks.py`, `--framework`, Analyse, Texte, Befehle, JSON | erledigt |
 | 6.1b | 1.0 | Django-Bereich des Ziel-Frameworks, Zeile für das Framework, django-CMS-Details, Golden-Fixtures, Action-Input | erledigt |
-| 6.2 | 1.0 | Mehrere Projekte | offen |
+| 6.2 | 1.0 | Mehrere Projekte | in Arbeit |
+| 6.2a | 1.0 | `multi.py` (Suche, `MultiReport`), mehrere `PROJECT`, `--recursive`, Text, Markdown, JSON, `--fail-on` | erledigt |
+| 6.2b | 1.0 | HTML mit Übersicht und Ankern, Action-Input `path` mehrzeilig, Bild | offen |
 | 6.3 | separat | Öffentliche Readiness-Daten | offen |
 
 ---
@@ -1599,6 +1601,14 @@ Projekt; `--recursive`-Ausschlüsse; Aggregation.
 
 **Aufwand:** M–L. **Abhängigkeiten:** 0.3; profitiert von 4.1 und 4.2 (Marker pro Pfad ist
 schon vorgesehen).
+
+**Umsetzung 6.2a:** `multi.py` mit `discover()` (überspringt `usage.SKIP_DIRS` und versteckte
+Verzeichnisse) und `MultiReport` (`blocking` mit allen blockierten Paketen, der Text zeigt die
+mit mehr als einem Projekt; `shared_upgrades`). Ein Projekt pro Durchlauf bleibt der gewohnte
+Bericht, auch mit `--recursive`. Jedes Projekt bekommt einen eigenen `Namespace`, damit der
+Code-Scan nicht geteilt wird. Fehlgeschlagene Projekte führen zu Exit 2 nach der Ausgabe,
+außer `--fail-on` liefert schon 1. Nicht mit `-i`, `--emit`, `--explain`, `--via`,
+`--baseline`, `--python`, `--scan-code`; HTML folgt in 6.2b.
 
 ### 6.3 Öffentliche Readiness-Daten
 
