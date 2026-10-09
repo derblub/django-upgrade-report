@@ -1367,3 +1367,43 @@ def test_no_step_size_for_a_package_django_took_over():
     _, p = check_one(index, pinned("jsonfield", "2.0"))
     assert p.successor is not None
     assert not any("major" in n for n in p.notes)
+
+
+# --- the searches take any rule ---------------------------------------------------
+
+
+class NewEnough:
+    """Says YES from ``floor`` on, and that older releases are excluded with newer ones allowed."""
+
+    def __init__(self, floor: str):
+        self.floor = Version(floor)
+
+    def judge(self, info, uploaded):
+        from django_upgrade_report.analysis import Support
+
+        if Version(info.version) >= self.floor:
+            return Support(Verdict.YES, f"{info.version} is new enough")
+        return Support(Verdict.NO, f"{info.version} is too old")
+
+    def side(self, info):
+        return 1
+
+
+def test_searches_follow_the_rule_they_are_given():
+    from concurrent.futures import ThreadPoolExecutor
+
+    from django_upgrade_report.analysis import DjangoRule, _Checker
+
+    versions = [Version(f"1.{i}") for i in range(40)]
+    index = status_index(pkg=[release("pkg", str(v), ">=4.2", ["4.2"]) for v in versions])
+    dates = {v: None for v in versions}
+    with ThreadPoolExecutor(4) as pool:
+        checker = _Checker(index, Target.of(T52), None, pool, batch=4)
+        assert checker.rule == DjangoRule(Target.of(T52))
+        assert checker.lowest_yes("pkg", versions, dates) is None  # no release declares 5.2
+        rule = NewEnough("1.17")
+        found = checker.lowest_yes("pkg", versions, dates, rule=rule)
+        assert (str(found[0]), found[2].reason) == ("1.17", "1.17 is new enough")
+        assert str(checker.search("pkg", versions, dates, rule=rule)[0]) == "1.17"
+        fetched = [u for u in index.requests if u.count("/") > 5]
+        assert len(fetched) < 30  # a bisection, not a scan of 40

@@ -36,7 +36,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 1.1 | 0.5 | Pre-Releases | erledigt |
 | 2.3 | 0.5 | Risiko pro Schritt und Changelog-Links | erledigt |
 | 4.3 | 0.5 | pre-commit-Hook und `--offline` | erledigt |
-| 0.5 | 0.6 | Verallgemeinerte Release-Suche | offen |
+| 0.5 | 0.6 | Verallgemeinerte Release-Suche | erledigt |
 | 5.1 | 0.6 | `--explain` | offen |
 | 7.3 | 0.6 | Fehlende Angaben nachfragen | offen |
 | 2.1 | 0.7 | Python-Readiness | offen |
@@ -272,6 +272,12 @@ und `excluded_side(info, self.target)` gebunden.
 - Rein mechanischer Umbau ohne Verhaltensänderung. Die Golden-Tests und
   `FakePyPI.requests` (Anzahl der Anfragen) müssen identisch bleiben; ein Test vergleicht die
   Anfrageliste vor und nach dem Umbau für die Saleor-artigen Fixtures.
+- (umgesetzt) `Rule` ist ein `typing.Protocol` mit `judge(info, uploaded)` und `side(info)`,
+  `DjangoRule` eine frozen Dataclass um `Target`. `_Checker.rule` ist der Default; `find`,
+  `lowest_yes` und `search` nehmen `rule=` und reichen ihn an ihre inneren Aufrufe weiter.
+  Geprüft: Anfragen und Ergebnisse für neun Golden-Szenarien (allauth, wagtail, ses,
+  prometheus, DRF, netbox, mayan, grapple, dj-database-url) sind vor und nach dem Umbau
+  identisch; ein Test sucht mit einer fremden Regel und zeigt, dass die Bisektion ihr folgt.
 
 **Aufwand:** S–M.
 

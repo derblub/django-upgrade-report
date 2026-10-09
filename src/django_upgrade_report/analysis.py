@@ -11,6 +11,7 @@ from collections.abc import Callable, Iterable
 from concurrent.futures import Executor, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
+from typing import Protocol
 
 from packaging.markers import Marker
 from packaging.requirements import InvalidRequirement, Requirement
@@ -352,6 +353,29 @@ def supports(
     if spec is not None and str(spec):
         return Support(Verdict.LIKELY, f"allows Django{spec}, no upper bound")
     return Support(Verdict.UNKNOWN, "declares no Django versions")
+
+
+class Rule(Protocol):
+    """What the release searches ask of a release: Django support, or later a Python's."""
+
+    def judge(self, info: ReleaseInfo, uploaded: datetime | None) -> Support:
+        """What ``info``, uploaded at ``uploaded``, says."""
+
+    def side(self, info: ReleaseInfo) -> int:
+        """For a release judged NO, where the ones that are not: -1 older, 1 newer, 0 unknown."""
+
+
+@dataclass(frozen=True)
+class DjangoRule:
+    """Support for one Django version: :func:`supports` and :func:`excluded_side`."""
+
+    target: Target
+
+    def judge(self, info: ReleaseInfo, uploaded: datetime | None) -> Support:
+        return supports(info, self.target, uploaded)
+
+    def side(self, info: ReleaseInfo) -> int:
+        return excluded_side(info, self.target)
 
 
 def _bound_counts(operators: list[str], target: Target, uploaded: datetime | None) -> bool:
@@ -1010,6 +1034,8 @@ class _Checker:
     ):
         self.pypi = pypi
         self.target = target
+        self.rule: Rule = DjangoRule(target)
+        """What the searches look for unless they are given another rule."""
         self.current = current
         self.pool = pool
         self.batch = batch
@@ -1057,12 +1083,14 @@ class _Checker:
         dates: dict[Version, datetime | None],
         accept: Callable[[Verdict], bool],
         newest_first: bool = False,
+        rule: Rule | None = None,
     ) -> _Found | None:
         """The first of ``versions``, in the given order, whose verdict is accepted.
 
         The scan stops at a release that excludes the target on the side already passed:
         after it, bounds only move further away.
         """
+        rule = rule or self.rule
         candidates = list(versions)
         passed = 1 if newest_first else -1
         for start in range(0, len(candidates), self.batch):
@@ -1071,15 +1099,19 @@ class _Checker:
             for version, info in zip(chunk, infos, strict=True):
                 if info is None:
                     continue
-                support = supports(info, self.target, dates.get(version))
+                support = rule.judge(info, dates.get(version))
                 if accept(support.verdict):
                     return version, info, support
-                if support.verdict is Verdict.NO and excluded_side(info, self.target) == passed:
+                if support.verdict is Verdict.NO and rule.side(info) == passed:
                     return None
         return None
 
     def lowest_yes(
-        self, name: str, versions: list[Version], dates: dict[Version, datetime | None]
+        self,
+        name: str,
+        versions: list[Version],
+        dates: dict[Version, datetime | None],
+        rule: Rule | None = None,
     ) -> _Found | None:
         """The oldest of ``versions`` that declares the target.
 
@@ -1088,15 +1120,17 @@ class _Checker:
         too, for the rare release that dropped a classifier and added it back.
         """
 
+        rule = rule or self.rule
+
         def declares(version: Version) -> _Found | None:
             info = self.pypi.release(name, str(version))
             if info is None:
                 return None
-            support = supports(info, self.target, dates.get(version))
+            support = rule.judge(info, dates.get(version))
             return (version, info, support) if support.verdict is Verdict.YES else None
 
         if len(versions) <= self.batch:
-            return self.find(name, versions, dates, _is_yes)
+            return self.find(name, versions, dates, _is_yes, rule=rule)
         lo, hi, found = 0, len(versions), None
         while lo < hi:
             mid = (lo + hi) // 2
@@ -1108,7 +1142,9 @@ class _Checker:
         if found is None:
             return None
         start = versions.index(found[0])
-        earlier = self.find(name, versions[max(0, start - self.batch) : start], dates, _is_yes)
+        earlier = self.find(
+            name, versions[max(0, start - self.batch) : start], dates, _is_yes, rule=rule
+        )
         return earlier or found
 
     def search(
@@ -1117,12 +1153,14 @@ class _Checker:
         versions: list[Version],
         dates: dict[Version, datetime | None],
         highest: bool = False,
+        rule: Rule | None = None,
     ) -> _Found | None:
         """The lowest (or ``highest``) of ``versions``, oldest first, that allows the target.
 
         A bisection that follows the Django bounds, so a long release history costs a few
         requests. Where the bounds do not say which way to go, it falls back to a scan.
         """
+        rule = rule or self.rule
         lo, hi = 0, len(versions)
         found = None
         while lo < hi:
@@ -1131,12 +1169,12 @@ class _Checker:
             info = self.pypi.release(name, str(version))
             side = 0
             if info is not None:
-                support = supports(info, self.target, dates.get(version))
+                support = rule.judge(info, dates.get(version))
                 if support.verdict is not Verdict.NO:
                     found = version, info, support
                     lo, hi = (mid + 1, hi) if highest else (lo, mid)
                     continue
-                side = excluded_side(info, self.target)
+                side = rule.side(info)
             if side == 1:
                 lo = mid + 1
             elif side == -1:
@@ -1144,7 +1182,12 @@ class _Checker:
             else:
                 rest = versions[lo:hi]
                 scanned = self.find(
-                    name, reversed(rest) if highest else rest, dates, _not_no, newest_first=highest
+                    name,
+                    reversed(rest) if highest else rest,
+                    dates,
+                    _not_no,
+                    newest_first=highest,
+                    rule=rule,
                 )
                 return scanned or found
         return found
