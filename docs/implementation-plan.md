@@ -33,7 +33,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 0.2 | 0.5 | Cache-Format v2 und neue Metadaten | erledigt |
 | 0.3 | 0.5 | Erweiterungen am Report-Modell | erledigt |
 | 0.6 | 0.5 | Testinfrastruktur | erledigt |
-| 1.1 | 0.5 | Pre-Releases | offen |
+| 1.1 | 0.5 | Pre-Releases | erledigt |
 | 2.3 | 0.5 | Risiko pro Schritt und Changelog-Links | offen |
 | 4.3 | 0.5 | pre-commit-Hook und `--offline` | offen |
 | 0.5 | 0.6 | Verallgemeinerte Release-Suche | offen |
@@ -304,7 +304,7 @@ Report das sagen. Der Status ändert sich nicht.
 ```
 Check manually (3)
   ? django-lagging   1.0   declares Django up to 4.2
-                           2.0rc1 declares Django 5.2 (pre-release, 2026-03-02)
+                           2.0rc1 declares Django 5.2 (pre-release)
 ```
 
 **Design**
@@ -320,13 +320,25 @@ Check manually (3)
 - Ergebnis:
   - `YES` → `report.prerelease = PreRelease(version, reason, uploaded)` und Notiz
     `"{v} {reason} (pre-release)"`.
-  - Bei BLOCKED auch `LIKELY` (nicht `NO`) → Notiz `"{v} no longer excludes Django X.Y
-    (pre-release)"`, weil das für Blocker die wichtigste Nachricht ist.
-  - `NO` oder `UNKNOWN` → nichts.
+  - Bei BLOCKED auch jedes andere Urteil als `NO` (`LIKELY` oder `UNKNOWN`) → Notiz
+    `"{v} no longer excludes Django X.Y (pre-release)"`, weil das für Blocker die wichtigste
+    Nachricht ist.
+  - Sonst nichts.
+- (umgesetzt) Ein echter Fall in den Golden-Tests: django-prometheus 2.5.0 begrenzt Django
+  unter 6.0, 2.6.0.dev22 deklariert 6.1. `tests/fixtures/record.py` zeichnet dafür jetzt auch
+  das neueste Pre-Release auf, wenn es neuer ist als jedes stabile, und nimmt Projektnamen als
+  Argumente, damit nur ein Paket neu aufgezeichnet wird.
+- (umgesetzt, aus dem Review) Kein Hinweis, wenn schon ein stabiles Release, das der Report
+  nennt, das Ziel deklariert (z. B. ein älteres Release innerhalb eines Bereichs). Kandidaten
+  müssen neuer sein als jedes stabile **und** als die installierte Version. Kann der Index das
+  Pre-Release nicht liefern, bleibt das Urteil, und die Zeile sagt
+  `"could not check 2.0rc1, run again later"`. Projekte ganz ohne stabile Releases werden schon
+  heute nach ihrem neuesten Pre-Release beurteilt und bekommen keinen zusätzlichen Hinweis.
 - Das gilt nicht für lokal beurteilte Pakete (`_judge_local`), weil es dort keine Releases gibt.
 
 **Ausgabe:** In allen Formaten als Notiz. JSON zusätzlich
-`"prerelease": {"version": "2.0rc1", "reason": "...", "uploaded": "…"}` oder `null`.
+`"prerelease": {"version": "2.0rc1", "reason": "...", "uploaded": "…"}` oder `null`. Das
+Upload-Datum steht nur im JSON, nicht in der Notiz.
 
 **Randfälle:** Pre-Release ohne Dateien; Pre-Release, das neuer ist als ein yanked Stable; nur
 `.dev`-Releases (zählen als Pre-Release, `packaging` behandelt sie so); Pre-Release mit anderem

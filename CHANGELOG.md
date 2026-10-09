@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- Packages to check and blocked packages say when their newest pre-release declares the target, or no longer excludes it: "2.6.0.dev22 declares Django 6.1 (pre-release)". The status stays the same. The JSON report has it under `prerelease`.
 - The JSON report says what kind of document it is: `"kind": "report"`. Scripts can check it before reading the rest, so later kinds that hold several reports do not break them.
 
 ### Changed

@@ -1,6 +1,6 @@
 """Record the PyPI metadata the golden tests run against.
 
-    cd /home/user/django-upgrade-report && PYTHONPATH=src python3 tests/fixtures/record.py
+    PYTHONPATH=src python3 tests/fixtures/record.py [NAME ...]   # from the repository root
 
 Downloads each project's JSON and the release JSONs from the oldest version a test uses
 onwards, keeps only the fields the engine reads, and writes one file per project to
@@ -106,6 +106,18 @@ def record(name: str, since: str, extra: list[str] = (), django: bool = False) -
         and not v.is_prerelease
         and (not django or v.micro == 0)
     ]
+    # The engine reads the newest pre-release when it is newer than every stable release.
+    # Like Project.stable_releases(): installable and not yanked. Raw keys, as PyPI spells them.
+    usable = [raw for raw, time in uploaded.items() if time and raw not in yanked]
+    stable = [raw for raw in usable if not Version(raw).is_prerelease]
+    pre = [raw for raw in usable if Version(raw).is_prerelease]
+    newest_pre = max(pre, key=Version, default=None)
+    if (
+        not django
+        and newest_pre
+        and (not stable or Version(newest_pre) > max(map(Version, stable)))
+    ):
+        wanted.append(newest_pre)
     wanted += [raw for raw in extra if raw not in wanted]
     with ThreadPoolExecutor(8) as pool:
         infos = pool.map(lambda raw: get(f"{INDEX}/{name}/{raw}/json")["info"], wanted)
@@ -138,11 +150,17 @@ def _rows(items: dict) -> str:
     return "{\n" + ",\n".join(rows) + "\n }"
 
 
-def main() -> None:
-    record("django", DJANGO_SINCE, DJANGO_CURRENT, django=True)
+def main(names: list[str]) -> None:
+    """Record every case, or only the projects named on the command line."""
+    unknown = set(names) - {"django", *CASES}
+    if unknown:
+        sys.exit(f"not in CASES: {', '.join(sorted(unknown))}")
+    if not names or "django" in names:
+        record("django", DJANGO_SINCE, DJANGO_CURRENT, django=True)
     for name, since in CASES.items():
-        record(name, since)
+        if not names or name in names:
+            record(name, since)
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

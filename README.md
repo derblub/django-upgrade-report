@@ -240,6 +240,8 @@ For every release the tool looks at two pieces of metadata that maintainers publ
 
 For a target that is not released yet, such as 6.2 today, only classifiers count, and the report says so. An upper bound like `<7.0` says nothing about a version nobody could test.
 
+Pre-releases never decide a status: you cannot pin an `rc` in production. When no stable release declares the target but the newest pre-release does, the row says so, for example "2.6.0.dev22 declares Django 6.1 (pre-release)". For a blocked package it also says when the newest pre-release no longer excludes the target. Only a pre-release newer than every stable release counts, judged by the same rules.
+
 From these verdicts, per package:
 
 - **Ready** when the version you use says yes.

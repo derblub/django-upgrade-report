@@ -671,6 +671,9 @@ def test_golden_prometheus_on_the_newest_django_is_not_blocked(recorded):
     p = by_name(report, "django-prometheus")
     assert p.status is Status.CHECK
     assert "newer releases exclude Django 6.1" in p.notes
+    # 2.5.0 caps Django below 6.0, the development release for 2.6 declares 6.1.
+    assert "2.6.0.dev22 declares Django 6.1 (pre-release)" in p.notes
+    assert p.prerelease.version == "2.6.0.dev22"
 
 
 @pytest.mark.parametrize("target", ["6.0", "6.1"])
@@ -1170,3 +1173,137 @@ def test_severity_orders_the_statuses():
 
     worst_first = sorted(Status, key=lambda s: -SEVERITY[s])
     assert worst_first == [Status.BLOCKED, Status.UPGRADE, Status.CHECK, Status.READY]
+
+
+# --- pre-releases ---------------------------------------------------------------
+
+
+def test_prerelease_that_declares_the_target_is_noted():
+    index = status_index(
+        pkg=[
+            release("pkg", "1.0", ">=3.2", ["4.1", "4.2"]),
+            release("pkg", "2.0rc1", ">=4.2", ["4.2", "5.2"], uploaded="2026-03-02"),
+        ]
+    )
+    _, p = check_one(index, pinned("pkg", "1.0"))
+    assert p.status is Status.CHECK  # a pre-release is not a release
+    assert p.notes[-1] == "2.0rc1 declares Django 5.2 (pre-release)"
+    assert (p.prerelease.version, p.prerelease.reason) == ("2.0rc1", "declares Django 5.2")
+    assert p.prerelease.uploaded == datetime(2026, 3, 2, tzinfo=timezone.utc)
+
+
+def test_prerelease_that_lifts_a_block_is_noted():
+    index = status_index(
+        pkg=[
+            release("pkg", "1.0", ">=3.2,<5.0", ["4.2"], uploaded="2023-01-01"),
+            release("pkg", "2.0b1", ">=4.2", ["4.2"]),  # allows 5.2, declares nothing
+        ]
+    )
+    _, p = check_one(index, pinned("pkg", "1.0"))
+    assert p.status is Status.BLOCKED
+    assert p.notes[-1] == "2.0b1 no longer excludes Django 5.2 (pre-release)"
+
+
+@pytest.mark.parametrize(
+    ("releases", "why"),
+    [
+        (
+            [
+                release("pkg", "0.9b1", ">=4.2", ["5.2"]),
+                release("pkg", "1.0", ">=3.2", ["4.2"]),
+            ],
+            "older than the newest stable release",
+        ),
+        (
+            [release("pkg", "1.0", ">=3.2", ["4.2"]), release("pkg", "2.0a1", ">=4.2", ["4.2"])],
+            "says no more than the stable one",
+        ),
+        (
+            [
+                release("pkg", "1.0", ">=3.2", ["4.2"]),
+                release("pkg", "2.0rc1", ">=4.2", ["5.2"], yanked=True),
+            ],
+            "yanked",
+        ),
+    ],
+)
+def test_prereleases_that_say_nothing_new_are_left_out(releases, why):
+    _, p = check_one(status_index(pkg=releases), pinned("pkg", "1.0"))
+    assert p.prerelease is None, why
+    assert not any("pre-release" in n for n in p.notes)
+
+
+def test_prerelease_without_files_is_left_out():
+    index = status_index(
+        pkg=[release("pkg", "1.0", ">=3.2", ["4.2"]), release("pkg", "2.0rc1", ">=4.2", ["5.2"])]
+    )
+    index.no_files.add(("pkg", "2.0rc1"))
+    _, p = check_one(index, pinned("pkg", "1.0"))
+    assert p.prerelease is None
+
+
+def test_only_the_newest_prerelease_is_fetched():
+    index = status_index(
+        pkg=[
+            release("pkg", "1.0", ">=3.2", ["4.2"]),
+            release("pkg", "2.0a1", ">=4.2", ["5.2"]),
+            release("pkg", "2.0b1", ">=4.2", ["5.2"]),
+            release("pkg", "2.0rc1", ">=4.2", ["5.2"]),
+        ]
+    )
+    check_one(index, pinned("pkg", "1.0"))
+    fetched = [u for u in per_release_requests(index, "pkg") if "rc" in u or "a1" in u or "b1" in u]
+    assert fetched == ["https://pypi.test/pypi/pkg/2.0rc1/json"]
+
+
+def test_ready_and_upgrade_fetch_no_prerelease():
+    index = status_index(
+        pkg=[
+            release("pkg", "1.0", ">=3.2", ["4.2"]),
+            release("pkg", "2.0", ">=4.2", ["4.2", "5.2"]),
+            release("pkg", "3.0rc1", ">=4.2", ["5.2"]),
+        ]
+    )
+    _, p = check_one(index, pinned("pkg", "1.0"))
+    assert p.status is Status.UPGRADE
+    assert not any("3.0rc1" in u for u in index.requests)
+
+
+def test_prerelease_the_index_cannot_answer_for_keeps_the_verdict():
+    index = status_index(
+        pkg=[release("pkg", "1.0", ">=3.2", ["4.2"]), release("pkg", "2.0rc1", ">=4.2", ["5.2"])]
+    )
+    fetch = index._fetch
+
+    def flaky(url):
+        if "2.0rc1" in url:
+            raise PyPIError("could not fetch: HTTP 503")
+        return fetch(url)
+
+    index._fetch = flaky
+    report, p = check_one(index, pinned("pkg", "1.0"))
+    assert (p.status, p.prerelease, report.failed) == (Status.CHECK, None, [])
+    assert p.notes[-1] == "could not check 2.0rc1, run again later"
+
+
+def test_no_prerelease_hint_when_a_stable_release_declares_the_target():
+    """An unpinned range whose newest allowed release lags, but an older allowed one declares."""
+    index = status_index(
+        pkg=[
+            release("pkg", "2.5", ">=4.2", ["4.2", "5.2"]),
+            release("pkg", "2.9", ">=4.2", ["4.2"]),
+            release("pkg", "3.0rc1", ">=4.2", ["5.2"]),
+        ]
+    )
+    _, p = check_one(index, Dependency("pkg", None, spec=">=2,<3"))
+    assert (p.status, p.target_version) == (Status.CHECK, "2.5")
+    assert p.prerelease is None
+
+
+def test_project_with_only_prereleases_is_judged_by_them():
+    """With no stable release the newest pre-release stands in for one: no extra hint."""
+    index = status_index(
+        pkg=[release("pkg", "1.0a1", ">=3.2", []), release("pkg", "1.0b2", ">=4.2", ["5.2"])]
+    )
+    _, p = check_one(index, pinned("pkg", "1.0a1"))
+    assert (p.status, p.target_version, p.prerelease) == (Status.UPGRADE, "1.0b2", None)

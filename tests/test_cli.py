@@ -565,3 +565,19 @@ def test_json_says_what_django_has_instead(project, index, capsys):
         "source": "https://docs.djangoproject.com/en/stable/releases/3.1/"
         "#jsonfield-for-all-supported-database-backends",
     }
+
+
+@pytest.mark.parametrize("fmt", ["text", "markdown", "html", "json"])
+def test_prerelease_in_every_format(project, index, capsys, fmt):
+    index.packages["django-blocked"].append(release("django-blocked", "2.0rc1", ">=4.2", ["5.2"]))
+    cli.main([str(project), "--format", fmt])
+    out = capsys.readouterr().out
+    assert "2.0rc1 declares Django 5.2 (pre-release)" in out
+    if fmt == "json":
+        p = next(p for p in json.loads(out)["packages"] if p["name"] == "django-blocked")
+        assert p["prerelease"] == {
+            "version": "2.0rc1",
+            "reason": "declares Django 5.2",
+            "uploaded": "2026-01-01T00:00:00+00:00",
+        }
+        assert all("prerelease" in p for p in json.loads(out)["packages"])

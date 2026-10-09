@@ -43,6 +43,7 @@ def release(
     files=None,
     project_urls=None,
     description=None,
+    yanked=False,
 ):
     """One release for :class:`FakePyPI`.
 
@@ -63,6 +64,7 @@ def release(
         "files": list(files) if files is not None else None,
         "project_urls": project_urls,
         "description": description,
+        "yanked": yanked,
     }
 
 
@@ -98,6 +100,7 @@ class FakePyPI(PyPI):
         common = {
             "upload_time_iso_8601": f"{r['uploaded']}T00:00:00Z",
             "requires_python": r["requires_python"],
+            "yanked": r.get("yanked", False),
         }
         if r.get("files") is None:
             return [common]

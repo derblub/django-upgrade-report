@@ -97,6 +97,15 @@ class Target:
         return probes
 
 
+@dataclass(frozen=True)
+class PreRelease:
+    """A pre-release newer than every stable release that says more about the target."""
+
+    version: str
+    reason: str
+    uploaded: datetime | None
+
+
 @dataclass
 class PackageReport:
     name: str
@@ -115,6 +124,8 @@ class PackageReport:
     """Where the package comes from when not from PyPI: judged by its own metadata only."""
     successor: Successor | None = None
     """What Django itself has instead, when Django took over the package's job by the target."""
+    prerelease: PreRelease | None = None
+    """A pre-release that declares the target, or no longer excludes it for a blocked package."""
 
     @property
     def stale(self) -> bool:
@@ -1149,6 +1160,8 @@ class _Package:
         if not self.stable:
             self.stable = [Version(project.latest.version)]
         self.latest_support = self._supports(project.latest)
+        self.declared = False
+        """Whether a stable release that the report names declares the target."""
         last_release = max((r.uploaded for r in project.releases if r.uploaded), default=None)
         self.report = PackageReport(
             name=dep.name,
@@ -1178,6 +1191,8 @@ class _Package:
             self._not_on_index()
         else:
             self._unpinned()
+        if report.status in (Status.CHECK, Status.BLOCKED):
+            self._prerelease()
         return report
 
     # --- the three kinds of dependency
@@ -1267,6 +1282,45 @@ class _Package:
         report.status = Status.BLOCKED
         report.reason = self._latest_reason()
 
+    def _prerelease(self) -> None:
+        """Say so when the newest pre-release does what no stable release does yet.
+
+        Only the newest one is fetched, and only when it is newer than every stable release:
+        an older pre-release was overtaken. The status stays, a pre-release is not a release.
+        """
+        if self.declared or successor(self.dep.name, self.target.version) is not None:
+            return  # a stable release declares it, or Django took over the package's job
+        floor = [r.version for r in self.project.stable_releases()]
+        if self.dep.version and _is_version(self.dep.version):
+            floor.append(Version(self.dep.version))
+        candidates = [
+            r
+            for r in self.project.releases
+            if r.version.is_prerelease
+            and r.has_files
+            and not r.yanked
+            and (not floor or r.version > max(floor))
+        ]
+        if not candidates:
+            return
+        release = max(candidates, key=lambda r: r.version)
+        try:
+            info = self.checker.pypi.release(self.dep.name, str(release.version))
+        except PyPIError:  # a hint is not worth losing the package's verdict over
+            self.report.notes.append(f"could not check {release.version}, run again later")
+            return
+        if info is None:
+            return
+        support = self._supports(info)
+        if support.verdict is Verdict.YES:
+            reason = support.reason
+        elif self.report.status is Status.BLOCKED and support.verdict is not Verdict.NO:
+            reason = f"no longer excludes Django {self.target.label}"
+        else:
+            return
+        self.report.prerelease = PreRelease(str(release.version), reason, release.uploaded)
+        self.report.notes.append(f"{release.version} {reason} (pre-release)")
+
     # --- helpers
 
     def _newer(self) -> list[Version]:
@@ -1310,6 +1364,7 @@ class _Package:
 
     def _check(self, found: _Found, note: str | None = None) -> None:
         version, _, support = found
+        self.declared = support.verdict is Verdict.YES
         self.report.status = Status.CHECK
         self.report.target_version = str(version)
         self.report.reason = f"{version} {support.reason}"

@@ -167,6 +167,7 @@
  "releases": {
   "2.4.0":{"name":"django-prometheus","version":"2.4.0","classifiers":["Framework :: Django :: 4.2","Framework :: Django :: 5.0","Framework :: Django :: 5.1","Framework :: Django :: 5.2"]},
   "2.4.1":{"name":"django-prometheus","version":"2.4.1","classifiers":["Framework :: Django :: 4.2","Framework :: Django :: 5.0","Framework :: Django :: 5.1","Framework :: Django :: 5.2"],"requires_dist":["Django<6.0,>=4.2"]},
-  "2.5.0":{"name":"django-prometheus","version":"2.5.0","classifiers":["Framework :: Django :: 4.2","Framework :: Django :: 5.1","Framework :: Django :: 5.2","Framework :: Django :: 6.0"],"requires_dist":["Django!=5.0.*,<6.1,>=4.2"]}
+  "2.5.0":{"name":"django-prometheus","version":"2.5.0","classifiers":["Framework :: Django :: 4.2","Framework :: Django :: 5.1","Framework :: Django :: 5.2","Framework :: Django :: 6.0"],"requires_dist":["Django!=5.0.*,<6.1,>=4.2"]},
+  "2.6.0.dev22":{"name":"django-prometheus","version":"2.6.0.dev22","classifiers":["Framework :: Django :: 4.2","Framework :: Django :: 5.1","Framework :: Django :: 5.2","Framework :: Django :: 6.0","Framework :: Django :: 6.1"],"requires_dist":["Django!=5.0.*,<6.2,>=4.2"],"requires_python":">=3.10"}
  }
 }

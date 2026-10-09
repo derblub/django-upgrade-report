@@ -31,6 +31,9 @@ Top level (schema_version 1):
   ``built_into_django`` is null, or, when Django took over the package's job by the
   target, an object with ``since`` (e.g. ``"3.1"``), ``replacement`` (e.g.
   ``"models.JSONField"``) and ``source`` (a URL where that is written down).
+  ``prerelease`` is null, or, for a package to check or blocked, the newest pre-release when
+  it declares the target, or no longer excludes it for a blocked package: an object with
+  ``version`` (e.g. ``"2.0rc1"``), ``reason`` and ``uploaded`` (ISO 8601 or null).
 - ``not_on_index`` (list of str): dependencies the package index does not know.
 - ``not_checked`` (list of str): dependencies the index could not answer for, even after
   retries. When not empty, the report is incomplete; ``warnings`` says why.
@@ -88,6 +91,15 @@ def as_dict(report: Report) -> dict:
                     "source": p.successor.source,
                 }
                 if p.successor
+                else None,
+                "prerelease": {
+                    "version": p.prerelease.version,
+                    "reason": p.prerelease.reason,
+                    "uploaded": p.prerelease.uploaded.isoformat()
+                    if p.prerelease.uploaded
+                    else None,
+                }
+                if p.prerelease
                 else None,
             }
             for p in report.packages
