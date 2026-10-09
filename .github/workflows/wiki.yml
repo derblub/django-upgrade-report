@@ -41,6 +41,7 @@ jobs:
           fi
           find "$wiki" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           cp docs/wiki/*.md "$wiki/"
+          cp -r docs/wiki/images "$wiki/"
           cd "$wiki"
           git add -A
           if git diff --cached --quiet; then

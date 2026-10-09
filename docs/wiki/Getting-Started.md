@@ -28,7 +28,9 @@ django-upgrade-report --target lts             # the newest x.2 release
 django-upgrade-report --target latest          # the newest release
 ```
 
-When the target skips an LTS, the report warns and suggests a smaller first step. Upgrading one LTS at a time is easier. `--via lts` shows the whole way at once: one report per LTS, each starting where the one before ends.
+When the target skips an LTS, the report warns and suggests a smaller first step. Upgrading one LTS at a time is easier. `--via lts` shows the whole way at once: one report per LTS, each starting where the one before ends. In HTML, the steps come on one page under an overview:
+
+![The HTML report of a path from Django 3.2.25 through 4.2 to 5.2: a table of the two steps with their counts, one search field for both, then step 1 with its tiles and sections](images/path.png)
 
 ## Give it the exact versions
 
@@ -42,21 +44,7 @@ If Django itself is only given as a range, say which version you run with `--fro
 
 ## Read the result
 
-```text
-Django 4.2.7 → 5.2
-from uv.lock · 9 Django-related packages · Python 3.12
-
-Blocked (1)
-  No release declares support for Django 5.2.
-  ✗ django-oldthing  1.3    latest 1.3 requires Django<5.0
-
-Upgrade first (2)
-  These releases still run on Django 4.2. Upgrade them before Django, one at a time.
-  ↑ django-filter    23.1 → 25.1    crosses 2 major versions
-  ↑ django-allauth   0.54.0 → 65.7.0  crosses 11 major versions
-                                      requires Django>=4.2.16, you have 4.2.7: update Django 4.2 first
-...
-```
+![The text report for an upgrade from Django 4.2.7 to 5.2: a git fork of django-taggit is blocked by its own Django<5.0 requirement, four packages to upgrade first, one together with Django, two to check by hand, one ready, and a git package that is not checked](images/terminal.png)
 
 Work from the top: deal with the blockers, upgrade the "first" packages one at a time, then bump Django together with the "together" packages. [Reading the report](Reading-the-Report) explains every section and note.
 
@@ -78,6 +66,9 @@ Work from the top: deal with the blockers, upgrade the "first" packages one at a
 | `?`, `q` | Show the keys, quit. |
 
 Ticks are kept per package and target in `.django-upgrade-report/state.json` in the project, not in the cache: add it to `.gitignore`, or commit it so the team sees them. It needs the `tui` extra, which brings [Textual](https://textual.textualize.io/); the tool itself does not depend on it:
+
+![-i in a terminal: the sections and packages on the left, two of them ticked off, and the chosen package on the right with its release and links](images/tui.png)
+
 
 ```console
 uvx --with textual django-upgrade-report -i

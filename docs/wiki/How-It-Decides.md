@@ -32,6 +32,8 @@ Pre-releases never decide a status: you cannot pin an `rc` in production. For a 
 
 ## Signs of support
 
+![Check manually with --evidence: four of seven packages have signs, such as "main branch tests Django 6.0 (tox.ini)" and "changelog of the unreleased changes mentions Django 6.0 support"](images/signs.png)
+
 A package to check may still show that it works on the target, in places metadata does not cover. The report shows these signs as notes, each linked to its source, and they never change a status or what `--fail-on` does. Within "Check manually", packages without a sign come first, and the section says how many have one.
 
 - **README on PyPI:** the description of the release the report names, or else of the newest release, names the target: "README of 2.1 mentions Django 5.2". It is part of the answer the report already reads, so it costs nothing. Only a version written right after "Django" counts ("Django 5.2", "Django>=5.2"), not one further down a list.
@@ -46,6 +48,8 @@ When `PROJECT` is a directory, the code in it is read, locally and without impor
 A direct dependency none of whose modules appears gets the note "not imported or configured in your code: remove it instead?", and the end of the report lists all of them, Django-related or not, under "Possibly unused". `--explain PACKAGE` says where the code uses it ("your code uses it: mysite/settings.py:7"). Module names come, with `--python`, from the environment itself (`importlib.metadata.packages_distributions()`, Python 3.10 and newer), else from a table of the packages whose modules are named otherwise (`djangorestframework` → `rest_framework`, `django-filter` → `django_filters`, `pillow` → `PIL`), else from the package name without `django-` or `python-`. The note is never given for a server or tool you run rather than import (gunicorn, pytest plugins, linters), when the project has no Python code, or when it is too big to read whole (20,000 files or 50 MB). A file that cannot be parsed is skipped. It never changes a status. `--no-scan-code` turns it off, `--scan-code DIR` points it at another directory, or at one at all when `PROJECT` is a file.
 
 ## What Django removed
+
+![What Django removed between 4.2.7 and 5.2: five removals the sample code still uses, each with the file and line, three that django-upgrade fixes, and the release notes for the rest](images/removals.png)
 
 The report lists what Django removed in the releases after yours up to the target, one line per entry of "Features removed in X.Y" in Django's release notes, and, when your code was read, where it still uses each: "The model's Meta.index_together option is removed  shop/models.py:11". Only the used ones are shown, the others as a link to the release notes; `-v` shows every one. "django-upgrade fixes this" marks what [django-upgrade](https://github.com/adamchainz/django-upgrade) rewrites.
 

@@ -41,6 +41,8 @@ The script of the HTML report (`src/django_upgrade_report/render/html_report.js`
 
 ## The wiki
 
+The pictures in the README (`docs/assets/`) and the wiki (`docs/wiki/images/`) are made by `scripts/screenshots.py` from small sample projects, so they show the current output: `CHROMIUM=/path/to/chromium uv run --with playwright --with textual python scripts/screenshots.py` (it needs the network). Run it after changing what a report looks like, look at every picture, and commit them.
+
 The wiki is written in [`docs/wiki/`](docs/wiki) and published to the GitHub wiki on every push to `main`, so change it with a pull request. Three pages are generated from the code: after changing an option, the JSON report or `action.yml`, run `PYTHONPATH=src python3 scripts/wiki.py`. A test fails when they are out of date.
 
 ## Where things live

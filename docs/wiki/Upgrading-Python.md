@@ -35,6 +35,8 @@ Wheels count when they install on CPython under Linux on x86_64, where Django ap
 
 ## What the section shows
 
+![The Python section of a report for Django 6.0 on a project with Python 3.10: numpy and psycopg2-binary need a newer release with a wheel for Python 3.12, two dependencies run on it already, and Django 4.2.7 itself needs 4.2.8 first](images/python.png)
+
 - **Rows** for dependencies whose installed release excludes the Python or would be built from source, with the oldest newer release that runs on it, and those no release fixes (blocked).
 - A note **goes together with the switch to Python 3.12** when that release no longer runs on the Python you use today.
 - One line counts the dependencies that run on it already; another names those whose release says nothing about Python at all (old sdist-only packages).

@@ -63,6 +63,15 @@ page the change belongs to, and run `PYTHONPATH=src python3 scripts/wiki.py` whe
 the JSON report or `action.yml` changed (a test fails otherwise). Do not bump the version or tag a release: releases are the
 user's call.
 
+**Screenshots.** When a step changes something people see (a section of the text report,
+the HTML report, `-i`, a new output), update the pictures: add the case to
+`scripts/screenshots.py` if it is new, run it (`CHROMIUM=/opt/pw-browsers/chromium uv run
+--with playwright --with textual python scripts/screenshots.py`, it needs the network), look
+at every picture it writes, and show new ones where they help: the README for the main ones
+(`docs/assets/`), the wiki page the change belongs to (`docs/wiki/images/`, as
+`![what it shows](images/name.png)`, with alt text that says what the picture shows). A
+test fails when a wiki image is missing or unused.
+
 ## 4. Verify
 
 All of these must pass before committing; fix and re-run until they do:

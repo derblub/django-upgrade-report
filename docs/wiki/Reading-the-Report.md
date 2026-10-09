@@ -42,6 +42,8 @@ The version column shows what you have and the release to move to: the **oldest*
 
 ## Searching and filtering the HTML report
 
+![The HTML report: the counts, a counter of ticks, the search field and status filters, two packages ticked off, and one row opened to its links and the line to pin](images/html-report.png)
+
 `--format html` writes one self-contained file. Above the sections, a search field finds packages by name, reason or note; press `/` to get there. The chips show one status only ("upgrade first", "to check" and so on), and the tiles at the top do the same: click "3 blocked" to see the blockers. "only with notes" hides the rows without notes, "only direct dependencies" the ones your project does not name itself (it is there when the report can tell, see [Dependency sources](Dependency-Sources#direct-or-not)), and `Esc` shows everything again.
 
 A click on a column heading sorts the table: by name, by how many major versions the step crosses, or by the last release. Every row has "details" to open: links to PyPI, the changelog and the repository, the newest release and when the last one came out, and the line to pin, `django-filter==25.1`, with a button that copies it. `j` and `k` go from row to row, `Enter` opens one.

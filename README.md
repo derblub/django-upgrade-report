@@ -84,6 +84,10 @@ django-upgrade-report --target 6.1
 
 To move through a long report instead of scrolling it, open it in the terminal with `-i`: the sections and packages on the left, the chosen package on the right with its notes, signs, command and links. `/` searches, `f` shows one status, `space` ticks a package off, `e` copies its command, `o` opens its changelog, `t` checks another target and `w` writes the report to a file. Ticks are kept in `.django-upgrade-report/state.json` in the project: add it to `.gitignore`, or commit it to share them. It needs the `tui` extra:
 
+<p align="center">
+  <img src="docs/assets/tui.png" alt="-i in a terminal: the sections and packages on the left, two of them ticked off, and the chosen package on the right with its release and links" width="820">
+</p>
+
 ```console
 uvx --with textual django-upgrade-report -i
 pip install 'django-upgrade-report[tui]'       # or install it with the extra

@@ -54,13 +54,23 @@ def test_links_between_pages_lead_somewhere():
     }
     broken = []
     for name, text in pages.items():
-        for target in re.findall(r"\]\(([^)\s]+)\)", text):
+        for target in re.findall(r"(?<!!)\[[^\]]*\]\(([^)\s]+)\)", text):
             if "://" in target or target.startswith("#"):
                 continue
             page, _, anchor = target.partition("#")
             if page not in pages or (anchor and anchor not in anchors[page]):
                 broken.append(f"{name}: {target}")
     assert broken == []
+
+
+def test_every_image_is_there_and_shown():
+    """docs/wiki/images/ is published with the pages; scripts/screenshots.py makes it."""
+    shown = set()
+    for path in WIKI.glob("*.md"):
+        for target in re.findall(r"!\[[^\]]*\]\(([^)\s]+)\)", path.read_text(encoding="utf-8")):
+            assert (WIKI / target).is_file(), f"{path.name}: {target}"
+            shown.add(target)
+    assert {f"images/{p.name}" for p in (WIKI / "images").iterdir()} == shown
 
 
 def test_the_sidebar_lists_every_page():

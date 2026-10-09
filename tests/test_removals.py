@@ -117,7 +117,7 @@ def test_in_the_report(project, capsys):
     cli.main([str(project), "--no-input"])  # no code: listed, not matched
     out = capsys.readouterr().out
     assert "Removed in Django 5.0 and 5.1 (" in out
-    assert "removals to look for in your code: https://docs.djangoproject.com/en/5.0/" in out
+    assert "removals to look for in your code, in the release notes:\n    https://docs." in out
     cli.main([str(project), "-f", "json"])
     data = json.loads(capsys.readouterr().out)
     assert data["removals"] and all(r["used_in"] is None for r in data["removals"])

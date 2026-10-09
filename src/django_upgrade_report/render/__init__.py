@@ -282,17 +282,17 @@ def removals_title(report: Report) -> str:
     return f"Removed in Django {named} ({len(report.removals)})"
 
 
-def removal_rows(report: Report, verbose: bool = False) -> tuple[list, str | None]:
-    """The removals to show (the used ones, every one with ``verbose``) and a line for the
-    rest with the release notes to read."""
+def removal_rows(report: Report, verbose: bool = False) -> tuple[list, str | None, list[str]]:
+    """The removals to show (the used ones, every one with ``verbose``), a line for the rest,
+    and the release notes to read for them."""
     shown = [r for r in report.removals if verbose or r.used_in]
     rest = len(report.removals) - len(shown)
     if not rest:
-        return shown, None
-    urls = " · ".join(dict.fromkeys(r.url for r in report.removals))
+        return shown, None, []
+    urls = list(dict.fromkeys(r.url for r in report.removals))
     what = "you do not use" if report.code_read else "to look for in your code"
     more = "more " if shown else ""
-    return shown, f"{rest} {more}removals {what}: {urls}"
+    return shown, f"{rest} {more}removals {what}, in the release notes", urls
 
 
 def removal_note(removal) -> str:

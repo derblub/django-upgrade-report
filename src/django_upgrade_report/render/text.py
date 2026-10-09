@@ -136,14 +136,15 @@ def render(
         lines.append(_counts(report, paint))
         return "\n".join(lines)
     if report.removals:
-        shown, rest = removal_rows(report, verbose)
+        shown, rest, urls = removal_rows(report, verbose)
         lines.append(paint(removals_title(report), "1"))
         width = max((len(r.text) for r in shown), default=0)
         for removal in shown:
             note = removal_note(removal)
             lines.append(f"  {removal.text.ljust(width)}  {paint(note, '2')}".rstrip())
         if rest:
-            lines.append(paint(f"  {rest[0].upper()}{rest[1:]}", "2"))
+            lines.append(paint(f"  {rest[0].upper()}{rest[1:]}:", "2"))
+            lines += [paint(f"    {url}", "2") for url in urls]
         lines.append("")
     if report.missing:
         lines.append(paint(f"Not on the package index: {', '.join(report.missing)}", "2"))
