@@ -27,6 +27,7 @@ from django_upgrade_report import (
 )
 from django_upgrade_report.analysis import (
     SEVERITY,
+    ExplainLine,
     PathReport,
     Report,
     Status,
@@ -503,10 +504,21 @@ def _usage(args: argparse.Namespace, report: Report, deps: sources.DependencySet
             f"{usage.MAX_FILES:,} files or {usage.MAX_BYTES // 2**20} MB"
         )
         return
+    gone = {
+        name
+        for name, dep in deps.dependencies.items()
+        if name != "django" and dep.direct is True and usage.unused(name, found, deps.modules)
+    }
+    report.unused = sorted(gone)
     for p in report.packages:
-        dep = deps.dependencies.get(p.name)
-        if dep is not None and dep.direct is True and usage.unused(p.name, found):
+        if p.name in gone:
             p.notes.append(usage.NOTE)
+    for name, lines in report.explanations.items():
+        where = usage.where(name, found, deps.modules)
+        if where:
+            lines.append(ExplainLine("result", f"your code uses it: {where}"))
+        elif name in gone:
+            lines.append(ExplainLine("result", f"your code never names it: {usage.NOTE}"))
 
 
 def _evidence(

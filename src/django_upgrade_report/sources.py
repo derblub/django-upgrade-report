@@ -11,7 +11,7 @@ import re
 import subprocess
 import sys
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
@@ -64,6 +64,9 @@ class DependencySet:
     """The project's Python as ``X.Y``, when it can be determined."""
     python_source: str = ""
     """Where :attr:`python` came from, e.g. ``.python-version``."""
+    modules: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    """The top-level modules of each installed distribution, by canonical name: known only
+    for ``--python``, from the environment itself."""
 
 
 class NoDependenciesFound(Exception):
@@ -1287,7 +1290,16 @@ else:
             direct = d.get_metadata("direct_url.json")
         packages.append([d.project_name, d.version, direct])
 python = "%d.%d.%d" % tuple(sys.version_info[:3])
-sys.stdout.write("\\n" + MARKER + json.dumps({"python": python, "packages": packages}))
+modules = {}
+try:  # Python 3.10+: which distribution installs which top-level module
+    for module, names in m.packages_distributions().items():
+        for name in names:
+            modules.setdefault(name, []).append(module)
+except Exception:
+    modules = {}
+sys.stdout.write("\\n" + MARKER + json.dumps(
+    {"python": python, "packages": packages, "modules": modules}
+))
 """
 # Wrappers and sitecustomize may print banners first; the listing follows this marker.
 _MARKER = "--- django-upgrade-report packages ---"
@@ -1364,4 +1376,11 @@ def from_environment(python: str) -> DependencySet:
         dep = _dep(name, version, external=external, metadata=metadata)
         deps.setdefault(dep.name, dep)  # the first on sys.path is the one Python imports
     py = data.get("python") if isinstance(data.get("python"), str) else None
-    return _dependency_set(f"packages installed for {python}", deps, py, "--python")
+    found = _dependency_set(f"packages installed for {python}", deps, py, "--python")
+    listed = data.get("modules")
+    if isinstance(listed, dict):
+        for name, modules in listed.items():
+            if isinstance(name, str) and isinstance(modules, list):
+                names = tuple(sorted({str(m) for m in modules if not str(m).startswith("_")}))
+                found.modules[canonicalize_name(name)] = names
+    return found

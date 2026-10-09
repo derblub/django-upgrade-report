@@ -10,6 +10,7 @@ from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __vers
 from django_upgrade_report.analysis import PackageReport, PathReport, Report, Status
 from django_upgrade_report.projects import safe_url
 from django_upgrade_report.render import (
+    UNUSED_HINT,
     change_rows,
     changes_title,
     headline,
@@ -352,6 +353,13 @@ def _body(report: Report, static: bool, prefix: str = "") -> list[str]:
         body.append(
             f'<section class="aside" id="{prefix}external"><h3>Not from PyPI, not checked</h3>'
             f"<ul>{items}</ul>{hint_html}</section>"
+        )
+    if report.unused:
+        items = "".join(f"<li>{escape(name)}</li>" for name in report.unused)
+        body.append(
+            f'<section class="aside" id="{prefix}unused"><h3>Possibly unused '
+            f'<span class="count">{len(report.unused)}</span></h3><ul>{items}</ul>'
+            f'<p class="hint">{escape(UNUSED_HINT[0].upper() + UNUSED_HINT[1:])}.</p></section>'
         )
     return body
 

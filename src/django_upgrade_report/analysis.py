@@ -227,6 +227,8 @@ class Report:
     """For each package asked about with ``--explain``, how its verdict came about."""
     django_origin: str | None = None
     """The requirement file line that pins or names Django, as ``path:line``."""
+    unused: list[str] = field(default_factory=list)
+    """Direct dependencies, Django-related or not, that the project's code never names."""
 
     def by_status(self, status: Status) -> list[PackageReport]:
         return [p for p in self.packages if p.status is status]

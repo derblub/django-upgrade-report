@@ -289,9 +289,12 @@ def _manage_call(node: ast.Call) -> bool:
     )
 
 
-def modules(name: str) -> tuple[str, ...]:
-    """The module names a distribution most likely installs."""
+def modules(name: str, known: dict[str, tuple[str, ...]] | None = None) -> tuple[str, ...]:
+    """The module names a distribution installs: ``known`` (from the environment, exact),
+    else the table, else guesses from its name."""
     canonical = canonicalize_name(name)
+    if known and known.get(canonical):
+        return known[canonical]
     if canonical in MODULES:
         return MODULES[canonical]
     plain = canonical.replace("-", "_")
@@ -307,8 +310,16 @@ def is_tool(name: str) -> bool:
     return canonical in TOOLS or canonical.startswith(_TOOL_PREFIXES)
 
 
-def unused(name: str, found: Scan) -> bool:
+def unused(name: str, found: Scan, known: dict[str, tuple[str, ...]] | None = None) -> bool:
     """True only when the scan was complete and nothing names any of the package's modules."""
     if not found.complete or not found.python or is_tool(name):
         return False
-    return not any(module.lower() in found.names for module in modules(name))
+    return where(name, found, known) is None
+
+
+def where(name: str, found: Scan, known: dict[str, tuple[str, ...]] | None = None) -> str | None:
+    """The first place the code names one of the package's modules."""
+    for module in modules(name, known):
+        if module.lower() in found.names:
+            return found.names[module.lower()]
+    return None

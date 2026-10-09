@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django_upgrade_report.analysis import PackageReport, PathReport, Report, Status
 from django_upgrade_report.render import (
+    UNUSED_HINT,
     change_rows,
     changes_title,
     headline,
@@ -139,6 +140,11 @@ def render(
         hint = private_index_hint(report)
         if hint:
             lines.append(paint(hint, "2"))
+    if report.unused:
+        lines.append(
+            paint(f"Possibly unused ({len(report.unused)}): {', '.join(report.unused)}", "2")
+        )
+        lines.append(paint(f"  {UNUSED_HINT[0].upper()}{UNUSED_HINT[1:]}", "2"))
     if report.skipped:
         lines.append(paint(skipped_line(report), "2"))
     python = python_line(report)

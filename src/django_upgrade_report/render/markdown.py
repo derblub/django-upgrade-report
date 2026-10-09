@@ -7,6 +7,7 @@ import re
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL
 from django_upgrade_report.analysis import PackageReport, PathReport, Report, Status
 from django_upgrade_report.render import (
+    UNUSED_HINT,
     change_rows,
     changes_title,
     headline,
@@ -128,6 +129,9 @@ def render(report: Report, only_changes: bool = False, footer: bool = True) -> s
         hint = private_index_hint(report)
         if hint:
             lines += [f"{escape(hint)}.", ""]
+    if report.unused:
+        unused = ", ".join(_code(name) for name in report.unused)
+        lines += [f"**Possibly unused ({len(report.unused)}):** {unused}: {UNUSED_HINT}", ""]
     if report.skipped:
         lines += [f"{skipped_line(report)}.", ""]
     python = python_line(report)

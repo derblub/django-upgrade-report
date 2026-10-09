@@ -59,6 +59,9 @@
   Django-related metadata could be read locally), as objects with
   `name` and `source` (e.g. `"git https://github.com/org/repo"`).
 - `skipped_non_django` (int): dependencies without a Django requirement.
+- `unused` (list of str): direct dependencies, Django-related or not, that the project's
+  code never names (read locally); empty when the code was not read (`--no-scan-code`, a
+  file as the project, no Python code, or too big to read).
 - `changes` (object or null): with `--baseline`, what changed since that report:
   `since` (its `generated`), `target` (its target), `compared` (false when that target
   is not this report's: then nothing is compared) and `items`, most important first,

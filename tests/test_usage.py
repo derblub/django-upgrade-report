@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
@@ -93,3 +94,38 @@ def test_switched_off_or_pointed_elsewhere(project, tmp_path, capsys):
     assert usage.NOTE in capsys.readouterr().out
     assert cli.main([str(project), "--scan-code", str(tmp_path / "none")]) == 2
     assert "--scan-code" in capsys.readouterr().err
+
+
+def test_possibly_unused_in_every_format(project, capsys):
+    sample_project(project)
+    (project / "requirements.txt").write_text(
+        "Django==4.2.7\ndjango-ready==1.0\ndjango-blocked==1.0\nrequests==2.31.0\ngunicorn==22.0\n"
+    )
+    cli.main([str(project), "--no-input"])
+    out = capsys.readouterr().out
+    assert "Possibly unused (2): django-blocked, requests" in out  # not Django-related too
+    cli.main([str(project), "-f", "markdown"])
+    assert "**Possibly unused (2):** `django-blocked`, `requests`: not imported" in (
+        capsys.readouterr().out
+    )
+    cli.main([str(project), "-f", "html"])
+    assert '<h3>Possibly unused <span class="count">2</span></h3>' in capsys.readouterr().out
+    cli.main([str(project), "-f", "json"])
+    assert json.loads(capsys.readouterr().out)["unused"] == ["django-blocked", "requests"]
+    cli.main([str(project), "-f", "json", "--no-scan-code"])
+    assert json.loads(capsys.readouterr().out)["unused"] == []
+
+
+def test_explain_says_where_the_code_uses_it(project, capsys):
+    sample_project(project)
+    cli.main([str(project), "--explain", "django-ready", "--explain", "django-blocked"])
+    out = capsys.readouterr().out
+    assert "your code uses it: mysite/settings.py:7" in out
+    assert "your code never names it: not imported or configured" in out
+
+
+def test_known_module_names_win():
+    found = usage.Scan(names={"bs4": "a.py:1"}, python=1)
+    assert usage.unused("beautifulsoup4", found) is False  # from the table
+    assert usage.unused("weird-dist", found, {"weird-dist": ("bs4",)}) is False
+    assert usage.unused("weird-dist", found) is True

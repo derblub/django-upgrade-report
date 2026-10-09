@@ -73,9 +73,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | erledigt |
 | 7.2a | 0.10 | `tui.py` (Extra `tui`), Liste und Details, Suche, Hilfe, `-i`-Prüfungen, Pilot-Tests, CI-Job | erledigt |
 | 7.2b | 0.10 | Ziel wechseln (`t`), Filter (`f`), Abhaken mit Zustandsdatei, Befehl kopieren (`e`), Link öffnen (`o`), Schreiben (`w`) | erledigt |
-| 2.4 | 0.11 | Ungenutzte Pakete | in Arbeit |
+| 2.4 | 0.11 | Ungenutzte Pakete | erledigt |
 | 2.4a | 0.11 | `usage.py` (Scan, Namenstabelle), Notiz an direkten Django-Paketen, `--no-scan-code`, `--scan-code` | erledigt |
-| 2.4b | 0.11 | Abschnitt „Possibly unused“ für alle direkten Pakete, Modulnamen über `--python`, `--explain` | offen |
+| 2.4b | 0.11 | Abschnitt „Possibly unused“ für alle direkten Pakete, Modulnamen über `--python`, `--explain` | erledigt |
 | 2.5 | 0.11 | Was Django entfernt hat | offen |
 | 6.1 | 1.0 | Wagtail und django CMS als Ziel | offen |
 | 6.2 | 1.0 | Mehrere Projekte | offen |
@@ -915,6 +915,13 @@ Projekt ohne eine einzige Python-Datei bekommt keine Notiz (sonst wäre bei eine
 nur `requirements.txt` jedes Paket „ungenutzt“), alle Listen in Namen auf `APPS` zählen
 (`THIRD_PARTY_APPS`, `+=`), und `call_command("…")` zählt wie ein Befehl im Skript. Der Scan
 läuft einmal pro Lauf, auch bei `--via` und Zielwechsel in `-i`.
+
+**Umsetzung 2.4b:** `Report.unused` (JSON `unused`) mit allen direkten Abhängigkeiten außer
+Django, die der Code nicht nennt; Text, Markdown und HTML zeigen sie am Ende als „Possibly
+unused (N)“ mit dem Hinweis, sie statt eines Upgrades zu entfernen. `--explain` bekommt eine
+Zeile im Abschnitt „Result“ mit der Fundstelle (oder der Notiz). Mit `--python` liefert das
+Umgebungsskript `packages_distributions()` (`DependencySet.modules`); ältere Interpreter
+liefern nichts, dann gilt die Tabelle.
 
 ### 2.5 Was Django entfernt hat
 

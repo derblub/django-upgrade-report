@@ -240,6 +240,9 @@ def _minor_label(version: str | None) -> str:
     return ".".join(version.split(".")[:2])
 
 
+UNUSED_HINT = "not imported or configured in your code: remove them instead of upgrading?"
+
+
 def path_headline(path: PathReport) -> str:
     """``Django 3.2.25 → 4.2 → 5.2 (2 steps)``."""
     first = path.steps[0].current_django

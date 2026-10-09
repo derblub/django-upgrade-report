@@ -637,6 +637,7 @@ def test_environment():
     assert ds.dependencies["packaging"].version
     assert ds.python == f"{sys.version_info.major}.{sys.version_info.minor}"
     assert ds.python_source == "--python"
+    assert ds.modules["packaging"] == ("packaging",)  # from the environment itself
 
 
 def fake_interpreter(tmp_path: Path, script: str) -> str:
