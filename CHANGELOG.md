@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- An index that answers HTTP 403 because of a rate limit (`X-RateLimit-Remaining: 0` or `Retry-After`) is asked again when the limit lets it within 30 seconds, like an HTTP 429. A longer wait stops the run at once with "rate limit exceeded" instead of retrying in vain, and any other 403 still stops it.
+
 ## [0.4.0] - 2026-09-29
 
 ### Added

@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import base64
 import http.client
-import io
 import json
 import urllib.error
-from email.message import Message
 
 import pytest
+from conftest import Response, http_error, serve
 
 from django_upgrade_report import pypi
 from django_upgrade_report.pypi import PyPI, PyPIError
@@ -24,54 +23,6 @@ PROJECT = {
     },
     "releases": {"1.0": [{"upload_time_iso_8601": "2026-01-01T00:00:00Z"}]},
 }
-
-
-class Response(io.BytesIO):
-    def __init__(self, body: bytes, fail: Exception | None = None):
-        super().__init__(body)
-        self.fail = fail
-
-    def read(self, *args):
-        if self.fail:
-            raise self.fail
-        return super().read(*args)
-
-
-def http_error(code: int, headers: dict | None = None) -> urllib.error.HTTPError:
-    message = Message()
-    for key, value in (headers or {}).items():
-        message[key] = value
-    return urllib.error.HTTPError("https://x", code, "Nope", message, io.BytesIO())
-
-
-class FakeHTTP:
-    """Answers each request with the next of ``answers``: an exception, bytes or a dict."""
-
-    def __init__(self, *answers):
-        self.answers = list(answers)
-        self.requests: list[urllib.request.Request] = []
-
-    def __call__(self, request, timeout=None):
-        self.requests.append(request)
-        answer = self.answers.pop(0) if len(self.answers) > 1 else self.answers[0]
-        if isinstance(answer, Exception):
-            raise answer
-        if isinstance(answer, Response):
-            return answer
-        return Response(answer if isinstance(answer, bytes) else json.dumps(answer).encode())
-
-
-@pytest.fixture
-def sleeps(monkeypatch):
-    slept: list[float] = []
-    monkeypatch.setattr(pypi.time, "sleep", slept.append)
-    return slept
-
-
-def serve(monkeypatch, *answers) -> FakeHTTP:
-    fake = FakeHTTP(*answers)
-    monkeypatch.setattr(pypi.urllib.request, "urlopen", fake)
-    return fake
 
 
 def test_project(monkeypatch, sleeps):

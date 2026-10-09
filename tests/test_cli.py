@@ -121,14 +121,14 @@ def test_private_index_token_is_never_printed(project, monkeypatch, capsys):
     import urllib.error
     from email.message import Message
 
-    from django_upgrade_report import pypi
+    from django_upgrade_report import client, pypi
 
     def urlopen(request, timeout=None):
         assert "s3cr3t" not in request.full_url
         raise urllib.error.HTTPError(request.full_url, 401, "Unauthorized", Message(), io.BytesIO())
 
     monkeypatch.setattr(cli, "PyPI", pypi.PyPI)
-    monkeypatch.setattr(pypi.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(client.urllib.request, "urlopen", urlopen)
     url = "https://deploy:s3cr3t@pkgs.example.com/pypi"
     assert cli.main([str(project), "--no-cache", "--index-url", url]) == 2
     err = capsys.readouterr().err
@@ -314,10 +314,10 @@ def test_json_schema(busy_project, capsys):
 
 def test_index_answering_json_without_info_is_a_clean_error(project, monkeypatch, capsys):
     """A proxy that answers {} used to crash with a KeyError traceback and exit 1."""
-    from django_upgrade_report import pypi
+    from django_upgrade_report import client, pypi
 
     monkeypatch.setattr(cli, "PyPI", pypi.PyPI)
-    monkeypatch.setattr(pypi.urllib.request, "urlopen", lambda r, timeout=None: io.BytesIO(b"{}"))
+    monkeypatch.setattr(client.urllib.request, "urlopen", lambda r, timeout=None: io.BytesIO(b"{}"))
     url = "http://127.0.0.1:8765/noinfo"
     assert cli.main([str(project), "--no-cache", "--index-url", url, "--fail-on", "blocked"]) == 2
     err = capsys.readouterr().err

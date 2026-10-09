@@ -43,7 +43,8 @@ CI also measures coverage: `uv run --group dev pytest --cov=django_upgrade_repor
 | File | What it does |
 | --- | --- |
 | `src/django_upgrade_report/sources.py` | Reads lockfiles, requirement files, `pyproject.toml` and environments into `Dependency` objects, and finds the project's Python |
-| `src/django_upgrade_report/pypi.py` | Cached client for the PyPI JSON API, with retries |
+| `src/django_upgrade_report/client.py` | HTTP client for JSON APIs: retries, rate limits, disk cache, no credentials in errors |
+| `src/django_upgrade_report/pypi.py` | The PyPI JSON API on top of `client.py`: what is valid, what is cached and for how long |
 | `src/django_upgrade_report/analysis.py` | The target (`resolve_target()`), the verdict rules (`supports()`) and the per-package status and phase |
 | `src/django_upgrade_report/render/` | Text, Markdown, JSON and HTML output. `render/json.py` documents the JSON fields and `schema_version` |
 | `src/django_upgrade_report/successors.py` | Packages whose job Django took over, each with a source |

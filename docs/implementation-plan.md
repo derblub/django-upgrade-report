@@ -29,7 +29,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 
 | Schritt | Release | Punkt | Status |
 | --- | --- | --- | --- |
-| 0.1 | 0.5 | HTTP-Client herauslösen | offen |
+| 0.1 | 0.5 | HTTP-Client herauslösen | erledigt |
 | 0.2 | 0.5 | Cache-Format v2 und neue Metadaten | offen |
 | 0.3 | 0.5 | Erweiterungen am Report-Modell | offen |
 | 0.6 | 0.5 | Testinfrastruktur | offen |
@@ -113,30 +113,35 @@ aber. Jeder Schritt ist ein eigener PR und ändert das Verhalten nicht. Die Gold
 **Wofür:** 1.2, 1.3, 3.3, 4.2 und 6.3 sprechen mit GitHub und brauchen dieselben Retries,
 denselben Cache und dieselbe Schwärzung von Zugangsdaten wie `PyPI`.
 
-**Design**
+**Design** (umgesetzt)
 
-- Neues Modul `src/django_upgrade_report/http.py` mit `class JsonClient` und `class TextClient`
-  (für Rohdateien wie `tox.ini`). Dorthin wandern aus `pypi.py`: `_fetch`, `_fetch_once`,
-  `_request`, `_retry_after`, `_describe`, `_split_credentials`, `redact`, die
-  Cache-Lese- und -Schreibfunktionen und das Semaphor `MAX_CONNECTIONS`.
-- Konstruktor: `base_url`, `cache_dir`, `ttl` (Sekunden, `None` = für immer), `timeout`,
-  `headers` (z. B. `Authorization: Bearer $GITHUB_TOKEN`), `user_agent`, `validate`
-  (Callback, der eine Antwort ablehnen kann, heute `_validate`) und `slim` (Callback vor dem
-  Schreiben in den Cache, heute `_slim`).
-- Die TTL-Entscheidung „Release-Metadaten für immer, Projektindex 24 h“ steckt heute in
-  `_read_cache` als Zählung der `/`. Sie wird zu einem Parameter `ttl_for(url) -> float | None`,
-  den `PyPI` setzt.
-- `PyPI` erbt nicht mehr von einer HTTP-Klasse, sondern besitzt einen `JsonClient`.
-  Öffentliche API bleibt: `project()`, `release()`, `redact()`, `index_url`. `FakePyPI` und
-  `RecordedPyPI` überschreiben weiterhin `_fetch`: Diese Methode bleibt auf `PyPI` als dünne
-  Weiterleitung, damit die Tests unverändert laufen.
-- Rate-Limits pro Host: Ein eigenes Semaphor pro Client, damit GitHub (opt-in) PyPI nicht
-  ausbremst.
-- HTTP 403 mit `X-RateLimit-Remaining: 0` (GitHub) gilt wie 429: warten bis `X-RateLimit-Reset`,
-  höchstens `MAX_RETRY_AFTER`, danach `PyPIError` → umbenennen in `FetchError` mit dem Alias
-  `PyPIError = FetchError` für Abwärtskompatibilität.
+- Neues Modul `src/django_upgrade_report/client.py` (nicht `http.py`, um keine Verwechslung mit
+  dem Standardmodul `http` zu riskieren) mit `class JsonClient`. Dorthin sind aus `pypi.py`
+  gewandert: `_get`, `_fetch`, `_fetch_once`, `_request`, `_retry_after`, `_describe`,
+  `_split_credentials`, `redact`, die Cache-Lese- und -Schreibfunktionen, `USER_AGENT`,
+  `ATTEMPTS`, `MAX_RETRY_AFTER` und das Semaphor `MAX_CONNECTIONS` (eines pro Client, also pro
+  Host).
+- Konstruktor: `base_url`, `cache_dir`, `timeout`, `headers` (z. B.
+  `Authorization: Bearer $GITHUB_TOKEN`) und `connections`. Was ein Client anders macht,
+  überschreibt er als Methode: `_validate(data)` (lehnt Antworten ab, heute die PyPI-Prüfung),
+  `_ttl(url)` (Sekunden oder `None` = für immer) und `_slim(data)` (was in den Cache kommt),
+  dazu das Klassenattribut `hint` für Fehlermeldungen.
+- `PyPI` erbt von `JsonClient`. So überschreiben `FakePyPI` und `RecordedPyPI` weiterhin
+  `_fetch`, und die öffentliche API (`project()`, `release()`, `redact()`, `index_url`) bleibt
+  gleich. Die TTL-Regel „Release-Metadaten für immer, Projektindex 24 h“ ist `PyPI._ttl`.
+- HTTP 403 wegen eines Rate-Limits (GitHub: `X-RateLimit-Remaining: 0` oder, beim sekundären
+  Limit, `Retry-After`) gilt wie 429: warten bis `Retry-After` bzw. `X-RateLimit-Reset`. Liegt
+  das weiter als `MAX_RETRY_AFTER` entfernt, bricht die Anfrage sofort mit „rate limit exceeded“
+  ab, statt viermal vergeblich zu warten. Ein Reset in der Vergangenheit fällt auf das normale
+  Backoff zurück. Andere 403 werden wie bisher nicht wiederholt.
+- Antworten aus dem Disk-Cache laufen durch `_validate`; ein unpassender Eintrag gilt als
+  Cache-Fehlschlag. `null` ist nie eine gültige Antwort, weil `None` „nicht gefunden“ heißt.
+- Bekannte Grenze für 1.2: Der Cache-Schlüssel ist nur die URL, nicht der
+  `Authorization`-Header. Mit `GITHUB_TOKEN` nur Antworten zu öffentlichen Repositories cachen.
+- `FetchError` ersetzt `PyPIError`; `pypi.PyPIError` bleibt als Alias für bestehende Aufrufer.
+- Einen `TextClient` für Rohdateien (`tox.ini`) bringt erst Schritt 1.2, wenn er gebraucht wird.
 
-**Tests:** `tests/test_pypi.py` bleibt grün. Neu `tests/test_http.py`: Retry auf 503, Abbruch
+**Tests:** `tests/test_pypi.py` bleibt grün. Neu `tests/test_client.py`: Retry auf 503, Abbruch
 auf 404, Rate-Limit-Header, Schwärzung in Fehlermeldungen, TTL `None` vs. Sekunden.
 
 **Aufwand:** S–M.
@@ -173,7 +178,7 @@ vermissen.
 - `ReleaseInfo` bekommt neue Felder mit Default, damit `sources._metadata` und die Tests weiter
   funktionieren:
   ```python
-  project_urls: tuple[tuple[str, str], ...] = ()   # hashbar, frozen dataclass
+  project_urls: tuple[tuple[str, str], ...] = ()  # hashbar, frozen dataclass
   django_mentions: tuple[str, ...] = ()
   wheel_tags: tuple[str, ...] = ()
   has_sdist: bool = False
@@ -209,22 +214,22 @@ Dateilisten; kaputte Werte (keine Strings) werden ignoriert, wie heute in `_stri
 - `PackageReport` bekommt optionale Felder (alle mit Default `None` oder leerer Liste), die
   einzelne Funktionen füllen:
   ```python
-  prerelease: PreRelease | None = None            # 1.1
-  evidence: list[Evidence] = field(...)           # 1.2
-  upstream: list[UpstreamItem] = field(...)       # 1.3
-  majors_crossed: int | None = None               # 2.3
-  changelog_url: str | None = None                # 2.3
-  repository_url: str | None = None               # 2.3, 1.2, 1.3
-  usage: Usage | None = None                      # 2.4
-  direct: bool | None = None                      # 0.4
+  prerelease: PreRelease | None = None  # 1.1
+  evidence: list[Evidence] = field(...)  # 1.2
+  upstream: list[UpstreamItem] = field(...)  # 1.3
+  majors_crossed: int | None = None  # 2.3
+  changelog_url: str | None = None  # 2.3
+  repository_url: str | None = None  # 2.3, 1.2, 1.3
+  usage: Usage | None = None  # 2.4
+  direct: bool | None = None  # 0.4
   ```
 - `Report` bekommt:
   ```python
-  kind: str = "report"                     # "report"; Pfad und Multi siehe 2.2, 6.2
-  framework: str = "django"                # 6.1
-  python_plan: PythonPlan | None = None    # 2.1
-  removals: list[Removal] = field(...)     # 2.5
-  changes: list[Change] | None = None      # 4.1
+  kind: str = "report"  # "report"; Pfad und Multi siehe 2.2, 6.2
+  framework: str = "django"  # 6.1
+  python_plan: PythonPlan | None = None  # 2.1
+  removals: list[Removal] = field(...)  # 2.5
+  changes: list[Change] | None = None  # 4.1
   ```
 - `render/json.py` gibt jedes neue Feld aus, auch wenn es leer ist (`null` oder `[]`), damit
   Skripte nicht raten müssen. Die Feldliste im Docstring wird ergänzt.
@@ -275,7 +280,7 @@ und `excluded_side(info, self.target)` gebunden.
   ```python
   class Rule(Protocol):
       def judge(self, info: ReleaseInfo, uploaded: datetime | None) -> Support: ...
-      def side(self, info: ReleaseInfo) -> int: ...   # wie excluded_side
+      def side(self, info: ReleaseInfo) -> int: ...  # wie excluded_side
   ```
 - `DjangoRule(target)` kapselt die heutige Logik (`supports`, `excluded_side`). `find`,
   `lowest_yes` und `search` bekommen `rule: Rule` als Parameter, Default
@@ -562,10 +567,10 @@ das P nicht unterstützt, bekommt die Notiz `"2.0 does not declare Python 3.12"`
 ```python
 @dataclass
 class PythonPlan:
-    target: str                      # "3.12"
-    current: str | None              # "3.10"
-    packages: list[PackageReport]    # nur nicht-READY, gleiche Klasse, eigene Statusbedeutung
-    ready: int                       # Summenzeile
+    target: str  # "3.12"
+    current: str | None  # "3.10"
+    packages: list[PackageReport]  # nur nicht-READY, gleiche Klasse, eigene Statusbedeutung
+    ready: int  # Summenzeile
     pure: int
     django_note: str | None
 ```
@@ -1181,14 +1186,14 @@ Wagtail 6.3 → 7.0
   ```python
   @dataclass(frozen=True)
   class Framework:
-      key: str                  # "django", "wagtail", "django-cms"
-      display: str              # "Django", "Wagtail", "django CMS"
-      package: str              # PyPI-Name
-      classifier: str           # "Framework :: Django", "Framework :: Wagtail", "Framework :: Django CMS"
+      key: str  # "django", "wagtail", "django-cms"
+      display: str  # "Django", "Wagtail", "django CMS"
+      package: str  # PyPI-Name
+      classifier: str  # "Framework :: Django", "Framework :: Wagtail", "Framework :: Django CMS"
       lts: Callable[[Version], bool] | frozenset[Version]
       next_feature: Callable[[Version], Version]
-      versions: Literal["minor", "major"]   # Wagtail-Classifier sind Major (":: 6"), Django X.Y
-      successors: bool          # nur Django
+      versions: Literal["minor", "major"]  # Wagtail-Classifier sind Major (":: 6"), Django X.Y
+      successors: bool  # nur Django
   ```
   - Django: wie heute (`x.2` LTS, `_next_feature`).
   - Wagtail: LTS als gepflegte Menge (`2.16, 4.1, 5.2, 6.3, 7.0 …`, Quelle: Wagtail-Release-
