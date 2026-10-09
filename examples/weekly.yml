@@ -1,0 +1,36 @@
+# Every Monday: the upgrade report for your project, starting with what changed since last
+# week, e.g. a blocked package that has a release for the target now. The step fails when
+# something needs more attention than before; drop fail-on-change to only read the summary.
+name: Django upgrade report
+
+on:
+  schedule: [{ cron: "17 6 * * 1" }]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Last week's report; on the first run there is none, and nothing is compared.
+      - uses: actions/cache/restore@v6
+        with:
+          path: .django-upgrade-report.json
+          key: django-upgrade-report-${{ github.run_id }}
+          restore-keys: django-upgrade-report-
+      - uses: derblub/django-upgrade-report@v0
+        id: django
+        with:
+          baseline: .django-upgrade-report.json
+          fail-on-change: worse
+      # Keep this week's report for next week, also when the step above failed.
+      - if: always() && steps.django.outputs.report
+        run: cp "${{ steps.django.outputs.report }}" .django-upgrade-report.json
+      - if: always() && steps.django.outputs.report
+        uses: actions/cache/save@v6
+        with:
+          path: .django-upgrade-report.json
+          key: django-upgrade-report-${{ github.run_id }}

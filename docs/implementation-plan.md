@@ -46,9 +46,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 2.1a | 0.7 | Regel: läuft ein Release auf Python X.Y (`python.py`) | erledigt |
 | 2.1b | 0.7 | Python-Plan in der Analyse, `--python-target`, Text | erledigt |
 | 2.1c | 0.7 | Markdown/HTML/JSON, `--fail-on-python`, Action, Doku | erledigt |
-| 4.1 | 0.8 | Baseline-Diff | in Arbeit |
+| 4.1 | 0.8 | Baseline-Diff | erledigt |
 | 4.1a | 0.8 | `diff.py`, `--baseline`, `--only-changes`, `--fail-on-change`, Text, JSON | erledigt |
-| 4.1b | 0.8 | Markdown/HTML, Action-Input `baseline`, Rezept im README | offen |
+| 4.1b | 0.8 | Markdown/HTML, Action-Input `baseline`, Rezept im README | erledigt |
 | 4.2 | 0.8 | Sticky PR-Kommentar | offen |
 | 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | offen |
 | 7.1 | 0.8 | Interaktiver HTML-Report | offen |
@@ -1087,6 +1087,12 @@ jobs:
 ```
 
 Action-Inputs `baseline` (Pfad, leer = aus) und Output `changes` (Anzahl).
+
+**4.1b umgesetzt:** Markdown (Tabelle, `--only-changes` auch hier) und HTML (Liste mit
+Farben). Action-Inputs `baseline` (fehlende Datei wird übersprungen, damit der erste Lauf
+klappt) und `fail-on-change`, Output `changes`. Das Rezept steht als `examples/weekly.yml` im
+Repo, ohne `issue: true` (das kommt mit 3.3); es speichert den Report auch, wenn der Schritt
+fehlschlägt.
 
 **Tests:** Diff-Tabelle mit allen Änderungsarten; Baseline aus einer älteren Tool-Version
 (fehlende neue Felder werden toleriert); kaputte Datei; `--only-changes` ohne Änderungen.

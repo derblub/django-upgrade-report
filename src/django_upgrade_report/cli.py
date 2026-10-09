@@ -217,8 +217,8 @@ def _run(args: argparse.Namespace) -> int:
     elif args.only_changes or args.fail_on_change:
         flag = "--only-changes" if args.only_changes else "--fail-on-change"
         raise Error(f"{flag} needs --baseline, an earlier --format json report")
-    if args.only_changes and (args.format in ("markdown", "html") or args.explain):
-        raise Error("--only-changes works with the text and JSON reports")
+    if args.only_changes and (args.format == "html" or args.explain):
+        raise Error("--only-changes works with the text, Markdown and JSON reports")
     if args.python_target not in ("auto", "none"):
         try:
             check_python_target(args.python_target)
@@ -285,7 +285,7 @@ def _run(args: argparse.Namespace) -> int:
 
     if baseline is not None:
         report.changes = compare(baseline, report)
-    if args.only_changes and not report.changes.items:
+    if args.only_changes and report.changes.compared and not report.changes.items:
         return 0  # nothing to say, not even an empty file
     elif explained and args.format == "text":
         output = explain.render(report)
@@ -300,7 +300,11 @@ def _run(args: argparse.Namespace) -> int:
         )
         output += "\n"
     else:
-        output = {"markdown": markdown, "json": json, "html": html}[args.format].render(report)
+        output = (
+            markdown.render(report, only_changes=args.only_changes)
+            if args.format == "markdown"
+            else {"json": json, "html": html}[args.format].render(report)
+        )
 
     if args.output:
         _write(args.output, output)

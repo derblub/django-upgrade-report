@@ -18,6 +18,12 @@ inputs:
   fail-on:
     description: "Fail the step when a package is 'blocked', needs an 'upgrade' or a 'check'. Empty never fails."
     default: ""
+  baseline:
+    description: "Path to an earlier JSON report (the report output of a previous run). The summary then starts with what changed since. A missing file is skipped, so the first run works too."
+    default: ""
+  fail-on-change:
+    description: "With baseline: fail the step when 'any'thing changed, or when something is 'worse'. Empty never fails."
+    default: ""
   python-target:
     description: "Also check every dependency on this Python: 'auto' (when the target Django needs a newer one than your project uses), 'none' or e.g. '3.12'."
     default: auto
@@ -44,6 +50,9 @@ outputs:
   ready:
     description: Number of ready packages.
     value: ${{ steps.report.outputs.ready }}
+  changes:
+    description: Number of changes since the baseline, empty without one.
+    value: ${{ steps.report.outputs.changes }}
   python-blocked:
     description: Number of dependencies no release of which runs on the newer Python, 0 when there is none to check.
     value: ${{ steps.report.outputs.python-blocked }}
@@ -90,6 +99,8 @@ runs:
         DUR_FROM: ${{ inputs.from }}
         DUR_CHECK_PRIVATE: ${{ inputs.check-private-on-pypi }}
         DUR_PYTHON_TARGET: ${{ inputs.python-target }}
+        DUR_BASELINE: ${{ inputs.baseline }}
+        DUR_FAIL_ON_CHANGE: ${{ inputs.fail-on-change }}
         DUR_FAIL_ON_PYTHON: ${{ inputs.fail-on-python }}
         PYTHONUTF8: "1"
       run: |
@@ -98,6 +109,7 @@ runs:
         common=("$DUR_PATH" --target "$DUR_TARGET" --python-target "$DUR_PYTHON_TARGET")
         if [ -n "$DUR_FROM" ]; then common+=(--from "$DUR_FROM"); fi
         if [ "$DUR_CHECK_PRIVATE" = true ]; then common+=(--check-private-on-pypi); fi
+        if [ -n "$DUR_BASELINE" ] && [ -f "$DUR_BASELINE" ]; then common+=(--baseline "$DUR_BASELINE"); fi
         # The first run fills the cache, the others read from it.
         dur "${common[@]}" --format json -o "$report"
         echo "report=$report" >> "$GITHUB_OUTPUT"
@@ -110,10 +122,15 @@ runs:
             print(f"{status}={n}")
         python = data.get("python") or {"packages": []}
         print(f"python-blocked={sum(p['status'] == 'blocked' for p in python['packages'])}")
+        changes = data.get("changes")
+        print(f"changes={len(changes['items']) if changes else ''}")
         PY
         dur "${common[@]}" --format markdown >> "$GITHUB_STEP_SUMMARY"
         # Last, so the summary and outputs exist even when this fails the step.
         args=()
         if [ -n "$DUR_FAIL_ON" ]; then args+=(--fail-on "$DUR_FAIL_ON"); fi
         if [ -n "$DUR_FAIL_ON_PYTHON" ]; then args+=(--fail-on-python "$DUR_FAIL_ON_PYTHON"); fi
+        if [ -n "$DUR_FAIL_ON_CHANGE" ] && [ -n "$DUR_BASELINE" ] && [ -f "$DUR_BASELINE" ]; then
+          args+=(--fail-on-change "$DUR_FAIL_ON_CHANGE")
+        fi
         dur "${common[@]}" "${args[@]}"

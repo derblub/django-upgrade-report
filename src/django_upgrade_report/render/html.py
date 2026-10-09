@@ -7,6 +7,8 @@ from html import escape
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__
 from django_upgrade_report.analysis import PackageReport, Report, Status
 from django_upgrade_report.render import (
+    change_rows,
+    changes_title,
     headline,
     packages_line,
     private_index_hint,
@@ -80,6 +82,11 @@ a.link { color: var(--muted); font-size: 13px; }
   padding: 12px 16px; margin: 24px 0 0; }
 .warnings p { margin: 0; } .warnings p + p { margin-top: 6px; }
 .chips + .table { margin-top: 12px; }
+.changes { list-style: none; padding: 0; margin: 0; }
+.changes li { padding: 4px 0; } .changes li span { color: var(--muted); }
+.changes .mark { display: inline-block; width: 1.2em; font-weight: 700; }
+.changes .better .mark { color: var(--ready); } .changes .worse .mark { color: var(--blocked); }
+.changes .new .mark { color: var(--upgrade); } .changes .same .mark { color: var(--check); }
 .aside { margin-top: 28px; }
 .aside h3 { font-size: 15px; margin: 0 0 6px; }
 .aside ul { margin: 0; padding-left: 20px; }
@@ -126,6 +133,17 @@ def render(report: Report) -> str:
     )
 
     body = []
+    if report.changes is not None:
+        rows = change_rows(report)
+        items = "".join(
+            f'<li class="{direction}"><span class="mark">{escape(mark)}</span> '
+            f"<b>{escape(name)}</b> {escape(step)} <span>{escape(why)}</span></li>"
+            for direction, mark, name, step, why in rows
+        )
+        listing = f'<ul class="changes">{items}</ul>' if rows else ""
+        body.append(
+            f'<section id="changes"><h2>{escape(changes_title(report))}</h2>{listing}</section>'
+        )
     plan = report.python
     if plan is not None:
         title = f"Python {plan.target} first" if plan.packages else f"Python {plan.target}"

@@ -7,6 +7,8 @@ import re
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL
 from django_upgrade_report.analysis import PackageReport, Report
 from django_upgrade_report.render import (
+    change_rows,
+    changes_title,
     headline,
     private_index_hint,
     python_hint,
@@ -61,7 +63,19 @@ def _table(packages: list[PackageReport]) -> list[str]:
     return lines
 
 
-def render(report: Report) -> str:
+def _changes(report: Report) -> list[str]:
+    rows = change_rows(report)
+    if not rows:
+        return [f"_{escape(changes_title(report))}._", ""]
+    lines = [f"### {escape(changes_title(report))}", "", "| | Package | Change | Why |"]
+    lines.append("| --- | --- | --- | --- |")
+    for _, mark, name, step, why in rows:
+        package = _code(name) if name else ""
+        lines.append(f"| {mark} | {package} | {_cell(step)} | {_cell(why)} |")
+    return [*lines, ""]
+
+
+def render(report: Report, only_changes: bool = False) -> str:
     lines = [
         f"## {escape(headline(report))}",
         "",
@@ -74,6 +88,10 @@ def render(report: Report) -> str:
         lines.append("> [!WARNING]")
         lines += [f"> {escape(w)}  " for w in report.warnings]
         lines.append("")
+    if report.changes is not None:
+        lines += _changes(report)
+        if only_changes:
+            return "\n".join(lines).rstrip() + "\n"
     plan = report.python
     if plan is not None:
         if plan.packages:

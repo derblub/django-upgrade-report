@@ -229,6 +229,8 @@ The action writes the Markdown report to the job summary, exposes the counts as 
 | `fail-on` | | `blocked`, `upgrade` or `check`. Empty never fails the step because of a package. |
 | `python-target` | `auto` | `auto`, `none` or a version such as `3.12`. |
 | `fail-on-python` | | `blocked`, `upgrade` or `check` on that Python. Empty never fails the step because of it. |
+| `baseline` | | An earlier JSON report, the `report` output of a previous run. The summary then starts with what changed since. A missing file is skipped. |
+| `fail-on-change` | | `any` or `worse`: fail the step when something changed since the baseline. |
 | `check-private-on-pypi` | `false` | `true` looks up packages from another index on PyPI, too. |
 
 | Output | Description |
@@ -236,8 +238,13 @@ The action writes the Markdown report to the job summary, exposes the counts as 
 | `report` | Path to the JSON report, unique per use of the action. |
 | `blocked`, `upgrade`, `check`, `ready` | Number of packages with that status. |
 | `python-blocked` | Number of dependencies no release of which runs on the newer Python. `0` when there is none to check. |
+| `changes` | Number of changes since the baseline, empty without one. |
 
 The action brings its own Python, runs on Linux and Windows runners, and caches PyPI responses between runs. The summary and the outputs are written before `fail-on` fails the step.
+
+### Every week, with what changed
+
+[`examples/weekly.yml`](examples/weekly.yml) runs the report every Monday and keeps it in the Actions cache for next week. Each summary then starts with what changed, such as a blocked package that has a release for the target now, and the step fails when something needs more attention than before. On the command line, the same is `--baseline last.json`, with `--only-changes` to print nothing in a quiet week.
 
 ### pre-commit
 

@@ -89,6 +89,8 @@ def test_baseline_for_another_target(project, baseline, capsys):
         "The baseline was for Django 5.2, this report for 6.0: nothing compared"
         in capsys.readouterr().out
     )
+    assert cli.main([*args, "--only-changes"]) == 0  # said even then, a job must not miss it
+    assert "nothing compared" in capsys.readouterr().out
 
 
 def test_a_package_not_checked_this_time_is_not_gone(project, index, baseline, capsys):
@@ -151,3 +153,25 @@ def test_missing_baseline_and_options_without_one(project, tmp_path, capsys):
     assert "cannot read the baseline" in capsys.readouterr().err
     assert cli.main([str(project), "--only-changes"]) == 2
     assert "--only-changes needs --baseline" in capsys.readouterr().err
+
+
+def test_changes_in_markdown_and_html(project, index, baseline, capsys):
+    from conftest import release
+
+    index.packages["django-blocked"].append(
+        release("django-blocked", "2.0", ">=4.2", ["4.2", "5.2"])
+    )
+    index._memory.clear()
+    args = [str(project), "--baseline", str(baseline)]
+    cli.main([*args, "-f", "markdown"])
+    out = capsys.readouterr().out
+    assert "### Changes since " in out and "(1)" in out
+    assert "| ✓ | `django-blocked` | blocked → upgrade first | 2.0 declares Django 5.2 |" in out
+    assert "### ⬆️ Upgrade first" in out
+    cli.main([*args, "-f", "markdown", "--only-changes"])
+    only = capsys.readouterr().out
+    assert "django-blocked" in only and "Upgrade first" not in only
+    cli.main([*args, "-f", "html"])
+    html = capsys.readouterr().out
+    assert '<section id="changes"><h2>Changes since ' in html
+    assert '<li class="better"><span class="mark">✓</span> <b>django-blocked</b>' in html
