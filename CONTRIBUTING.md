@@ -35,6 +35,10 @@ The tests never touch the network. Please keep it that way. There are two packag
 
 CI also measures coverage: `uv run --group dev pytest --cov=django_upgrade_report`.
 
+## The wiki
+
+The wiki is written in [`docs/wiki/`](docs/wiki) and published to the GitHub wiki on every push to `main`, so change it with a pull request. Three pages are generated from the code: after changing an option, the JSON report or `action.yml`, run `PYTHONPATH=src python3 scripts/wiki.py`. A test fails when they are out of date.
+
 ## Where things live
 
 | File | What it does |

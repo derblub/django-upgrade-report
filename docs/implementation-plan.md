@@ -50,6 +50,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 4.1a | 0.8 | `diff.py`, `--baseline`, `--only-changes`, `--fail-on-change`, Text, JSON | erledigt |
 | 4.1b | 0.8 | Markdown/HTML, Action-Input `baseline`, Rezept im README | erledigt |
 | 4.2 | 0.8 | Sticky PR-Kommentar | erledigt |
+| W | 0.8 | Wiki (`docs/wiki/`, generierte Referenzen, Veröffentlichung per Workflow), auf Wunsch außerhalb des Plans | erledigt |
 | 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | offen |
 | 7.1 | 0.8 | Interaktiver HTML-Report | offen |
 | 0.4 | 0.9 | Direkte und transitive Abhängigkeiten | offen |

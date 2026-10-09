@@ -1,0 +1,53 @@
+name: Wiki
+
+# Publishes docs/wiki/ to the GitHub wiki, so the wiki changes through pull requests like
+# the code. The wiki repository exists only after the wiki is enabled in the repository
+# settings and a first page is created there once; this workflow then replaces it.
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/wiki/**
+      - scripts/wiki.py
+      - action.yml
+      - src/django_upgrade_report/cli.py
+      - src/django_upgrade_report/render/json.py
+      - .github/workflows/wiki.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wiki
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - name: Check that the generated pages are up to date
+        run: PYTHONPATH=src uv run --no-project --with packaging python scripts/wiki.py --check
+      - name: Publish
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          wiki="$RUNNER_TEMP/wiki"
+          if ! git clone --quiet --depth 1 "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" "$wiki"; then
+            echo "::error::No wiki repository yet: enable the wiki in the repository settings and create any first page once."
+            exit 1
+          fi
+          find "$wiki" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp docs/wiki/*.md "$wiki/"
+          cd "$wiki"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "The wiki is up to date."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit --quiet -m "Publish docs/wiki from ${GITHUB_SHA::7}"
+          git push --quiet

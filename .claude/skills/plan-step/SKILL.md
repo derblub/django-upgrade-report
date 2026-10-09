@@ -58,7 +58,9 @@ these rules, stop and ask (see 6) instead of guessing:
 
 Each step also owns its docs: the README sections the plan names (options table, "How it
 decides", FAQ, action inputs), `action.yml` when the plan adds an input, and an entry under
-"## [Unreleased]" in `CHANGELOG.md`. Do not bump the version or tag a release: releases are the
+"## [Unreleased]" in `CHANGELOG.md`, and the wiki in `docs/wiki/`: update the hand-written
+page the change belongs to, and run `PYTHONPATH=src python3 scripts/wiki.py` when an option,
+the JSON report or `action.yml` changed (a test fails otherwise). Do not bump the version or tag a release: releases are the
 user's call.
 
 ## 4. Verify

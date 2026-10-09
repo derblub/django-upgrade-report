@@ -1,0 +1,1 @@
+[django-upgrade-report](https://github.com/derblub/django-upgrade-report) · MIT · by Daniel Kurdoghlian, [Pushing Pixels](https://pushingpixels.at) · This wiki is generated from [`docs/wiki/`](https://github.com/derblub/django-upgrade-report/tree/main/docs/wiki): change it with a pull request.
