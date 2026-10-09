@@ -40,9 +40,17 @@ At the end: dependencies not on the package index, dependencies not from PyPI (n
 
 The version column shows what you have and the release to move to: the **oldest** release that declares the target, so each change stays small. After it come the reason, then the notes. The Markdown and HTML rows link the package's changelog; the text report shows it with `-v`.
 
+## Searching and filtering the HTML report
+
+`--format html` writes one self-contained file. Above the sections, a search field finds packages by name, reason or note; press `/` to get there. The chips show one status only ("upgrade first", "to check" and so on), and the tiles at the top do the same: click "3 blocked" to see the blockers. "only with notes" hides the rows without notes, and `Esc` shows everything again.
+
+The search and the filters are kept in the address, such as `report.html#status=blocked,check&q=allauth`, so you can send someone the view you are looking at. Printing always shows every row. The page also carries the JSON report, in the element `report-data`, for anyone who wants to read it with a script.
+
+Without JavaScript the page shows every row, as it did before there were filters. `--static` writes it without any script, for mail systems and ticket trackers that block scripts in attachments.
+
 ## The HTML report as a checklist
 
-`--format html` writes one self-contained file. Every row with something to do has a box: tick it when it is done, and a tile counts the ticks, "3 / 8 done". The ticks are kept in your browser for this plan; a report with other packages or versions starts unticked. Nothing leaves the page, and it prints without colours.
+ Every row with something to do has a box: tick it when it is done, and a tile counts the ticks, "3 / 8 done". The ticks are kept in your browser for this plan; a report with other packages or versions starts unticked. Nothing leaves the page, and it prints without colours.
 
 ## The notes
 

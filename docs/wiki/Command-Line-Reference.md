@@ -15,6 +15,7 @@ Every option, as `django-upgrade-report --help` describes it. The pages [Getting
 | `--python` | `PATH` |  | Read exact versions from the packages installed for this interpreter, e.g. .venv/bin/python. |
 | `-f`, `--format` | `text` `markdown` `json` `html` | `text` | Output format (default: text). |
 | `-o`, `--output` | `OUTPUT` |  | Write the report to a file. |
+| `--static` |  |  | With --format html: a page without scripts, no search, filters or checklist counter, for places that block scripts in attachments. |
 | `--fail-on` | `blocked` `check` `upgrade` |  | Exit with status 1 when a package is blocked, needs an upgrade or needs a check (errors exit with status 2). |
 | `--fail-on-python` | `blocked` `check` `upgrade` |  | Like --fail-on, for the dependencies on the newer Python (see --python-target). |
 | `-v`, `--verbose` |  |  | List ready packages too. |

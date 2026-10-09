@@ -112,6 +112,7 @@ django-upgrade-report [PROJECT] [options]
 | `--python PATH` | Read the exact installed versions from this interpreter, e.g. `.venv/bin/python`. |
 | `-f`, `--format` | `text` (default), `markdown`, `json` or `html`. |
 | `-o`, `--output` | Write the report to a file instead of stdout. Missing directories are created. |
+| `--static` | With `--format html`: a page without scripts, for places that block scripts in attachments. It has no search, filters or counter of ticks. |
 | `--fail-on` | Exit with status 1 when a package is `blocked`, needs an `upgrade` (or is blocked), or needs a `check` (or anything worse). |
 | `--baseline REPORT.json` | An earlier `--format json` report: the report starts with what changed since, such as a blocked package that now has a release for the target. |
 | `--only-changes` | With `--baseline`: show only what changed, and nothing at all when nothing did. |

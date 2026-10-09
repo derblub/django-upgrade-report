@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from html import escape
+from importlib import resources
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__
 from django_upgrade_report.analysis import PackageReport, Report, Status
@@ -23,6 +24,7 @@ from django_upgrade_report.render import (
     split_noted,
     version_cell,
 )
+from django_upgrade_report.render import json as json_report
 
 _CSS = """
 :root {
@@ -101,12 +103,26 @@ td.tick input { width: 16px; height: 16px; margin: 3px 0 0; accent-color: var(--
 tr.done td:not(.tick) { opacity: 0.45; text-decoration: line-through; }
 .tile.progress b { color: var(--text); }
 .tile.progress b span { color: inherit; font-size: inherit; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  margin: -16px 0 8px; }
+.toolbar input[type=search] { flex: 1 1 220px; font: inherit; color: inherit;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+.toolbar label { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.toolbar button { font: inherit; font-size: 13px; color: var(--muted); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 99px; padding: 3px 12px; cursor: pointer; }
+.toolbar button[aria-pressed=true] { color: var(--text); border-color: var(--text); }
+.toolbar #reset { border-radius: 8px; }
+#shown { color: var(--muted); font-size: 13px; }
+.tile[data-tile] { cursor: pointer; }
+.tile[aria-pressed=true] { border-color: var(--text); }
+:focus-visible { outline: 2px solid var(--check); outline-offset: 2px; }
+@media screen { .filtered { display: none !important; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 @media print {
   body { background: #fff; color: #000; }
   .tile, .table, .chip, .note, .warnings { background: none !important; border-color: #999; }
   tr { break-inside: avoid; }
-  a.link { display: none; }
+  a.link, .toolbar { display: none !important; }
 }
 @media (max-width: 640px) {
   .tiles { grid-template-columns: repeat(2, 1fr); }
@@ -124,7 +140,19 @@ _SECTION_COLOR = {
 }
 
 
-def render(report: Report) -> str:
+_FILTERS = {
+    "blocked": "blocked",
+    "before": "upgrade first",
+    "with": "upgrade with Django",
+    "upgrade": "upgrade",
+    "check": "to check",
+    "ready": "ready",
+}
+"""Filter chips, by the key :func:`_filter` gives a row, in the order of the sections."""
+
+
+def render(report: Report, static: bool = False) -> str:
+    """``static`` leaves out every script, for places that block scripts in attachments."""
     counts = report.counts
     title = headline(report)
     start, arrow, end = title.partition(" → ")
@@ -137,14 +165,17 @@ def render(report: Report) -> str:
 
     todos = sum(1 for p in report.packages if p.status is not Status.READY)
     todos += len(report.python.packages) if report.python else 0
+    django = [_filter(p) for p in report.packages]  # what the tiles count
+    keys = django + [_filter(p) for p in report.python.packages] if report.python else django
+    present = [k for k in _FILTERS if k in keys]
     progress = (
         f'<div class="tile progress"><b><span id="done">0</span> / {todos}</b>'
         "<span>done</span></div>"
-        if todos
+        if todos and not static
         else ""
     )
     tiles = "".join(
-        f'<div class="tile {css}{" zero" if not counts[status] else ""}">'
+        f'<div class="tile {css}{" zero" if not counts[status] else ""}"{_tile(css, django)}>'
         f"<b>{counts[status]}</b><span>{label}</span></div>"
         for status, css, label in (
             (Status.READY, "ready", "ready"),
@@ -171,8 +202,8 @@ def render(report: Report) -> str:
         python_title = f"Python {plan.target} first" if plan.packages else f"Python {plan.target}"
         count = f' <span class="count">{len(plan.packages)}</span>' if plan.packages else ""
         body.append(
-            f'<section id="python"><h2><span class="dot python"></span>{escape(python_title)}'
-            f"{count}</h2>"
+            f'<section id="python"{" data-rows" if plan.packages else ""}><h2>'
+            f'<span class="dot python"></span>{escape(python_title)}{count}</h2>'
         )
         if plan.packages:
             body.append(f'<p class="hint">{escape(python_hint(report))}</p>')
@@ -182,7 +213,7 @@ def render(report: Report) -> str:
     for section in sections(report):
         color = _SECTION_COLOR[section.key]
         body.append(
-            f'<section id="{section.key}"><h2><span class="dot {color}"></span>'
+            f'<section id="{section.key}" data-rows><h2><span class="dot {color}"></span>'
             f'{escape(section.title)} <span class="count">{len(section.packages)}</span></h2>'
             f'<p class="hint">{escape(section.hint)}</p>'
         )
@@ -191,7 +222,8 @@ def render(report: Report) -> str:
             plain, packages = split_noted(packages)
             if plain:
                 chips = "".join(
-                    f'<span class="chip" title="{escape(p.reason)}">{escape(p.display_name)}</span>'
+                    f'<span class="chip" title="{escape(p.reason)}"{_data(p)}>'
+                    f"{escape(p.display_name)}</span>"
                     for p in plain
                 )
                 body.append(f'<div class="chips">{chips}</div>')
@@ -236,6 +268,29 @@ def render(report: Report) -> str:
         paragraphs = "".join(f"<p>{escape(w)}</p>" for w in report.warnings)
         warnings = f'<div class="warnings" role="note">{paragraphs}</div>'
 
+    toolbar = ""
+    script = ""
+    if not static:
+        chips = "".join(
+            f'<button type="button" data-chip="{key}" aria-pressed="false">{_FILTERS[key]}</button>'
+            for key in present
+        )
+        toolbar = (
+            '<div class="toolbar" id="toolbar" role="search" hidden>'
+            '<input type="search" id="q" placeholder="Search packages, reasons, notes  ( / )" '
+            'aria-label="Search packages, reasons and notes">'
+            f"{chips if len(present) > 1 else ''}"
+            '<label><input type="checkbox" id="notes"> only with notes</label>'
+            '<button type="button" id="reset">Reset (Esc)</button>'
+            '<span id="shown" aria-live="polite"></span></div>\n'
+        )
+        # "<" escaped, so nothing in the data can end the script element.
+        data = json_report.render(report).replace("<", "\\u003c")
+        script = (
+            f'<script type="application/json" id="report-data">{data}</script>\n'
+            f"<script>{script_source()}</script>\n"
+        )
+
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -251,11 +306,10 @@ def render(report: Report) -> str:
 <p>{intro}</p>
 </header>
 {warnings}<div class="tiles">{tiles}{progress}</div>
-{"".join(body)}
+{toolbar}{"".join(body)}
 <p class="meta">{" ".join(meta)}</p>
 </main>
-<script>{_SCRIPT}</script>
-</body>
+{script}</body>
 </html>
 """
 
@@ -269,6 +323,32 @@ def checklist_key(report: Report) -> str:
         )
     plan = "\n".join([report.target, report.source, *rows])
     return "django-upgrade-report:" + hashlib.sha256(plan.encode()).hexdigest()[:16]
+
+
+def script_source() -> str:
+    """The page's script, shipped in the package next to this module."""
+    return resources.files(__package__).joinpath("html_report.js").read_text(encoding="utf-8")
+
+
+def _filter(p: PackageReport) -> str:
+    """The filter a row belongs to: its status, or its phase for an upgrade."""
+    if p.status is Status.UPGRADE and p.phase is not None:
+        return p.phase.value
+    return p.status.value
+
+
+def _tile(css: str, counted: list[str]) -> str:
+    """A tile that filters by its status, when it counts anything to filter."""
+    mine = ("before", "with", "upgrade") if css == "upgrade" else (css,)
+    values = [k for k in mine if k in counted]
+    return f' data-tile="{",".join(values)}" aria-pressed="false"' if values else ""
+
+
+def _data(p: PackageReport) -> str:
+    """What the script filters and searches a row by."""
+    words = " ".join([p.name, p.display_name, p.reason, *row_notes(p)]).lower()
+    noted = " data-notes" if row_notes(p) else ""
+    return f' data-filter="{_filter(p)}" data-search="{escape(words)}"{noted}'
 
 
 def _table(packages: list[PackageReport], todo: str | None = None) -> str:
@@ -290,7 +370,7 @@ def _table(packages: list[PackageReport], todo: str | None = None) -> str:
             for label, url in row_links(p)
         )
         rows.append(
-            f'<tr>{tick}<td class="name">{escape(p.display_name)}</td>'
+            f'<tr{_data(p)}>{tick}<td class="name">{escape(p.display_name)}</td>'
             f'<td class="version">{escape(version_cell(p))}</td>'
             f"<td>{escape(p.reason)}{links}{'<br>' + notes if notes else ''}</td></tr>"
         )
@@ -299,34 +379,3 @@ def _table(packages: list[PackageReport], todo: str | None = None) -> str:
         f'<div class="table"><table><thead><tr>{done}<th>Package</th><th>Version</th>'
         f"<th>Why</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
     )
-
-
-# Ticks are kept in the browser's localStorage, per plan. Without it (a file:// page in some
-# browsers, private mode), the boxes still tick, they are just not remembered.
-_SCRIPT = """
-(function () {
-  var main = document.querySelector("main");
-  var key = main.getAttribute("data-checklist");
-  var boxes = Array.prototype.slice.call(document.querySelectorAll("input[data-todo]"));
-  var state = {};
-  try { state = JSON.parse(window.localStorage.getItem(key) || "{}"); } catch (e) { state = {}; }
-  function update() {
-    var done = 0;
-    boxes.forEach(function (box) {
-      if (box.checked) { done += 1; }
-      box.closest("tr").classList.toggle("done", box.checked);
-    });
-    var counter = document.getElementById("done");
-    if (counter) { counter.textContent = done; }
-  }
-  boxes.forEach(function (box) {
-    box.checked = state[box.getAttribute("data-todo")] === true;
-    box.addEventListener("change", function () {
-      state[box.getAttribute("data-todo")] = box.checked;
-      try { window.localStorage.setItem(key, JSON.stringify(state)); } catch (e) {}
-      update();
-    });
-  });
-  update();
-})();
-"""

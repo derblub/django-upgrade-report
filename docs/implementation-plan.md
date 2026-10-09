@@ -54,7 +54,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | erledigt |
 | 3.3a | 0.8 | HTML-Checkliste | erledigt |
 | 3.3b | 0.8 | Tracking-Issue in der Action | erledigt |
-| 7.1 | 0.8 | Interaktiver HTML-Report | offen |
+| 7.1 | 0.8 | Interaktiver HTML-Report | in Arbeit |
+| 7.1a | 0.8 | Suche, Filter-Chips, Kacheln als Filter, URL-Fragment, `/` und `Esc`, Skript als `html_report.js`, eingebettetes JSON, `--static` | erledigt |
+| 7.1b | 0.8 | Sortierbare Spalten, aufklappbare Zeilen mit Links und Kopier-Knopf, `j`/`k`/`Enter`, Playwright-Test als eigener CI-Job, Beispielreport neu | offen |
 | 0.4 | 0.9 | Direkte und transitive Abhängigkeiten | offen |
 | 3.1 | 0.9 | Befehle ausgeben (`--emit`) | offen |
 | 3.2 | 0.9 | Renovate- und Dependabot-Konfiguration | offen |
@@ -1518,6 +1520,17 @@ Snapshot von `docs/example-report.html` neu erzeugen.
 
 **Aufwand:** M. **Abhängigkeiten:** 3.3 (Checkliste), nutzt 5.1, 3.1, 2.3, 1.2 wenn vorhanden;
 jede fehlende Information blendet ihren Teil einfach aus.
+
+**Umsetzung 7.1a:** Jede Zeile (auch die Chips der fertigen Pakete) trägt `data-filter` (Status,
+bei einem Upgrade die Phase: `blocked`, `before`, `with`, `upgrade`, `check`, `ready`),
+`data-search` und `data-notes`; ein Filter-Chip erscheint nur für Werte, die es im Report gibt,
+und nur, wenn es mehr als einen gibt. Eine Kachel filtert nach allen Werten ihres Status, eine
+leere Kachel filtert nicht. Abschnitte ohne sichtbare Zeile werden ausgeblendet, „3 of 7 shown“
+wird angesagt (`aria-live`). Die Werkzeugleiste steht mit `hidden` im Markup und wird erst vom
+Skript gezeigt. Das Fragment wird nur gelesen, wenn es ein `=` enthält, damit Anker wie
+`#blocked` weiter funktionieren. `--static` lässt auch die Datenkopie und die
+Fortschrittskachel weg (ohne Skript zählt sie nicht). „only direct dependencies“ kommt mit 0.4.
+Dass die Datei im Wheel ist, prüft der CI-Job `package` am gebauten Wheel.
 
 ### 7.2 Terminal-Oberfläche (`--interactive`)
 

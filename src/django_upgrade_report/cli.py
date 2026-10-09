@@ -79,6 +79,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("-o", "--output", type=Path, help="write the report to a file")
     parser.add_argument(
+        "--static",
+        action="store_true",
+        help="with --format html: a page without scripts, no search, filters or checklist "
+        "counter, for places that block scripts in attachments",
+    )
+    parser.add_argument(
         "--fail-on",
         choices=sorted(_FAIL_ON),
         help="exit with status 1 when a package is blocked, needs an upgrade or needs a check "
@@ -217,6 +223,8 @@ def _run(args: argparse.Namespace) -> int:
     elif args.only_changes or args.fail_on_change:
         flag = "--only-changes" if args.only_changes else "--fail-on-change"
         raise Error(f"{flag} needs --baseline, an earlier --format json report")
+    if args.static and args.format != "html":
+        raise Error("--static goes with --format html")
     if args.only_changes and (args.format == "html" or args.explain):
         raise Error("--only-changes works with the text, Markdown and JSON reports")
     if args.python_target not in ("auto", "none"):
@@ -303,7 +311,9 @@ def _run(args: argparse.Namespace) -> int:
         output = (
             markdown.render(report, only_changes=args.only_changes)
             if args.format == "markdown"
-            else {"json": json, "html": html}[args.format].render(report)
+            else html.render(report, static=args.static)
+            if args.format == "html"
+            else json.render(report)
         )
 
     if args.output:
