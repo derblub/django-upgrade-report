@@ -1407,3 +1407,64 @@ def test_searches_follow_the_rule_they_are_given():
         assert str(checker.search("pkg", versions, dates, rule=rule)[0]) == "1.17"
         fetched = [u for u in index.requests if u.count("/") > 5]
         assert len(fetched) < 30  # a bisection, not a scan of 40
+
+
+# --- explaining a verdict -----------------------------------------------------------
+
+
+def test_explain_support_walks_the_rules():
+    from django_upgrade_report.analysis import explain_support
+
+    gated = info(
+        ">=4.2,<6.0",
+        ["4.2", "5.1"],
+        extra=['Django<4 ; python_version < "3.8"'],
+    )
+    target = Target(T52, (T52,), ga=datetime(2025, 4, 2, tzinfo=timezone.utc), python="3.12")
+    steps = explain_support(gated, target, datetime(2024, 11, 1, tzinfo=timezone.utc))
+    assert [(s.check, s.finding) for s in steps] == [
+        (
+            "requirement",
+            "Django<6.0,>=4.2: allows Django 5.2 (not on Python 3.12: "
+            'Django<4; python_version < "3.8")',
+        ),
+        ("classifiers", "Django 4.2, 5.1: does not include 5.2"),
+        (
+            "upper bound",
+            "uploaded 2024-11-01, Django 5.2 came out 2025-04-02: set before it, does not count",
+        ),
+        ("verdict", "likely: allows Django<6.0,>=4.2, released before 5.2"),
+    ]
+
+
+def test_explain_support_without_metadata():
+    from django_upgrade_report.analysis import explain_support
+
+    steps = explain_support(info(), T52)
+    assert [s.finding for s in steps] == [
+        "no Django requirement",
+        "no Framework :: Django :: X.Y classifier",
+        "unknown: declares no Django versions",
+    ]
+
+
+def test_explanations_agree_with_the_verdicts(recorded):
+    """Over every recorded release and target: the steps never contradict supports()."""
+    from django_upgrade_report.analysis import explain_support
+
+    checked = 0
+    for name, data in recorded.recorded.items():
+        for version in data["releases"]:
+            release_info = recorded.release(name, version)
+            for label in ("4.2", "5.0", "5.1", "5.2", "6.0", "6.1"):
+                target = Target.of(Version(label), python="3.12")
+                verdict = supports(release_info, target).verdict
+                steps = {s.check: s.finding for s in explain_support(release_info, target)}
+                assert steps["verdict"].startswith(f"{verdict.value}: ")
+                excluded = "excludes every Django" in steps["requirement"]
+                assert excluded == (verdict is Verdict.NO), (name, version, label)
+                if verdict is not Verdict.NO and "does not include" not in steps["classifiers"]:
+                    if "includes" in steps["classifiers"]:
+                        assert verdict is Verdict.YES, (name, version, label)
+                checked += 1
+    assert checked > 500

@@ -355,6 +355,75 @@ def supports(
     return Support(Verdict.UNKNOWN, "declares no Django versions")
 
 
+@dataclass(frozen=True)
+class RuleStep:
+    """One check of :func:`supports`, as :func:`explain_support` describes it."""
+
+    check: str
+    """``"requirement"``, ``"classifiers"``, ``"upper bound"`` or ``"verdict"``."""
+    finding: str
+
+
+def explain_support(
+    info: ReleaseInfo, target: Target | Version, uploaded: datetime | None = None
+) -> list[RuleStep]:
+    """How :func:`supports` reaches its verdict on ``info``, one check per step.
+
+    The steps describe what the release declares; the last one is the verdict of
+    :func:`supports` itself, so the explanation can never disagree with the report.
+    """
+    if isinstance(target, Version):
+        target = Target.of(target)
+    label = target.label
+    env = _environment(target.python)
+    steps = []
+
+    lines = list(_requirements(info, "django"))
+    applied = [str(r) for r in lines if r.marker is None or r.marker.evaluate(env)]
+    ignored = [str(r) for r in lines if r.marker is not None and not r.marker.evaluate(env)]
+    python = env["python_version"]
+    if not lines:
+        steps.append(RuleStep("requirement", "no Django requirement"))
+    else:
+        spec = django_requirement(info, target.python)
+        if not applied:
+            finding = f"no line applies on Python {python}"
+        elif spec is not None and str(spec) and not _allows(spec, target):
+            finding = f"{'; '.join(applied)}: excludes every Django {label}"
+        else:
+            finding = f"{'; '.join(applied)}: allows Django {label}"
+        if ignored:
+            finding += f" (not on Python {python}: {'; '.join(ignored)})"
+        steps.append(RuleStep("requirement", finding))
+
+    declared = declared_versions(info)
+    majors = declared_majors(info)
+    if declared or majors:
+        listed = ", ".join([*(f"{v.major}.{v.minor}" for v in declared), *map(str, majors)])
+        found = "includes" if target.version in declared else "does not include"
+        steps.append(RuleStep("classifiers", f"Django {listed}: {found} {label}"))
+    else:
+        steps.append(RuleStep("classifiers", "no Framework :: Django :: X.Y classifier"))
+
+    spec = django_requirement(info, target.python)
+    bounds = _upper_bounds(spec, target) if spec is not None else []
+    if bounds:
+        when = f"uploaded {uploaded:%Y-%m-%d}" if uploaded else "upload date unknown"
+        if not target.released:
+            finding = f"{when}; Django {label} is not released, so it says nothing yet"
+        elif target.ga is None:
+            finding = f"{when}; counts, the release date of Django {label} is unknown"
+        else:
+            ga = f"Django {label} came out {target.ga:%Y-%m-%d}"
+            counts = _bound_counts(bounds, target, uploaded)
+            finding = f"{when}, {ga}: {'counts' if counts else 'set before it, does not count'}"
+        steps.append(RuleStep("upper bound", finding))
+
+    support = supports(info, target, uploaded)
+    steps.append(RuleStep("verdict", f"{support.verdict.value}: {support.reason}"))
+    return steps
+
+
 class Rule(Protocol):
     """What the release searches ask of a release: Django support, or later a Python's."""
 
