@@ -15,7 +15,7 @@ Every option, as `django-upgrade-report --help` describes it. The pages [Getting
 | `--python` | `PATH` |  | Read exact versions from the packages installed for this interpreter, e.g. .venv/bin/python. |
 | `-f`, `--format` | `text` `markdown` `json` `html` | `text` | Output format (default: text). |
 | `-o`, `--output` | `OUTPUT` |  | Write the report to a file. |
-| `--emit` | `auto` `uv` `poetry` `pdm` `pip` `pipenv` |  | Print the commands that carry out the plan instead of the report, for this tool; 'auto' picks it by the lockfile. With --format json: the commands field. |
+| `--emit` | `auto` `uv` `poetry` `pdm` `pip` `pipenv` `renovate` `dependabot` |  | Print the commands that carry out the plan instead of the report, for this tool; 'auto' picks it by the lockfile. With --format json: the commands field. 'renovate' and 'dependabot' print a configuration that makes the bot follow the plan. |
 | `--static` |  |  | With --format html: a page without scripts, no search, filters or checklist counter, for places that block scripts in attachments. |
 | `--fail-on` | `blocked` `check` `upgrade` |  | Exit with status 1 when a package is blocked, needs an upgrade or needs a check (errors exit with status 2). |
 | `--fail-on-python` | `blocked` `check` `upgrade` |  | Like --fail-on, for the dependencies on the newer Python (see --python-target). |

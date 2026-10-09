@@ -29,6 +29,16 @@ The steps follow the report. When the target Django needs a newer Python than yo
 
 pip has no command that changes a requirement file safely, so for pip the lines are comments that say what to change, and where: the file and line that pin the package, which is the constraints file when a `-c` file pins it. Whether a package is one you name or one that comes with another is read from the project, see [Dependency sources](Dependency-Sources#direct-or-not); when the project does not say, every package is treated as one you name.
 
+## Renovate and Dependabot
+
+The bots that open pull requests bump one package at a time and know nothing of the plan. `--emit renovate` prints `packageRules` for `renovate.json`, `--emit dependabot` the keys to add to the pip entry of `.github/dependabot.yml`:
+
+- **Hold Django** on the series you run (`allowedVersions: "<5.0"`, or an `ignore` for `>=5.0`) while there is anything to upgrade first. Remove it when that list is done.
+- **One pull request for Django** and the packages that go together with it (`groupName`, `groups`), and one for upgrades that need each other.
+- For Renovate, **no waiting** for the packages to upgrade first (`minimumReleaseAge: "0 days"`).
+
+A plan with nothing to hold or group prints no rules. Both go with the text output only, not with `--format json`.
+
 ## In scripts and the HTML report
 
 With `--format json`, `--emit` keeps the JSON report and fills its `commands` field: the tool, the steps with their phase and commands, and what was left out ([JSON report](JSON-Report-Reference)). The HTML report shows each package's command in its details, with a copy button, when the tool is clear from the source.

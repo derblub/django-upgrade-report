@@ -61,7 +61,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 3.1 | 0.9 | Befehle ausgeben (`--emit`) | erledigt |
 | 3.1a | 0.9 | `commands.py`, uv/poetry/pdm/pipenv/pip (ohne Datei und Zeile), `auto`, JSON `commands`, Befehl in den HTML-Details | erledigt |
 | 3.1b | 0.9 | pip mit Datei und Zeile (`Dependency.origin`), Python-Schritt vorne | erledigt |
-| 3.2 | 0.9 | Renovate- und Dependabot-Konfiguration | offen |
+| 3.2 | 0.9 | Renovate- und Dependabot-Konfiguration | erledigt |
 | 2.2 | 0.9 | Mehrstufiger Pfad (`--via`) | offen |
 | 1.2 | 0.10 | Schwächere Belege | offen |
 | 1.3 | 0.10 | Upstream-Issues und -PRs | offen |
@@ -1007,6 +1007,13 @@ entfernt.
 ergänzen.
 
 **Aufwand:** S. **Abhängigkeiten:** 3.1 (gemeinsame Phasenlogik).
+
+**Umsetzung:** In `commands.py` (`renovate()`, `dependabot()`, gemeinsame Gruppen aus
+`_groups`). Die Halteregel nennt die nächste Feature-Version nach der laufenden Serie (`4.2` →
+`<5.0`, `5.0` → `<5.1`) und entfällt bei einem Health-Check oder unbekanntem Django. Die
+Django-Gruppe gibt es nur, wenn Pakete mit Django gehen; Zyklen außerhalb davon bekommen eine
+eigene Gruppe. Renovate-JSON erlaubt keine Kommentare, darum sagt die `description`, wann die
+Regel weg kann. Beide nur als Textausgabe, nicht mit `--format json`.
 
 ### 3.3 Checkliste im HTML-Report und Tracking-Issue
 

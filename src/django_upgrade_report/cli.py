@@ -88,9 +88,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("-o", "--output", type=Path, help="write the report to a file")
     parser.add_argument(
         "--emit",
-        choices=["auto", *commands.TOOLS],
+        choices=["auto", *commands.TOOLS, *commands.BOTS],
         help="print the commands that carry out the plan instead of the report, for this tool; "
-        "'auto' picks it by the lockfile. With --format json: the commands field",
+        "'auto' picks it by the lockfile. With --format json: the commands field. 'renovate' "
+        "and 'dependabot' print a configuration that makes the bot follow the plan",
     )
     parser.add_argument(
         "--static",
@@ -244,6 +245,8 @@ def _run(args: argparse.Namespace) -> int:
             else ("--explain" if args.explain else "--quiet")
         )
         raise Error(f"--emit prints commands, or with --format json the commands field: not {flag}")
+    if args.emit in commands.BOTS and args.format == "json":
+        raise Error(f"--emit {args.emit} prints a configuration, it cannot go with --format json")
     if args.emit and args.only_changes:
         raise Error("--emit prints the whole plan, it cannot go with --only-changes")
     if args.static and args.format != "html":
@@ -320,6 +323,8 @@ def _run(args: argparse.Namespace) -> int:
         return 0  # nothing to say, not even an empty file
     elif explained and args.format == "text":
         output = explain.render(report)
+    elif args.emit in commands.BOTS:
+        output = getattr(commands, args.emit)(report)
     elif args.emit:
         try:
             emitted = commands.plan(report, commands.tool_for(report, args.emit))

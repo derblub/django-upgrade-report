@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- `--emit renovate` and `--emit dependabot` print a configuration that makes the bots follow the plan: Django held on its series until everything that goes first is upgraded, Django in one pull request with the packages that need it, and upgrades that need each other grouped. Each rule says when to remove it.
 - `--emit uv` (or `poetry`, `pdm`, `pipenv`, `pip`, `auto`) prints the commands that carry out the plan instead of the report: what to upgrade first, one command each in the report's order, upgrades that need each other in one command, then Django with what needs it; dependencies that only come with others are upgraded in the lock. For pip it names the requirement lines to change, with file and line. When the target Django needs a newer Python, the Python upgrades come first. With `--format json` the commands are in the new `commands` field, and the HTML report shows each package's command, with a copy button.
 - The JSON report says on which requirement file line a package is pinned or named: `origin`, such as `"requirements/base.txt:12"`.
 - The report knows which dependencies your project names itself and which only come in through others: from `pyproject.toml` or the `Pipfile` beside a lockfile, the project entries of `uv.lock` (every member of a workspace), and the requirement files themselves. The JSON report has `direct` per package (null when the source does not say), and the HTML report a switch "only direct dependencies".

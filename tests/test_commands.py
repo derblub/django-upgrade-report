@@ -209,3 +209,79 @@ def test_html_rows_show_their_command(plan_project, capsys):
 def test_emit_goes_with_text_or_json(plan_project, capsys, args, message):
     assert cli.main([str(plan_project), "--emit", "uv", *args]) == 2
     assert message in capsys.readouterr().err
+
+
+# --- Renovate and Dependabot --------------------------------------------------------
+
+
+def test_renovate(plan_project, capsys):
+    rules = json.loads(emit(plan_project, capsys, "renovate"))["packageRules"]
+    assert rules == [
+        {
+            "description": "django-upgrade-report: hold Django at 4.2 until the 'upgrade first' "
+            "list is done, then remove this rule",
+            "matchPackageNames": ["django"],
+            "allowedVersions": "<5.0",
+        },
+        {
+            "description": "django-upgrade-report: these go together with Django 5.2",
+            "matchPackageNames": ["django", "django-with"],
+            "groupName": "Django 5.2",
+        },
+        {
+            "description": "django-upgrade-report: upgrade first, one at a time",
+            "matchPackageNames": ["django-before"],
+            "minimumReleaseAge": "0 days",
+        },
+    ]
+
+
+def test_dependabot(plan_project, capsys):
+    assert emit(plan_project, capsys, "dependabot").splitlines()[1:] == [
+        "# Add these keys to the entry for your Python dependencies under updates:",
+        "    groups:",
+        "      django-5-2:",
+        "        patterns:",
+        '          - "django"',
+        '          - "django-with"',
+        "    ignore:",
+        "      # Hold Django at 4.2 until the 'upgrade first' list is done, then remove this.",
+        '      - dependency-name: "django"',
+        '        versions: [">=5.0"]',
+    ]
+
+
+def test_bots_with_nothing_to_hold_or_group(project, capsys):
+    (project / "requirements.txt").write_text("Django==4.2.7\ndjango-ready==1.0\n")
+    assert json.loads(emit(project, capsys, "renovate")) == {"packageRules": []}
+    assert emit(project, capsys, "dependabot").splitlines()[-1] == (
+        "# Nothing to add: the plan needs no group and no hold."
+    )
+
+
+def test_bots_group_upgrades_that_need_each_other():
+    report = Report(
+        target="5.1",
+        current_django="5.0.4",
+        django_requires_python=None,
+        source="uv.lock",
+        packages=[
+            row("a", Phase.BEFORE, ["upgrade together with c"]),
+            row("c", Phase.BEFORE, ["upgrade together with a"]),
+        ],
+        skipped=0,
+        missing=[],
+    )
+    rules = json.loads(commands.renovate(report))["packageRules"]
+    assert rules[0]["allowedVersions"] == "<5.1"  # 5.0 is followed by 5.1
+    assert rules[1] == {
+        "description": "django-upgrade-report: a and c together: each needs the other",
+        "matchPackageNames": ["a", "c"],
+        "groupName": "a and c together",
+    }
+    assert "      a-and-c-together:" in commands.dependabot(report).splitlines()
+
+
+def test_bot_configuration_is_not_json_output(plan_project, capsys):
+    assert cli.main([str(plan_project), "--emit", "renovate", "-f", "json"]) == 2
+    assert "prints a configuration" in capsys.readouterr().err

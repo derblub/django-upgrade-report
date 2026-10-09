@@ -112,7 +112,7 @@ django-upgrade-report [PROJECT] [options]
 | `--python PATH` | Read the exact installed versions from this interpreter, e.g. `.venv/bin/python`. |
 | `-f`, `--format` | `text` (default), `markdown`, `json` or `html`. |
 | `-o`, `--output` | Write the report to a file instead of stdout. Missing directories are created. |
-| `--emit TOOL` | Print the commands that carry out the plan instead of the report, for `uv`, `poetry`, `pdm`, `pipenv` or `pip`; `auto` picks the tool by the lockfile. With `--format json`, they go into the `commands` field. See [Commands to run](#commands-to-run). |
+| `--emit TOOL` | Print the commands that carry out the plan instead of the report, for `uv`, `poetry`, `pdm`, `pipenv` or `pip`; `auto` picks the tool by the lockfile. With `--format json`, they go into the `commands` field. See [Commands to run](#commands-to-run). `renovate` and `dependabot` print a configuration that makes the bot follow the plan. |
 | `--static` | With `--format html`: a page without scripts, for places that block scripts in attachments. It has no search, filters or counter of ticks. |
 | `--fail-on` | Exit with status 1 when a package is `blocked`, needs an `upgrade` (or is blocked), or needs a `check` (or anything worse). |
 | `--baseline REPORT.json` | An earlier `--format json` report: the report starts with what changed since, such as a blocked package that now has a release for the target. |
@@ -343,6 +343,21 @@ Packages your project installs from git, a path or a private index are never loo
 <summary><strong>How is this different from Dependabot or Renovate?</strong></summary>
 
 They bump versions one package at a time. They do not know which release is the first one to support the Django version you are heading for, or which upgrades have to wait for Django. Use this tool to plan, and let them open the pull requests.
+
+`--emit renovate` prints `packageRules` that make Renovate follow the plan, `--emit dependabot` the `groups` and `ignore` keys for `.github/dependabot.yml`: Django stays on its series until everything that goes first is upgraded, and Django comes in one pull request with the packages that need it. Each rule says when to remove it.
+
+```console
+$ django-upgrade-report --emit dependabot
+    groups:
+      django-5-2:
+        patterns:
+          - "django"
+          - "django-with"
+    ignore:
+      # Hold Django at 4.2 until the 'upgrade first' list is done, then remove this.
+      - dependency-name: "django"
+        versions: [">=5.0"]
+```
 </details>
 
 <details>
