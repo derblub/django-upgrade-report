@@ -17,6 +17,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Protocol
 
+from packaging.version import InvalidVersion, Version
+
 from django_upgrade_report.analysis import SEVERITY, Evidence, PackageReport, Phase, Report, Status
 from django_upgrade_report.client import ONLINE, FetchError, JsonClient, UnexpectedAnswer
 
@@ -336,6 +338,113 @@ def test_matrix(files: Files, repository: str, target: str) -> Evidence | None:
     return None
 
 
+# --- changelogs --------------------------------------------------------------------
+
+CHANGELOGS = (
+    "CHANGELOG.md",
+    "CHANGELOG.rst",
+    "CHANGES.rst",
+    "CHANGES.md",
+    "HISTORY.rst",
+    "HISTORY.md",
+    "docs/changelog.rst",
+    "docs/changes.rst",
+    "NEWS.rst",
+)
+_HEADING_VERSION = re.compile(
+    r"^\[?(?:version\s+|release\s+|v)?(\d+(?:\.\d+)+(?:(?:a|b|rc)\d+)?)\]?(?=$|[\s(:,-])", re.I
+)
+_UNRELEASED = re.compile(r"\b(unreleased|upcoming|next release|in development)\b", re.I)
+_SUPPORT = re.compile(r"support|compatib|\badd|\btest", re.I)
+_DROPPED = re.compile(r"\b(drop|remov|deprecat|no longer|end of|unsupported|not support)", re.I)
+_UNDERLINE = re.compile(r"^([=\-~^*+#`'\"])\1{2,}\s*$")
+
+
+def changelog_sections(text: str) -> list[tuple[str, list[str]]]:
+    """(version or ``"unreleased"``, lines) per section, newest first as written.
+
+    A section starts at a Markdown heading or an underlined reStructuredText title that is a
+    version number. Lines before the first such heading belong to no section.
+    """
+    lines = text.splitlines()
+    sections: list[tuple[str, list[str]]] = []
+    skip = False
+    for i, line in enumerate(lines):
+        if skip:
+            skip = False
+            continue
+        title = None
+        markdown = re.match(r"^#{1,6}\s+(.*)$", line)
+        if markdown:
+            title = markdown.group(1).strip()
+        elif line.strip() and i + 1 < len(lines) and _UNDERLINE.match(lines[i + 1]):
+            title, skip = line.strip(), True
+        if title is not None:
+            version = _HEADING_VERSION.match(title)
+            if version:
+                sections.append((version.group(1), []))
+                continue
+            if _UNRELEASED.search(title):  # "(Unreleased)", "X.YY.Z (UNRELEASED)"
+                sections.append(("unreleased", []))
+                continue
+        if sections:
+            sections[-1][1].append(line)
+    return sections
+
+
+def changelog_mention(text: str, installed: str, target: str) -> str | None:
+    """The newest section after ``installed`` with a line that names Django ``target`` and
+    support, compatibility, adding or testing it; ``None`` without one."""
+    try:
+        have = Version(installed)
+    except InvalidVersion:
+        return None
+    major, minor = target.split(".")
+    # "Django 5.2", "Django>=5.2", also in a list: "Django 5.2 and 6.0", "Django 5.1, 5.2"
+    mention = re.compile(
+        rf"django\s*(?:[~=<>]=?\s*)?(?:\d+\.\d+\s*(?:,|and|&|/)\s*)*{major}\.{minor}(?![\d.])",
+        re.I,
+    )
+    for version, body in changelog_sections(text):
+        if version != "unreleased":
+            try:
+                if Version(version) <= have:
+                    continue
+            except InvalidVersion:
+                continue
+        if any(
+            mention.search(line) and _SUPPORT.search(line) and not _DROPPED.search(line)
+            for line in body
+        ):
+            return version
+    return None
+
+
+def changelog(
+    files: Files, repository: str, installed: str, target: str, link: str | None = None
+) -> Evidence | None:
+    """A sign from the repository's changelog: the first file found is read, no other."""
+    owner, repo = repository.removeprefix("https://github.com/").split("/", 1)
+    paths = list(CHANGELOGS)
+    own = re.match(rf"^{re.escape(repository)}/blob/[^/]+/(.+)$", link or "", re.I)
+    if own:  # the file the project links as its changelog, on the default branch
+        paths.insert(0, own.group(1))
+    for path in paths:
+        text = files.text(owner, repo, path)
+        if text is None:
+            continue
+        version = changelog_mention(text, installed, target)
+        if version is None:
+            return None
+        where = "the unreleased changes" if version == "unreleased" else version
+        return Evidence(
+            "changelog",
+            f"changelog of {where} mentions Django {target} support",
+            f"{repository}/blob/HEAD/{path}",
+        )
+    return None
+
+
 def gather(report: Report, files: Files, workers: int = 4, skip: Iterable[str] = ()) -> list[str]:
     """Add signs from the repositories of the packages to check; returns what failed.
 
@@ -351,11 +460,14 @@ def gather(report: Report, files: Files, workers: int = 4, skip: Iterable[str] =
 
     def look(p: PackageReport) -> str | None:
         try:
-            found = test_matrix(files, p.repository_url, report.target)
+            found = [test_matrix(files, p.repository_url, report.target)]
+            if p.current:
+                found.append(
+                    changelog(files, p.repository_url, p.current, report.target, p.changelog_url)
+                )
         except FetchError as exc:
             return f"Could not read the repository of {p.display_name}: {exc}"
-        if found is not None:
-            p.evidence.append(found)
+        p.evidence += [sign for sign in found if sign is not None]
         return None
 
     with ThreadPoolExecutor(max_workers=workers) as pool:

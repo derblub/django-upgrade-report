@@ -206,7 +206,8 @@ def test_test_matrix_sign(repo_project, capsys):
     ]
     assert packages["django-lagging"]["evidence"] == []
     requested = repo_project.files.requests
-    assert len([r for r in requested if "django-lagging" in r]) == 8  # the fixed list, no more
+    lagging = [r for r in requested if "django-lagging" in r]
+    assert len(lagging) == 8 + 9  # the fixed lists of test matrices and changelogs, no more
     assert requested.count("org/django-silent/tox.ini") == 1  # found at once, nothing else asked
 
 
@@ -270,3 +271,73 @@ def test_github_workflows_with_a_token(monkeypatch):
     refused = evidence.GitHubFiles(None, token="secret")
     serve(monkeypatch, http_error(403))
     assert refused.workflows("o", "x") is None  # refused: guess instead
+
+
+# --- changelogs ---------------------------------------------------------------------
+
+
+def test_changelog_of_django_taggit():
+    text = read("django-taggit-CHANGELOG.rst")  # "(Unreleased)": "Add Django 5.2 and 6.0 support"
+    assert evidence.changelog_mention(text, "4.0.0", "6.0") == "unreleased"
+    assert evidence.changelog_mention(text, "4.0.0", "6.1") is None
+
+
+def test_changelog_of_django_storages():
+    text = read("django-storages-CHANGELOG.rst")  # "X.YY.Z (UNRELEASED)", then versions
+    sections = [version for version, _ in evidence.changelog_sections(text)]
+    assert sections[:3] == ["unreleased", "1.14.6", "1.14.5"]
+    assert evidence.changelog_mention(text, "1.14.2", "5.1") == "1.14.5"
+    assert evidence.changelog_mention(text, "1.14.5", "5.1") is None  # not after yours
+
+
+def test_changelog_of_simplejwt_says_nothing_of_5_2():
+    assert evidence.changelog_mention(read("simplejwt-CHANGELOG.md"), "5.3.0", "5.2") is None
+
+
+@pytest.mark.parametrize(
+    ("line", "found"),
+    [
+        ("- Add support for Django 5.2", True),
+        ("- Tested against Django>=5.2", True),
+        ("- Compatible with Django 5.1, 5.2", True),
+        ("- Django 5.2 is out", False),  # no word for support
+        ("- Add support for Django 5.20", False),
+        ("- Drop support for Django 5.2", False),
+        ("- Django 5.2 is no longer supported", False),
+        ("- Remove the deprecated tests for Django 5.2", False),
+    ],
+)
+def test_changelog_lines(line, found):
+    text = f"# Changelog\n\n## 2.0 (2026-01-01)\n\n{line}\n\n## 1.0\n\n- First\n"
+    assert (evidence.changelog_mention(text, "1.0", "5.2") == "2.0") is found
+
+
+def test_changelog_needs_sections():
+    assert evidence.changelog_mention("Add support for Django 5.2\n", "1.0", "5.2") is None
+    assert evidence.changelog_mention("## 2.0\n- Add support for Django 5.2\n", "x", "5.2") is None
+
+
+def test_changelog_reads_the_linked_file_first():
+    files = FakeFiles({"o/r/docs/history.md": "## 2.0\n- Add Django 5.2 support\n"})
+    link = "https://github.com/o/r/blob/main/docs/history.md"
+    found = evidence.changelog(files, "https://github.com/o/r", "1.0", "5.2", link)
+    assert found.text == "changelog of 2.0 mentions Django 5.2 support"
+    assert files.requests == ["o/r/docs/history.md"]
+    files = FakeFiles({"o/r/CHANGELOG.md": "## 2.0\n- Fixes\n", "o/r/CHANGES.rst": "x"})
+    assert evidence.changelog(files, "https://github.com/o/r", "1.0", "5.2") is None
+    assert files.requests == ["o/r/CHANGELOG.md"]  # the first file found decides
+
+
+def test_changelog_sign_in_the_report(repo_project, capsys):
+    repo_project.files.files["org/django-lagging/CHANGELOG.md"] = (
+        "# Changes\n\n## Unreleased\n\n- Test on Django 5.2\n\n## 1.0\n"
+    )
+    cli.main([str(repo_project.path), "-f", "json", "--evidence"])
+    packages = {p["name"]: p for p in json.loads(capsys.readouterr().out)["packages"]}
+    assert packages["django-lagging"]["evidence"] == [
+        {
+            "kind": "changelog",
+            "text": "changelog of the unreleased changes mentions Django 5.2 support",
+            "url": "https://github.com/org/django-lagging/blob/HEAD/CHANGELOG.md",
+        }
+    ]

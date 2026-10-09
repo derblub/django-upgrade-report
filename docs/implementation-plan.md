@@ -65,10 +65,10 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 2.2 | 0.9 | Mehrstufiger Pfad (`--via`) | erledigt |
 | 2.2a | 0.9 | `analyse_path`, `--via`, Text, JSON `"kind": "path"`, `--fail-on` über alle Schritte | erledigt |
 | 2.2b | 0.9 | Markdown und HTML, Action-Input `via` | erledigt |
-| 1.2 | 0.10 | Schwächere Belege | in Arbeit |
+| 1.2 | 0.10 | Schwächere Belege | erledigt |
 | 1.2a | 0.10 | `Evidence`, README auf PyPI, Sortierung, Hinweis, alle Formate, JSON `evidence` | erledigt |
 | 1.2b | 0.10 | `--evidence`: Testmatrix im Repository (tox, Workflows, nox), Action-Input, FAQ | erledigt |
-| 1.2c | 0.10 | `--evidence`: Changelog im Repository | offen |
+| 1.2c | 0.10 | `--evidence`: Changelog im Repository | erledigt |
 | 1.3 | 0.10 | Upstream-Issues und -PRs | offen |
 | 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | offen |
 | 2.4 | 0.11 | Ungenutzte Pakete | offen |
@@ -502,6 +502,15 @@ GitHub; Pakete aus einem privaten Index (auch mit `--check-private-on-pypi`) wer
 ausgelassen. Echter Lauf (Beispiel, Ziel 6.0): vier von sieben Paketen mit Beleg, zwei davon
 von Hand nachgeprüft. Testdateien sind echte Dateien von django-taggit, django-filter,
 django-storages und django-allauth (`tests/data/evidence/`, von Ruff ausgenommen).
+
+**Umsetzung 1.2c:** `changelog()` liest nur die erste gefundene Datei (zuerst die, auf die
+`changelog_url` im Repository zeigt, dann die Liste, ergänzt um `CHANGELOG.rst`, das
+django-taggit und django-storages nutzen). Abschnitte über Markdown-Überschriften und
+unterstrichene RST-Titel; ein Titel mit „unreleased“ irgendwo („X.YY.Z (UNRELEASED)“,
+„(Unreleased)“) gilt als neuer als jede Version. Erkannt werden auch Listen („Django 5.2 and
+6.0“); Zeilen mit drop/remove/deprecat/no longer zählen nie. Nur für gepinnte Pakete, weil der
+Vergleich die installierte Version braucht. Echte Läufe: Ziel 5.2 alle drei, Ziel 6.0 vier von
+sieben Paketen mit Beleg.
 
 ### 1.3 Upstream-Issues und -PRs
 

@@ -121,7 +121,7 @@ django-upgrade-report [PROJECT] [options]
 | `--fail-on-change` | With `--baseline`: exit with status 1 when `any`thing changed, or when something is `worse` (a status that needs more work, a new package to look at, a new warning). |
 | `--python-target` | `auto` (default): also check every dependency on the Python the target Django needs, when your project uses an older one. `none`: never. `3.12` and so on: on that Python, whatever Django needs. See [Upgrading Python too](#upgrading-python-too). |
 | `--fail-on-python` | Like `--fail-on`, for the dependencies on that Python. |
-| `--evidence` | For packages to check, look for signs of support in their GitHub repository: the test matrix on the default branch (tox, nox, GitHub workflows). Sends the names of those repositories to GitHub. |
+| `--evidence` | For packages to check, look for signs of support in their GitHub repository: the test matrix on the default branch (tox, nox, GitHub workflows) and the changelog. Sends the names of those repositories to GitHub. |
 | `--explain PACKAGE` | Show step by step how the verdict on a package came about instead of the report: the requirement lines that apply, the classifiers, whether an upper bound counts, every release looked at, and whether it goes before or with Django. Can be given more than once. Paste it into an issue when you think a verdict is wrong. |
 | `-v`, `--verbose` | Text output only: list every ready package with its reason. The other formats always do. |
 | `-q`, `--quiet` | Text output only: just the headline, warnings, blocked packages and the counts. |
@@ -329,7 +329,7 @@ From these verdicts, per package:
 - **Check manually** when no release says yes, but yours or a newer one is not excluded.
 - **Blocked** when your release and every newer one exclude the target.
 
-A package to check can still show **signs of support**: its README on PyPI naming the target ("README of 2.1 mentions Django 5.2"), for the release the report names or else the newest. With `--evidence`, also the test matrix on the default branch of its GitHub repository: tox, nox or a GitHub workflow that runs the tests against the target ("main branch tests Django 6.0 (tox.ini)"). Signs are notes, linked to where they come from, and never change a status or `--fail-on`. Packages to check without any sign come first, since that is where the work is.
+A package to check can still show **signs of support**: its README on PyPI naming the target ("README of 2.1 mentions Django 5.2"), for the release the report names or else the newest. With `--evidence`, also its GitHub repository: a test matrix on the default branch that runs the target (tox, nox or a GitHub workflow: "main branch tests Django 6.0 (tox.ini)"), and a changelog section after your version that adds or tests it ("changelog of 1.14.5 mentions Django 5.1 support"). Signs are notes, linked to where they come from, and never change a status or `--fail-on`. Packages to check without any sign come first, since that is where the work is.
 
 A package counts as Django-related when it depends on Django or has a `Framework :: Django` classifier. Packages that only depend on Wagtail or django CMS are included too, with a note to check them against that framework. Everything else is skipped.
 
