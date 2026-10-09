@@ -112,6 +112,7 @@ django-upgrade-report [PROJECT] [options]
 | `--python PATH` | Read the exact installed versions from this interpreter, e.g. `.venv/bin/python`. |
 | `-f`, `--format` | `text` (default), `markdown`, `json` or `html`. |
 | `-o`, `--output` | Write the report to a file instead of stdout. Missing directories are created. |
+| `--emit TOOL` | Print the commands that carry out the plan instead of the report, for `uv`, `poetry`, `pdm`, `pipenv` or `pip`; `auto` picks the tool by the lockfile. With `--format json`, they go into the `commands` field. See [Commands to run](#commands-to-run). |
 | `--static` | With `--format html`: a page without scripts, for places that block scripts in attachments. It has no search, filters or counter of ticks. |
 | `--fail-on` | Exit with status 1 when a package is `blocked`, needs an `upgrade` (or is blocked), or needs a `check` (or anything worse). |
 | `--baseline REPORT.json` | An earlier `--format json` report: the report starts with what changed since, such as a blocked package that now has a release for the target. |
@@ -198,6 +199,10 @@ Python 3.12 first (2)
 ```
 
 For each installed release, in this order: a `Requires-Python` that excludes the Python means no; a `Programming Language :: Python :: 3.12` classifier means yes; so does a wheel built for it. An `abi3` wheel for an older Python, or a pure-Python wheel, runs too. Wheels only for other Pythons mean pip builds the package from source, which needs a compiler and often fails; without a source distribution it cannot be installed at all. Wheels count when they install on CPython under Linux on x86_64. A dependency that needs something gets the oldest newer release that runs on the Python, with a note when that release no longer runs on the Python you use today, so it goes together with the switch. It needs a project Python (see above); `--python-target 3.13` checks any Python you name.
+
+### Commands to run
+
+`--emit uv` (or `poetry`, `pdm`, `pipenv`, `pip`, or `auto` to pick by the lockfile) prints the commands that carry out the plan instead of the report: the upgrades that go first, one command each, then Django with what needs it, in one command; blocked packages and ones to check are named at the end. For pip it says which requirement lines to change. With `--format json` they go into the `commands` field. See [Upgrade commands](docs/wiki/Upgrade-Commands.md).
 
 ### Packages not from PyPI
 

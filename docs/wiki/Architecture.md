@@ -29,6 +29,7 @@ render.text / markdown / html / json / explain
 | `projects.py` | Repository and changelog links from a project's metadata. |
 | `successors.py` | Packages Django took over, each with a source. |
 | `prompts.py` | The questions asked at a terminal. |
+| `commands.py` | `--emit`: the commands per tool that carry out the plan. |
 | `ci.py` | The pull request comment of the GitHub Action. |
 | `render/` | Text, Markdown, HTML, JSON and `--explain`. `render/__init__.py` holds what the formats share, so they stay in the same order. |
 | `cli.py` | Command-line options and exit codes. |

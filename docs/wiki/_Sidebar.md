@@ -5,6 +5,7 @@
 - [Reading the report](Reading-the-Report)
 - [How it decides](How-It-Decides)
 - [Upgrading Python](Upgrading-Python)
+- [Upgrade commands](Upgrade-Commands)
 - [Dependency sources](Dependency-Sources)
 - [Continuous integration](Continuous-Integration)
 - [Troubleshooting](Troubleshooting)

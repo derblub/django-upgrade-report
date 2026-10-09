@@ -64,6 +64,11 @@
   pure Python), `silent` (names whose release says nothing about Python), `not_checked`
   (names the index did not answer for) and `django_note` (str or null: whether your Django
   patch release declares the target Python, or which one does).
+- `commands` (object or null): with `--emit`, the commands that carry out the plan:
+  `tool` (`"uv"`, `"poetry"`, `"pdm"`, `"pip"` or `"pipenv"`), `steps`, in
+  order, each with `phase` (`"before"`, `"with"` or `"upgrade"`) and `commands` (list
+  of str, shell-quoted; for pip, comments with the lines to change), and `left_out` (str,
+  e.g. `"django-taggit (blocked)"`: packages that need a person).
 - `explain` (object): for each package given with `--explain`, by canonical name, how its
   verdict came about: a list of objects with `section` (`"inputs"`, `"release"`,
   `"search"`, `"phase"` or `"result"`) and `text`, in the order they happened. Empty

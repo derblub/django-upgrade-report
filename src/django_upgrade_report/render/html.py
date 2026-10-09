@@ -6,7 +6,7 @@ import hashlib
 from html import escape
 from importlib import resources
 
-from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__
+from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, commands
 from django_upgrade_report.analysis import PackageReport, Report, Status
 from django_upgrade_report.projects import safe_url
 from django_upgrade_report.render import (
@@ -171,6 +171,15 @@ def render(report: Report, static: bool = False) -> str:
     """``static`` leaves out every script, for places that block scripts in attachments."""
     counts = report.counts
     title = headline(report)
+    try:  # each row shows its command when the tool is clear from the source
+        tool = commands.tool_for(report, "auto")
+    except commands.EmitError:
+        tool = None
+    command = {
+        p.name: line
+        for p in report.packages
+        if tool and (line := commands.command(report, p, tool)) and not line.startswith("#")
+    }
     start, arrow, end = title.partition(" → ")
     heading = (
         f'{escape(start)} <span class="arrow">→</span> {escape(end)}' if arrow else escape(title)
@@ -244,7 +253,9 @@ def render(report: Report, static: bool = False) -> str:
                 )
                 body.append(f'<div class="chips">{chips}</div>')
         if packages:
-            body.append(_table(packages, None if section.key == "ready" else "django", static))
+            body.append(
+                _table(packages, None if section.key == "ready" else "django", static, command)
+            )
         body.append("</section>")
 
     if report.missing:
@@ -383,7 +394,7 @@ def _data(p: PackageReport) -> str:
     )
 
 
-def _more(p: PackageReport, static: bool) -> str:
+def _more(p: PackageReport, static: bool, command: str | None = None) -> str:
     """What a row shows when it is opened: links, the newest release, the line to pin."""
     facts = []
     links = []
@@ -404,13 +415,23 @@ def _more(p: PackageReport, static: bool) -> str:
         if not static:
             pin += '<button type="button" class="copy" hidden>copy</button>'
         facts.append(("Pin", pin))
+    if command:
+        line = f"<code>{escape(command)}</code>"
+        if not static:
+            line += '<button type="button" class="copy" hidden>copy</button>'
+        facts.append(("Command", line))
     if not facts:
         return ""
     rows = "".join(f"<dt>{label}</dt><dd>{value}</dd>" for label, value in facts)
     return f'<details class="more"><summary>details</summary><dl>{rows}</dl></details>'
 
 
-def _table(packages: list[PackageReport], todo: str | None = None, static: bool = False) -> str:
+def _table(
+    packages: list[PackageReport],
+    todo: str | None = None,
+    static: bool = False,
+    command: dict[str, str] | None = None,
+) -> str:
     """``todo`` adds a checkbox per row, named ``todo:name`` to keep the tick."""
     rows = []
     for p in packages:
@@ -428,10 +449,11 @@ def _table(packages: list[PackageReport], todo: str | None = None, static: bool 
             f' <a class="link" href="{escape(url)}">{escape(label)}</a>'
             for label, url in row_links(p)
         )
+        more = _more(p, static, (command or {}).get(p.name))
         rows.append(
             f'<tr{_data(p)}>{tick}<td class="name">{escape(p.display_name)}</td>'
             f'<td class="version">{escape(version_cell(p))}</td>'
-            f"<td>{escape(p.reason)}{links}{'<br>' + notes if notes else ''}{_more(p, static)}"
+            f"<td>{escape(p.reason)}{links}{'<br>' + notes if notes else ''}{more}"
             "</td></tr>"
         )
     done = '<th class="tick"><span class="sr">Done</span></th>' if todo else ""

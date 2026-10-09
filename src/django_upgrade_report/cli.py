@@ -13,7 +13,15 @@ from pathlib import Path
 
 from packaging.utils import canonicalize_name
 
-from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, sources
+from django_upgrade_report import (
+    AUTHOR,
+    COMPANY,
+    COMPANY_URL,
+    REPO_URL,
+    __version__,
+    commands,
+    sources,
+)
 from django_upgrade_report.analysis import SEVERITY, Status, analyse, from_other_index
 from django_upgrade_report.diff import BaselineError, compare, load_baseline
 from django_upgrade_report.prompts import ask_missing, terminal_ask
@@ -78,6 +86,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="output format (default: text)",
     )
     parser.add_argument("-o", "--output", type=Path, help="write the report to a file")
+    parser.add_argument(
+        "--emit",
+        choices=["auto", *commands.TOOLS],
+        help="print the commands that carry out the plan instead of the report, for this tool; "
+        "'auto' picks it by the lockfile. With --format json: the commands field",
+    )
     parser.add_argument(
         "--static",
         action="store_true",
@@ -223,6 +237,15 @@ def _run(args: argparse.Namespace) -> int:
     elif args.only_changes or args.fail_on_change:
         flag = "--only-changes" if args.only_changes else "--fail-on-change"
         raise Error(f"{flag} needs --baseline, an earlier --format json report")
+    if args.emit and (args.format in ("markdown", "html") or args.explain or args.quiet):
+        flag = (
+            f"--format {args.format}"
+            if args.format in ("markdown", "html")
+            else ("--explain" if args.explain else "--quiet")
+        )
+        raise Error(f"--emit prints commands, or with --format json the commands field: not {flag}")
+    if args.emit and args.only_changes:
+        raise Error("--emit prints the whole plan, it cannot go with --only-changes")
     if args.static and args.format != "html":
         raise Error("--static goes with --format html")
     if args.only_changes and (args.format == "html" or args.explain):
@@ -297,6 +320,16 @@ def _run(args: argparse.Namespace) -> int:
         return 0  # nothing to say, not even an empty file
     elif explained and args.format == "text":
         output = explain.render(report)
+    elif args.emit:
+        try:
+            emitted = commands.plan(report, commands.tool_for(report, args.emit))
+        except commands.EmitError as exc:
+            raise Error(exc) from None
+        output = (
+            json.render(report, emitted)
+            if args.format == "json"
+            else commands.render(report, emitted)
+        )
     elif args.format == "text":
         use_color = args.output is None and sys.stdout.isatty() and "NO_COLOR" not in os.environ
         output = text.render(
@@ -359,6 +392,7 @@ def _interactive(args: argparse.Namespace) -> bool:
         and args.format == "text"
         and args.output is None
         and not args.explain
+        and not args.emit
         and "CI" not in os.environ
         and _at_terminal()
     )
