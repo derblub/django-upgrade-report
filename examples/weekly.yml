@@ -22,7 +22,7 @@ jobs:
           path: .django-upgrade-report.json
           key: django-upgrade-report-${{ github.run_id }}
           restore-keys: django-upgrade-report-
-      - uses: derblub/django-upgrade-report@v0
+      - uses: derblub/django-upgrade-report@v1
         id: django
         with:
           baseline: .django-upgrade-report.json

@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: derblub/django-upgrade-report@v0
+      - uses: derblub/django-upgrade-report@v1
         with:
           comment: on-change     # update the comment only when a status or step changed
           fail-on: blocked
@@ -46,7 +46,7 @@ Each run updates it: the ticks people set stay, rows that need nothing any more 
 ## GitHub Actions: using the outputs
 
 ```yaml
-      - uses: derblub/django-upgrade-report@v0
+      - uses: derblub/django-upgrade-report@v1
         id: django
       - run: echo "${{ steps.django.outputs.blocked }} blocked, ${{ steps.django.outputs.upgrade }} to upgrade"
       - run: jq '.packages[] | select(.status == "blocked") | .name' "${{ steps.django.outputs.report }}"
@@ -69,7 +69,7 @@ django-upgrade-report:
 
 ```yaml
 - repo: https://github.com/derblub/django-upgrade-report
-  rev: v0.5.0
+  rev: v1.0.0
   hooks:
     - id: django-upgrade-report
 ```

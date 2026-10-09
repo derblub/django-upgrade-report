@@ -3,7 +3,7 @@
 
 ```yaml
 - uses: actions/checkout@v7
-- uses: derblub/django-upgrade-report@v0
+- uses: derblub/django-upgrade-report@v1
   id: django
   with:
     fail-on: blocked

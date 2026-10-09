@@ -282,7 +282,7 @@ The action writes the Markdown report to the job summary, exposes the counts as 
 
 ```yaml
 - uses: actions/checkout@v7
-- uses: derblub/django-upgrade-report@v0
+- uses: derblub/django-upgrade-report@v1
   id: django
   with:
     fail-on: blocked   # optional: blocked, upgrade or check
@@ -325,7 +325,7 @@ The action brings its own Python, runs on Linux and Windows runners, and caches 
 
 ```yaml
 - repo: https://github.com/derblub/django-upgrade-report
-  rev: v0.5.0
+  rev: v1.0.0
   hooks:
     - id: django-upgrade-report
 ```

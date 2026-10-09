@@ -16,6 +16,8 @@ PACKAGES = ["django-ready", "django-before", "django-with", "django-blocked", "d
 
 @pytest.fixture(scope="module")
 def build():
+    if not (ROOT / "ecosystem" / "build.py").exists():
+        pytest.skip("ecosystem/ is left out of the sdist")
     spec = importlib.util.spec_from_file_location(
         "ecosystem_build", ROOT / "ecosystem" / "build.py"
     )

@@ -49,7 +49,7 @@ jobs:
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
 
-  # "uses: derblub/django-upgrade-report@v0" follows the newest v0.x.y release.
+  # "uses: derblub/django-upgrade-report@v1" follows the newest v1.x.y release.
   major-tag:
     needs: publish
     if: ${{ !github.event.release.prerelease }}

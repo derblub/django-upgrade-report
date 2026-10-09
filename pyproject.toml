@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "django-upgrade-report"
-version = "0.4.0"
+version = "1.0.0"
 description = "Which of your dependencies block a Django upgrade, and in which order to upgrade them."
 dynamic = ["readme"]
 license = "MIT"
@@ -30,7 +30,7 @@ keywords = [
   "ci",
 ]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
   "Framework :: Django",
   "Framework :: Django :: 4.2",
