@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import http.client
 import json
 import urllib.error
@@ -199,3 +200,115 @@ def test_upload_times_without_time_zone_are_utc(monkeypatch, sleeps):
     assert [r.uploaded.tzinfo is not None for r in releases[:2]] == [True, True]
     assert releases[0].uploaded < releases[1].uploaded
     assert releases[2].uploaded is None
+
+
+# --- what the cache keeps (format v2) ---------------------------------------------
+
+RICH = {
+    "info": {
+        "name": "django-x",
+        "version": "2.0",
+        "classifiers": ["Framework :: Django :: 5.2"],
+        "requires_dist": ["Django>=4.2"],
+        "requires_python": ">=3.10",
+        "project_urls": {"Changelog": "https://x.test/changes", "Broken": None, "": "x"},
+        "home_page": "https://github.com/org/django-x",
+        "description": "Supports Django 4.2, Django 5.2 and django>=6.0. Not Django 23.1.",
+    },
+    "urls": [
+        {"filename": "django_x-2.0-cp312-cp312-manylinux_2_17_x86_64.whl", "packagetype": "x"},
+        {"filename": "django_x-2.0-py3-none-any.whl", "packagetype": "bdist_wheel"},
+        {"filename": "not-a-wheel.whl", "packagetype": "bdist_wheel"},
+        {"filename": "django_x-2.0.tar.gz", "packagetype": "sdist"},
+    ],
+    "releases": {
+        "1.0": [
+            {
+                "filename": "django_x-1.0.tar.gz",
+                "upload_time_iso_8601": "2025-01-01T00:00:00Z",
+                "requires_python": None,
+            }
+        ],
+        "2.0": [
+            {
+                "filename": "django_x-2.0-py3-none-any.whl",
+                "upload_time_iso_8601": "2026-01-02T00:00:00Z",
+                "requires_python": ">=3.10",
+            },
+            {
+                "filename": "django_x-2.0-cp312-cp312-win_amd64.whl",
+                "upload_time_iso_8601": "2026-01-01T00:00:00Z",
+                "requires_python": ">=3.10",
+            },
+        ],
+    },
+}
+
+
+def test_cache_keeps_links_mentions_and_wheels(monkeypatch, sleeps, tmp_path):
+    serve(monkeypatch, RICH)
+    cold = PyPI("https://pypi.test/pypi", cache_dir=tmp_path).project("django-x")
+    serve(monkeypatch, TimeoutError())  # a warm cache must not ask
+    warm = PyPI("https://pypi.test/pypi", cache_dir=tmp_path).project("django-x")
+    assert cold == warm
+    info = warm.latest
+    assert info.project_urls == (("Changelog", "https://x.test/changes"),)
+    assert info.home_page == "https://github.com/org/django-x"
+    assert info.django_mentions == ("4.2", "5.2", "6.0")
+    assert info.wheel_tags == ("cp312-cp312-manylinux_2_17_x86_64", "py3-none-any")
+    assert info.has_sdist
+    old, new = warm.releases
+    assert (old.requires_python, old.wheel_tags, old.has_sdist) == (None, (), True)
+    assert not new.has_sdist
+    assert new.requires_python == ">=3.10"
+    assert new.wheel_tags == ("py3-none-any",)  # Windows wheels say nothing about Linux
+    assert new.uploaded.day == 1  # still the earliest file
+    (cached,) = tmp_path.iterdir()
+    assert "Supports Django" not in cached.read_text()  # the README is not kept
+
+
+def test_cache_of_an_older_format_is_not_read(monkeypatch, sleeps, tmp_path):
+    url = "https://pypi.test/pypi/django-x/json"
+    legacy = tmp_path / (hashlib.sha256(url.encode()).hexdigest() + ".json")
+    legacy.write_text(json.dumps(PROJECT | {"info": PROJECT["info"] | {"version": "0.1"}}))
+    fake = serve(monkeypatch, PROJECT)
+    assert (
+        PyPI("https://pypi.test/pypi", cache_dir=tmp_path).project("django-x").latest.version
+        == "1.0"
+    )
+    assert len(fake.requests) == 1
+
+
+@pytest.mark.parametrize(
+    ("text", "found"),
+    [
+        ("Works with Django 4.2 and Django 5.2.3, tested on django==5.1", ["4.2", "5.1", "5.2"]),
+        ("Django version 6.0, django v3.2", ["3.2", "6.0"]),
+        ("django-filter 23.2, Django REST framework 3.15, Django 30.1", []),
+        ("Requires Django >= 4.2, Django~=5.0 or Django: 5.1", ["4.2", "5.0", "5.1"]),
+        ("Django<5.0, Django!=4.1, python-django 3.2, my.django 2.2", []),
+        (None, []),
+        (["Django 5.2"], []),
+    ],
+)
+def test_django_mentions(text, found):
+    assert pypi.django_mentions(text) == found
+
+
+def test_metadata_that_is_not_text_is_ignored(monkeypatch, sleeps):
+    odd = json.loads(json.dumps(PROJECT))
+    odd["info"] |= {"project_urls": ["x"], "home_page": 3, "description": {"a": 1}}
+    odd["urls"] = [{"filename": 7}, "x", {"filename": "y.whl"}]
+    serve(monkeypatch, odd)
+    info = PyPI("https://pypi.test/pypi").project("django-x").latest
+    assert (info.project_urls, info.home_page, info.django_mentions) == ((), None, ())
+    assert (info.wheel_tags, info.has_sdist) == ((), False)
+
+
+def test_unknown_links_and_files_stay_unknown(monkeypatch, sleeps):
+    """Old setuptools wrote UNKNOWN; a mirror without ``urls`` does not know the files."""
+    legacy = json.loads(json.dumps(PROJECT))
+    legacy["info"] |= {"home_page": "UNKNOWN", "project_urls": {"Homepage": "UNKNOWN"}}
+    serve(monkeypatch, legacy)
+    info = PyPI("https://pypi.test/pypi").project("django-x").latest
+    assert (info.home_page, info.project_urls, info.has_sdist) == (None, (), None)

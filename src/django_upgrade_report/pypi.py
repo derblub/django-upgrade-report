@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from packaging.utils import parse_wheel_filename
 from packaging.version import InvalidVersion, Version
 
 from django_upgrade_report.client import (  # noqa: F401  (re-exported for callers)
@@ -31,6 +33,10 @@ class Release:
     yanked: bool
     has_files: bool = True
     """Releases without files cannot be installed."""
+    requires_python: str | None = None
+    wheel_tags: tuple[str, ...] = ()
+    """Tags of the release's Linux wheels, e.g. ``cp312-cp312-manylinux_2_17_x86_64``."""
+    has_sdist: bool = False
 
 
 @dataclass(frozen=True)
@@ -42,6 +48,14 @@ class ReleaseInfo:
     classifiers: tuple[str, ...]
     requires_dist: tuple[str, ...]
     requires_python: str | None
+    project_urls: tuple[tuple[str, str], ...] = ()
+    """``Project-URL`` labels and URLs, e.g. ``("Changelog", "https://...")``."""
+    home_page: str | None = None
+    django_mentions: tuple[str, ...] = ()
+    """Django feature versions the description (the README on PyPI) names, e.g. ``"5.2"``."""
+    wheel_tags: tuple[str, ...] = ()
+    has_sdist: bool | None = None
+    """``None`` when the index did not list the release's files."""
 
 
 @dataclass(frozen=True)
@@ -59,6 +73,7 @@ class Project:
 
 class PyPI(JsonClient):
     hint = " (is this a PyPI JSON API URL?)"
+    cache_format = "v2"
 
     def __init__(
         self,
@@ -84,12 +99,20 @@ class PyPI(JsonClient):
                 version = Version(raw_version)
             except InvalidVersion:
                 continue
-            uploads = [
-                t for f in files if isinstance(t := f.get("upload_time_iso_8601"), str) and t
-            ]
-            uploaded = _timestamp(min(uploads)) if uploads else None
-            yanked = bool(files) and all(f.get("yanked") for f in files)
-            releases.append(Release(version, uploaded, yanked, has_files=bool(files)))
+            # One stand-in file per release, see _slim_files.
+            stand_in = files[0] if files else {}
+            when = stand_in.get("upload_time_iso_8601")
+            releases.append(
+                Release(
+                    version,
+                    _timestamp(when) if isinstance(when, str) and when else None,
+                    bool(stand_in.get("yanked")),
+                    has_files=bool(files),
+                    requires_python=_string(stand_in.get("requires_python")),
+                    wheel_tags=_strings(stand_in.get("wheel_tags")),
+                    has_sdist=stand_in.get("has_sdist") is True,
+                )
+            )
         releases.sort(key=lambda r: r.version)
         return Project(data["info"]["name"], _release_info(data), tuple(releases))
 
@@ -103,7 +126,7 @@ class PyPI(JsonClient):
         return None if is_release else self.cache_ttl
 
     def _slim(self, data: dict) -> dict:
-        # Only the fields we use, the full release list can be megabytes.
+        # Only the fields we use: the full release list can be megabytes, a README 100 KB.
         return _slim_project(data)
 
     def _validate(self, data: object) -> None:
@@ -138,6 +161,7 @@ def default_cache_dir() -> Path:
 
 
 def _release_info(data: dict) -> ReleaseInfo:
+    """``data`` as :meth:`PyPI._slim` left it."""
     info = data["info"]
     return ReleaseInfo(
         name=info["name"],
@@ -145,7 +169,27 @@ def _release_info(data: dict) -> ReleaseInfo:
         classifiers=_strings(info.get("classifiers")),
         requires_dist=_strings(info.get("requires_dist")),
         requires_python=_string(info.get("requires_python")),
+        project_urls=tuple(
+            (label, url)
+            for label, url in (_table(info.get("project_urls"))).items()
+            if isinstance(label, str) and label and _url(url)
+        ),
+        home_page=_url(info.get("home_page")),
+        django_mentions=_strings(info.get("django_mentions")),
+        wheel_tags=_strings(info.get("wheel_tags")),
+        has_sdist=has_sdist if isinstance(has_sdist := info.get("has_sdist"), bool) else None,
     )
+
+
+def _url(value: object) -> str | None:
+    """A web address; old setuptools wrote "UNKNOWN" where there was none."""
+    if isinstance(value, str) and value.startswith(("https://", "http://")):
+        return value
+    return None
+
+
+def _table(value: object) -> dict:
+    return value if isinstance(value, dict) else {}
 
 
 def _strings(value: object) -> tuple[str, ...]:
@@ -159,13 +203,42 @@ def _string(value: object) -> str | None:
     return value if isinstance(value, str) and value else None
 
 
+# "Django 5.2", "Django >= 4.2", "django~=5.0", "Django: 5.1", "Django version 4.2", but not
+# "Django<5.0" (that excludes it) or "python-django 3.2" (another package).
+_MENTION = re.compile(r"(?i)(?<![\w.-])django\s*(?:(?:==|>=|~=|:)\s*|v|version\s+)?(\d+\.\d+)\b")
+
+
+def django_mentions(text: object) -> list[str]:
+    """Django feature versions a text names as supported, e.g. "Django 5.2" or "Django>=4.2"."""
+    if not isinstance(text, str):
+        return []
+    found = {v for v in map(Version, _MENTION.findall(text)) if 1 <= v.major <= 9}
+    return [str(v) for v in sorted(found)]
+
+
 def _slim_project(data: dict) -> dict:
+    """What the engine reads of a project or release answer from the index."""
     info = data["info"]
+    files = data.get("urls")
+    slim = {
+        key: info.get(key)
+        for key in (
+            "name",
+            "version",
+            "classifiers",
+            "requires_dist",
+            "requires_python",
+            "project_urls",
+            "home_page",
+        )
+    }
+    slim["django_mentions"] = django_mentions(info.get("description"))
+    if isinstance(files, list):  # the files of this release (or the latest)
+        files = [f for f in files if isinstance(f, dict)]
+        slim["wheel_tags"] = _wheel_tags(files)
+        slim["has_sdist"] = any(_is_sdist(f) for f in files)
     return {
-        "info": {
-            key: info.get(key)
-            for key in ("name", "version", "classifiers", "requires_dist", "requires_python")
-        },
+        "info": slim,
         "releases": {
             version: _slim_files(files) for version, files in data.get("releases", {}).items()
         },
@@ -180,9 +253,45 @@ def _slim_files(files: list[dict]) -> list[dict]:
     if not files:
         return []
     uploads = [t for f in files if isinstance(t := f.get("upload_time_iso_8601"), str) and t]
-    return [
-        {
-            "upload_time_iso_8601": min(uploads) if uploads else None,
-            "yanked": all(f.get("yanked") for f in files),
-        }
-    ]
+    stand_in = {
+        "upload_time_iso_8601": min(uploads) if uploads else None,
+        "yanked": all(f.get("yanked") for f in files),
+    }
+    # Left out when empty: botocore has thousands of releases.
+    python = next((p for f in files if (p := _string(f.get("requires_python")))), None)
+    if python:
+        stand_in["requires_python"] = python
+    if tags := _wheel_tags(files):
+        stand_in["wheel_tags"] = tags
+    if any(_is_sdist(f) for f in files):
+        stand_in["has_sdist"] = True
+    return [stand_in]
+
+
+def _is_sdist(file: dict) -> bool:
+    filename = file.get("filename")
+    return file.get("packagetype") == "sdist" or (
+        isinstance(filename, str) and filename.endswith((".tar.gz", ".zip"))
+    )
+
+
+def _wheel_tags(files: list[dict]) -> list[str]:
+    """The tags of the wheels among ``files`` that install on Linux, where Django apps run.
+
+    Other platforms' wheels are left out: numpy has some 50 tags per release. File names that
+    are not valid are skipped.
+    """
+    tags = set()
+    for f in files:
+        filename = f.get("filename")
+        if not isinstance(filename, str) or not filename.endswith(".whl"):
+            continue
+        try:
+            tags.update(
+                str(tag)
+                for tag in parse_wheel_filename(filename)[3]
+                if tag.platform == "any" or "linux" in tag.platform
+            )
+        except ValueError:  # InvalidWheelFilename, or InvalidVersion on older packaging
+            continue
+    return sorted(tags)

@@ -48,6 +48,8 @@ class JsonClient:
 
     hint = ""
     """Appended to errors about answers that are not what the API sends."""
+    cache_format = ""
+    """Part of every cache key: change it when :meth:`_slim` keeps something new."""
 
     def __init__(
         self,
@@ -80,7 +82,7 @@ class JsonClient:
         return 24 * 3600
 
     def _slim(self, data: object) -> object:
-        """What of an answer goes into the disk cache."""
+        """What of an answer is kept, in memory and on disk. Runs once per fetched answer."""
         return data
 
     # --- requests
@@ -94,6 +96,7 @@ class JsonClient:
         if data is None:
             data = self._fetch(url)
             if data is not None:
+                data = self._slim(data)  # so a cold cache answers like a warm one
                 self._write_cache(url, data)
         with self._lock:
             self._memory[url] = data
@@ -158,7 +161,8 @@ class JsonClient:
     def _cache_path(self, url: str) -> Path | None:
         if self.cache_dir is None:
             return None
-        return self.cache_dir / (hashlib.sha256(url.encode()).hexdigest() + ".json")
+        key = f"{self.cache_format} {url}" if self.cache_format else url
+        return self.cache_dir / (hashlib.sha256(key.encode()).hexdigest() + ".json")
 
     def _read_cache(self, url: str) -> object | None:
         path = self._cache_path(url)
@@ -181,7 +185,7 @@ class JsonClient:
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             tmp = path.with_suffix(f".{os.getpid()}.tmp")
-            tmp.write_text(json.dumps(self._slim(data)))
+            tmp.write_text(json.dumps(data))
             tmp.replace(path)
         except OSError:
             pass

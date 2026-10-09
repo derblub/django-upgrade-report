@@ -117,7 +117,7 @@ django-upgrade-report [PROJECT] [options]
 | `--no-cache` | Do not cache PyPI responses. |
 | `--version` | Show the version and exit. |
 
-Responses are cached in `~/.cache/django-upgrade-report` (or `$XDG_CACHE_HOME/django-upgrade-report`): a project's release list for 24 hours, the metadata of a single release for good, since it never changes.
+Responses are cached in `~/.cache/django-upgrade-report` (or `$XDG_CACHE_HOME/django-upgrade-report`): a project's release list for 24 hours, the metadata of a single release for good, since it never changes. A new version of the tool may keep more of each answer; it then fetches them once more and ignores the old files, so delete the directory now and then to free the space.
 
 ### Exit codes
 

@@ -30,7 +30,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | Schritt | Release | Punkt | Status |
 | --- | --- | --- | --- |
 | 0.1 | 0.5 | HTTP-Client herauslösen | erledigt |
-| 0.2 | 0.5 | Cache-Format v2 und neue Metadaten | offen |
+| 0.2 | 0.5 | Cache-Format v2 und neue Metadaten | erledigt |
 | 0.3 | 0.5 | Erweiterungen am Report-Modell | offen |
 | 0.6 | 0.5 | Testinfrastruktur | offen |
 | 1.1 | 0.5 | Pre-Releases | offen |
@@ -156,41 +156,41 @@ Heute behält `_slim()` nur `name`, `version`, `classifiers`, `requires_dist` un
 gecacht. Ein erweitertes `_slim` würde daher bei alten Cache-Einträgen stillschweigend Felder
 vermissen.
 
-**Design**
+**Design** (umgesetzt)
 
-- `CACHE_FORMAT = 2` in `pypi.py`. Der Dateiname wird zu
-  `sha256(f"v{CACHE_FORMAT} {url}")`. Alte Einträge werden ignoriert (nicht gelöscht, sie
-  verwaisen nur; ein Hinweis zum Aufräumen kommt ins README: „delete the cache directory after
-  upgrading to 0.5 to free space“).
-- `_slim` behält zusätzlich:
-  - `info.project_urls` (dict von str zu str, nur String-Werte, sonst `{}`),
-  - `info.home_page`,
-  - `info.django_mentions`: aus `info.description` *vor* dem Verschlanken extrahierte
-    Django-Versionen. Regex: `(?i)\bdjango\s*(?:==|>=|v|version\s*)?(\d+\.\d+)\b`. Ergebnis
-    sortiert, eindeutig, als Strings. Die Beschreibung selbst wird nicht gespeichert, sie kann
-    über 100 KB groß sein.
-  - pro Datei im Release-Eintrag (Projekt-JSON `releases[v]`): nur noch der zusammengefasste
-    Stellvertreter wie heute, plus `requires_python` (die erste nicht leere Angabe) und
-    `wheel_tags`: sortierte Liste der Tag-Strings aller Wheels (`cp312-cp312-manylinux_2_17_x86_64`,
-    `py3-none-any`). Für Sdist-only-Releases eine leere Liste und `has_sdist: true`.
-  - im Release-JSON (`/{name}/{version}/json`): `urls` auf dieselbe Form reduziert
-    (`wheel_tags`, `has_sdist`).
-- `ReleaseInfo` bekommt neue Felder mit Default, damit `sources._metadata` und die Tests weiter
-  funktionieren:
-  ```python
-  project_urls: tuple[tuple[str, str], ...] = ()  # hashbar, frozen dataclass
-  django_mentions: tuple[str, ...] = ()
-  wheel_tags: tuple[str, ...] = ()
-  has_sdist: bool = False
-  ```
-- `Release` bekommt `requires_python: str | None = None` und `wheel_tags: tuple[str, ...] = ()`.
-  Damit kann 2.1 Python-Kompatibilität aus dem Projekt-JSON allein entscheiden, ohne jedes
-  Release einzeln zu holen.
-- Wheel-Tags parst `packaging.utils.parse_wheel_filename`. Ungültige Dateinamen werden
-  übersprungen.
-- `tests/fixtures/record.py` übernimmt `_slim_files` schon: Die Fixtures werden einmal neu
-  aufgezeichnet. Weil sich dabei die Fakten der Golden-Tests ändern können, gehört das in einen
-  eigenen PR mit Prüfung jeder geänderten Assertion (siehe CONTRIBUTING.md).
+- `JsonClient.cache_format` ist Teil jedes Cache-Schlüssels (`sha256(f"{cache_format} {url}")`),
+  `PyPI.cache_format = "v2"`. Alte Einträge werden ignoriert und verwaisen; das README sagt,
+  dass man das Cache-Verzeichnis ab und zu löschen kann.
+- `_slim` läuft jetzt einmal pro geholter Antwort, **vor** dem Speicher- und Disk-Cache. So
+  liefert ein kalter Cache dieselben Daten wie ein warmer, und die README-Beschreibung landet
+  nie im Speicher.
+- `_slim_project` behält zusätzlich:
+  - `info.project_urls` und `info.home_page`; beim Lesen gelten nur `http(s)`-Adressen, das
+    `UNKNOWN` alter setuptools-Versionen fällt weg,
+  - `info.django_mentions`: Django-Feature-Versionen aus `info.description`, die als
+    unterstützt genannt werden („Django 5.2“, „Django >= 4.2“, „Django~=5.0“, „Django: 5.1“,
+    „Django version 4.2“), nicht aber „Django<5.0“, „Django!=4.1“ oder „python-django 3.2“.
+    Nur Major 1–9, sortiert und eindeutig. Die Beschreibung selbst wird nicht gespeichert.
+  - aus `urls` (Dateien dieses bzw. des neuesten Releases): `info.wheel_tags` und
+    `info.has_sdist`. Fehlt `urls` (manche Mirrors), ist `has_sdist` `None`, also unbekannt,
+    nicht „kein Sdist“.
+  - pro Release im Stellvertreter-Eintrag zusätzlich `requires_python`, `wheel_tags` und
+    `has_sdist`, jeweils nur, wenn nicht leer (botocore hat tausende Releases). So kann 2.1
+    „nur Sdist“ von „nur Wheels für andere Plattformen“ unterscheiden.
+- `wheel_tags` enthält nur Tags, die unter Linux installierbar sind (Plattform `any` oder
+  `*linux*`), weil die Analyse für Linux urteilt. numpy hat sonst rund 50 Tags pro Release.
+  Gemessen: numpy 14 → 102 KB, botocore 215 → 353 KB im Cache; das Verschlanken der
+  numpy-Antwort (4 232 Dateien) dauert rund 20 ms. Der Filter steckt bewusst im
+  Speicherformat: Wer später Wheels anderer Plattformen braucht, erhöht `cache_format`.
+- `ReleaseInfo` hat neu `project_urls: tuple[tuple[str, str], ...]`, `home_page`,
+  `django_mentions`, `wheel_tags`, `has_sdist: bool | None`; `Release` hat neu
+  `requires_python`, `wheel_tags` und `has_sdist`. `PyPI.project()` liest den
+  Stellvertreter-Eintrag direkt, weil `_slim` immer vorher läuft. Alle mit Default, `sources._metadata` und die Tests bleiben unverändert.
+- Wheel-Dateinamen parst `packaging.utils.parse_wheel_filename`; ungültige werden übersprungen.
+- **Fixtures nicht neu aufgezeichnet:** Kein bestehender Golden-Test liest die neuen Felder,
+  eine Neuaufzeichnung würde nur die Fakten der Tests verschieben. `tests/fixtures/record.py`
+  nimmt die neuen Felder erst in dem Schritt auf, der sie in Golden-Tests braucht (2.1 für
+  Wheel-Tags, 2.3 für `project_urls`), und zeichnet dann nur die neu benötigten Pakete auf.
 
 **Tests:** Cache-Roundtrip mit allen neuen Feldern; alter Cache-Eintrag (ohne Präfix) wird
 nicht gelesen; `django_mentions` aus einer Beispielbeschreibung; Wheel-Tags aus gemischten
