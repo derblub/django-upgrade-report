@@ -40,6 +40,14 @@ jobs:
           python-version: "3.12"
       - run: uv run --group dev pytest
 
+  # Runs -i with Textual's Pilot: the whole suite with the tui extra, the other jobs without.
+  tui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv run --group dev --with textual pytest --cov=django_upgrade_report --cov-report=term-missing
+
   # Runs the script of the HTML report in Chromium.
   browser:
     runs-on: ubuntu-latest

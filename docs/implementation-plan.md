@@ -70,7 +70,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 1.2b | 0.10 | `--evidence`: Testmatrix im Repository (tox, Workflows, nox), Action-Input, FAQ | erledigt |
 | 1.2c | 0.10 | `--evidence`: Changelog im Repository | erledigt |
 | 1.3 | 0.10 | Upstream-Issues und -PRs | erledigt |
-| 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | offen |
+| 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | in Arbeit |
+| 7.2a | 0.10 | `tui.py` (Extra `tui`), Liste und Details, Suche, Hilfe, `-i`-Prüfungen, Pilot-Tests, CI-Job | erledigt |
+| 7.2b | 0.10 | Ziel wechseln (`t`), Filter (`f`), Abhaken mit Zustandsdatei, Befehl kopieren (`e`), Link öffnen (`o`), Schreiben (`w`) | offen |
 | 2.4 | 0.11 | Ungenutzte Pakete | offen |
 | 2.5 | 0.11 | Was Django entfernt hat | offen |
 | 6.1 | 1.0 | Wagtail und django CMS als Ziel | offen |
@@ -1705,6 +1707,16 @@ anderen Jobs prüfen, dass der Kern ohne Textual läuft.
 
 **Aufwand:** L. **Abhängigkeiten:** 5.1 und 3.1 für den Detailbereich (sonst ausgeblendet);
 3.3 teilt das Abhaken-Konzept.
+
+**Umsetzung 7.2a:** Textual 8 (Extra `tui = ["textual>=1.0"]`). Links eine `OptionList` mit
+deaktivierten Abschnittstiteln, rechts ein `Static` mit `tui.details()` (Notizen inklusive
+Belege und Upstream, Erklärung, Befehl über `commands.command`, Links). `-i` prüft: kein
+anderes Format, kein `-o`, `--fail-on*`, `--emit`, `--explain`, `--via`, `--quiet`,
+`--only-changes`; kein `CI`, stdin, stdout und stderr ein Terminal; sonst Exit 2. Fehlt
+Textual, nennt die Meldung beide Wege (`pip install …[tui]`, `uvx --with textual …`).
+`--via` im TUI kommt später (bisher nur Einzelreport). Tests mit `App.run_test()` über
+`asyncio.run`, ohne pytest-asyncio; der CI-Job `tui` führt die ganze Suite mit Textual aus
+(dort 94 %, ohne Textual 92 %, weil `tui.py` dann nicht läuft).
 
 ### 7.3 Fehlende Angaben nachfragen
 

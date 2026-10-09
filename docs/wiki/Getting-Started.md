@@ -60,6 +60,15 @@ Upgrade first (2)
 
 Work from the top: deal with the blockers, upgrade the "first" packages one at a time, then bump Django together with the "together" packages. [Reading the report](Reading-the-Report) explains every section and note.
 
+## In the terminal
+
+`-i` opens the report in the terminal: the sections and packages on the left, the chosen package on the right with its notes, signs of support, the command to upgrade it and its links. Arrow keys choose a package, `/` searches names, reasons and notes, `Esc` clears the search, `?` shows the keys and `q` quits. It needs the `tui` extra, which brings [Textual](https://textual.textualize.io/); the tool itself does not depend on it:
+
+```console
+uvx --with textual django-upgrade-report -i
+pip install 'django-upgrade-report[tui]'
+```
+
 ## Other formats
 
 ```console

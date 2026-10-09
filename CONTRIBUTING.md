@@ -35,6 +35,8 @@ The tests never touch the network. Please keep it that way. There are two packag
 
 CI also measures coverage: `uv run --group dev pytest --cov=django_upgrade_report`.
 
+`-i` has tests that drive it with Textual's Pilot, `tests/test_tui.py`. They are skipped without Textual: `uv run --group dev --with textual pytest`. A CI job runs the whole suite that way, the others without Textual, so the core never needs it.
+
 The script of the HTML report (`src/django_upgrade_report/render/html_report.js`) has tests that run it in Chromium, `tests/test_browser.py`. They are skipped unless Playwright is there: `uv run --group dev --with playwright pytest -m browser`, after `uv run --with playwright playwright install chromium` once, or with `CHROMIUM` naming a Chromium you have. The page gets the script without comments, and it must stay under 8 KB.
 
 ## The wiki

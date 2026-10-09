@@ -4,6 +4,7 @@ import io
 import json
 import os
 import re
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -12,6 +13,7 @@ import pytest
 from conftest import release
 from packaging.version import Version
 
+import django_upgrade_report
 from django_upgrade_report import cli
 from django_upgrade_report.pypi import PyPIError
 from django_upgrade_report.render import html
@@ -996,3 +998,36 @@ def test_html_filters_direct_dependencies_only_when_some_are_not(project, capsys
     assert '<input type="checkbox" id="direct"> only direct dependencies' in page
     assert re.search(r'<tr data-filter="blocked" [^>]* data-direct ', page)
     assert not re.search(r'<tr data-filter="before" [^>]* data-direct ', page)
+
+
+# --- -i ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("args", "message"),
+    [
+        (["-f", "json"], "it cannot go with --format"),
+        (["--fail-on", "blocked"], "it cannot go with --fail-on"),
+        (["--emit", "uv"], "it cannot go with --emit"),
+    ],
+)
+def test_interactive_goes_alone(project, capsys, args, message):
+    assert cli.main([str(project), "-i", *args]) == 2
+    assert message in capsys.readouterr().err
+
+
+def test_interactive_needs_a_terminal(project, capsys, monkeypatch):
+    monkeypatch.setattr(cli, "_at_terminal", lambda: False)
+    assert cli.main([str(project), "-i"]) == 2
+    assert "-i needs a terminal" in capsys.readouterr().err
+
+
+def test_interactive_needs_the_extra(project, capsys, monkeypatch):
+    monkeypatch.setattr(cli, "_at_terminal", lambda: True)
+    monkeypatch.setattr(cli.sys.stdout, "isatty", lambda: True)
+    monkeypatch.delenv("CI", raising=False)
+    # As if Textual were not installed: importing the module that needs it fails.
+    monkeypatch.setitem(sys.modules, "django_upgrade_report.tui", None)
+    monkeypatch.delattr(django_upgrade_report, "tui", raising=False)
+    assert cli.main([str(project), "-i", "--no-input"]) == 2
+    assert "pip install 'django-upgrade-report[tui]'" in capsys.readouterr().err

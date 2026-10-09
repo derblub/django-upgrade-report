@@ -166,6 +166,13 @@ def build_parser() -> argparse.ArgumentParser:
         "the test matrix of the default branch. Sends the repository names to GitHub",
     )
     parser.add_argument(
+        "-i",
+        "--interactive",
+        action="store_true",
+        help="move through the report in the terminal instead of printing it; needs the "
+        "tui extra: pip install 'django-upgrade-report[tui]'",
+    )
+    parser.add_argument(
         "-q",
         "--quiet",
         action="store_true",
@@ -280,6 +287,29 @@ def _run(args: argparse.Namespace) -> int:
         clash = next((flag for flag, given in flags.items() if given), None)
         if clash:
             raise Error(f"--via shows one report per step, it cannot go with {clash}")
+    if args.interactive:
+        flags = {
+            "--format": args.format != "text",
+            "-o": args.output,
+            "--fail-on": args.fail_on or args.fail_on_python or args.fail_on_change,
+            "--emit": args.emit,
+            "--explain": args.explain,
+            "--via": args.via,
+            "--quiet": args.quiet,
+            "--only-changes": args.only_changes,
+        }
+        clash = next((flag for flag, given in flags.items() if given), None)
+        if clash:
+            raise Error(f"-i shows the report in the terminal, it cannot go with {clash}")
+        if "CI" in os.environ or not (_at_terminal() and sys.stdout.isatty()):
+            raise Error("-i needs a terminal: run it in one, or leave -i out")
+        try:
+            from django_upgrade_report import tui  # noqa: F401  (the extra)
+        except ImportError:
+            raise Error(
+                "-i needs the tui extra: pip install 'django-upgrade-report[tui]', "
+                "or uvx --with textual django-upgrade-report -i"
+            ) from None
     if args.static and args.format != "html":
         raise Error("--static goes with --format html")
     if args.only_changes and (args.format == "html" or args.explain):
@@ -353,6 +383,10 @@ def _run(args: argparse.Namespace) -> int:
 
     if baseline is not None:
         report.changes = compare(baseline, report)
+    if args.interactive:
+        from django_upgrade_report import tui
+
+        return tui.run(report)
     if args.only_changes and report.changes.compared and not report.changes.items:
         return 0  # nothing to say, not even an empty file
     elif explained and args.format == "text":

@@ -63,6 +63,10 @@ Issues = "https://github.com/derblub/django-upgrade-report/issues"
 "Pushing Pixels" = "https://pushingpixels.at"
 "Django upgrade audit" = "https://pushingpixels.at/creates/django-upgrades"
 
+[project.optional-dependencies]
+# -i: the report in the terminal. The core stays with packaging (and tomli).
+tui = ["textual>=1.0"]
+
 [project.scripts]
 django-upgrade-report = "django_upgrade_report.cli:main"
 
@@ -108,7 +112,10 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["browser: runs the HTML report in Chromium, needs Playwright (skipped without)"]
+markers = [
+  "browser: runs the HTML report in Chromium, needs Playwright (skipped without)",
+  "tui: runs -i with Textual's Pilot, needs the tui extra (skipped without)",
+]
 
 [tool.coverage.run]
 source = ["django_upgrade_report"]

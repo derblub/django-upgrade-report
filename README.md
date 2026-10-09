@@ -82,6 +82,13 @@ django-upgrade-report --target 6.1
   <img src="docs/assets/terminal.png" alt="Terminal output for an upgrade from Django 4.2.7 to 5.2: a git fork of django-taggit is blocked by its own Django&lt;5.0 requirement, four packages can be upgraded first, one goes together with Django, two need a manual check, one is ready, and one git package is listed as not checked" width="820">
 </p>
 
+To move through a long report instead of scrolling it, open it in the terminal with `-i`: the sections and packages on the left, the chosen package on the right with its notes, signs, command and links, and `/` to search. It needs the `tui` extra:
+
+```console
+uvx --with textual django-upgrade-report -i
+pip install 'django-upgrade-report[tui]'       # or install it with the extra
+```
+
 ## What the statuses mean
 
 | Status | Meaning | What to do |
@@ -124,6 +131,7 @@ django-upgrade-report [PROJECT] [options]
 | `--evidence` | For packages to check, look for signs of support in their GitHub repository: the test matrix on the default branch (tox, nox, GitHub workflows) and the changelog; for blocked packages and ones without a sign, issues and pull requests about the target. Sends the names of those repositories to GitHub. |
 | `--explain PACKAGE` | Show step by step how the verdict on a package came about instead of the report: the requirement lines that apply, the classifiers, whether an upper bound counts, every release looked at, and whether it goes before or with Django. Can be given more than once. Paste it into an issue when you think a verdict is wrong. |
 | `-v`, `--verbose` | Text output only: list every ready package with its reason. The other formats always do. |
+| `-i`, `--interactive` | Move through the report in the terminal instead of printing it. Needs the `tui` extra (`pip install 'django-upgrade-report[tui]'`). Not in CI, and not with `--format`, `-o`, `--fail-on`, `--emit`, `--explain` or `--via`. |
 | `-q`, `--quiet` | Text output only: just the headline, warnings, blocked packages and the counts. |
 | `--index-url` | Base URL of an index that implements PyPI's JSON API. Default: `https://pypi.org/pypi`. |
 | `--check-private-on-pypi` | Look up packages your project installs from another index on PyPI, too. For an index that mirrors PyPI (Artifactory, Nexus, devpi). Their names are sent to PyPI. |
