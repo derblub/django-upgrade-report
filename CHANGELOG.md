@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- The GitHub Action can keep one open issue per target with the plan as a task list (`issue: true`): each run keeps the ticks people set, ticks off and dates what needs nothing any more, and says once when everything is ready. `examples/weekly.yml` uses it.
 - The HTML report is a checklist: every row with something to do has a box to tick, a tile counts what is done, and the ticks are remembered in the browser for that plan (a new plan starts unticked). It prints cleanly.
 - The GitHub Action can put the report on the pull request as one comment that it updates on every push (`comment: true`), or only when a status or step changed (`comment: on-change`). Several projects in one repository get one comment each. A comment that cannot be written, as from a fork, never fails the job.
 - `--baseline REPORT.json` compares the report with an earlier JSON report and starts with what changed: statuses, smaller or bigger steps, packages added or removed, warnings. `--only-changes` shows nothing else, and nothing when nothing changed, for a weekly job that only speaks up when there is news; `--fail-on-change any` or `worse` fails it. The JSON report has it under `changes`, and the Markdown and HTML reports show it first. The GitHub Action takes `baseline` and `fail-on-change` and reports `changes`; `examples/weekly.yml` runs it every week against last week's report.

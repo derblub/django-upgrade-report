@@ -51,9 +51,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 4.1b | 0.8 | Markdown/HTML, Action-Input `baseline`, Rezept im README | erledigt |
 | 4.2 | 0.8 | Sticky PR-Kommentar | erledigt |
 | W | 0.8 | Wiki (`docs/wiki/`, generierte Referenzen, Veröffentlichung per Workflow), auf Wunsch außerhalb des Plans | erledigt |
-| 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | in Arbeit |
+| 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | erledigt |
 | 3.3a | 0.8 | HTML-Checkliste | erledigt |
-| 3.3b | 0.8 | Tracking-Issue in der Action | offen |
+| 3.3b | 0.8 | Tracking-Issue in der Action | erledigt |
 | 7.1 | 0.8 | Interaktiver HTML-Report | offen |
 | 0.4 | 0.9 | Direkte und transitive Abhängigkeiten | offen |
 | 3.1 | 0.9 | Befehle ausgeben (`--emit`) | offen |
@@ -1013,6 +1013,14 @@ behoben: Der Titel des Python-Abschnitts überschrieb seit 2.1c den `<title>` de
   - Token: `GITHUB_TOKEN` aus der Umgebung, API über den Client aus 0.1.
 - Ein Issue pro Ziel, nicht pro Paket, um Lärm zu vermeiden. Option `issue: per-package`
   explizit dokumentiert als späterer Ausbau, nicht in diesem Schritt.
+
+**3.3b umgesetzt** (`ci.py issue`, `track()`): Ein offenes Issue pro Ziel und Projekt, Titel
+„Django 5.2 upgrade plan“ (mit „(Pfad)“, wenn es nicht das Wurzelverzeichnis ist), Label
+`django-upgrade-report`. Jede Aufgabe trägt eine versteckte ID (`django:name` oder
+`python:name`), an der die Haken hängen. Abweichung: Was nichts mehr braucht, heißt „nothing to
+do since …“ statt „ready since“, weil auch weggefallene Pakete so abgehakt werden. „Everything
+is ready“ steht im Text und kommt einmal als Kommentar, wenn der Text es zum ersten Mal sagt.
+Text aus dem Index wird für Markdown maskiert.
 
 **Tests:** HTML: Checkbox-Markup vorhanden, Schlüsselbildung deterministisch, Seite rendert ohne
 JS-Fehler (Playwright-Test optional, Chromium ist in CI verfügbar). Issue: `FakeGitHub` für

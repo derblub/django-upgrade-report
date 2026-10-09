@@ -280,10 +280,12 @@ def serve(monkeypatch, *answers) -> FakeHTTP:
 
 
 class FakeGitHub:
-    """The issue comments API of one repository, in memory; ``refuse`` makes it say 403."""
+    """The issue and comment API of one repository, in memory; ``refuse`` makes it say 403."""
 
     def __init__(self, comments: list[dict] | None = None, refuse: bool = False):
         self.comments = comments or []
+        self.issues: list[dict] = []
+        self.issue_comments: list[tuple[int, str]] = []
         self.refuse = refuse
         self.calls: list[tuple[str, str]] = []
 
@@ -292,7 +294,12 @@ class FakeGitHub:
 
         self.calls.append(("GET", path))
         page = int(parse_qs(urlsplit(path).query).get("page", ["1"])[0])
-        return self.comments[(page - 1) * 100 : page * 100]
+        found = (
+            self.comments
+            if "/comments" in path
+            else [i for i in self.issues if i["state"] == "open"]
+        )
+        return found[(page - 1) * 100 : page * 100]
 
     def send(self, method, path, body):
         from django_upgrade_report.client import FetchError
@@ -300,9 +307,24 @@ class FakeGitHub:
         self.calls.append((method, path))
         if self.refuse:
             raise FetchError(f"could not fetch https://api.github.com{path}: HTTP 403 Forbidden")
-        if method == "POST":
+        parts = urlsplit_path(path)
+        if method == "POST" and parts[-1] == "issues":
+            self.issues.append({"number": len(self.issues) + 1, "state": "open", **body})
+        elif method == "PATCH" and parts[-2] == "issues":
+            next(i for i in self.issues if i["number"] == int(parts[-1])).update(body)
+        elif (
+            method == "POST"
+            and parts[-3] == "issues"
+            and int(parts[-2]) in {i["number"] for i in self.issues}
+        ):
+            self.issue_comments.append((int(parts[-2]), body["body"]))
+        elif method == "POST":
             self.comments.append({"id": len(self.comments) + 1, "body": body["body"]})
         else:
-            comment_id = int(path.rsplit("/", 1)[1])
+            comment_id = int(parts[-1])
             next(c for c in self.comments if c["id"] == comment_id)["body"] = body["body"]
         return {}
+
+
+def urlsplit_path(path: str) -> list[str]:
+    return path.split("?", 1)[0].split("/")

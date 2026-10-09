@@ -31,6 +31,18 @@ A pull request from a fork gets a read-only token: then the comment is left out 
 
 [`examples/weekly.yml`](https://github.com/derblub/django-upgrade-report/blob/main/examples/weekly.yml) runs the report every Monday and keeps it in the Actions cache. Each summary starts with what changed since last week, such as a blocked package that has a release for the target now, and the step fails only when something needs more attention than before (`fail-on-change: worse`). The first run has nothing to compare with and just writes the report.
 
+## GitHub Actions: an issue with the plan
+
+With `issue: true` the action keeps one open issue per target, "Django 5.2 upgrade plan", labelled `django-upgrade-report`, with every row that needs something as a task:
+
+```markdown
+- [ ] **django-filter** 23.1 → 25.1: upgrade first, 25.1 declares Django 5.2
+- [x] **django-allauth** 0.54.0 → 65.7.0: upgrade first, 65.7.0 declares Django 5.2
+- [x] ~~**django-taggit**: blocked, latest 5.0 requires Django\<5.2~~ (nothing to do since 2026-11-02)
+```
+
+Each run updates it: the ticks people set stay, rows that need nothing any more are ticked off and dated, and when nothing is left the issue says "Everything is ready for Django 5.2" once. It stays open: closing it is for people. The job needs `permissions: issues: write`; [`examples/weekly.yml`](https://github.com/derblub/django-upgrade-report/blob/main/examples/weekly.yml) has it. Several projects in one repository get an issue each, named after `comment-key` or the path.
+
 ## GitHub Actions: using the outputs
 
 ```yaml

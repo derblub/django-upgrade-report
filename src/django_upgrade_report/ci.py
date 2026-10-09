@@ -13,12 +13,14 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
 
 from django_upgrade_report.client import JsonClient
+from django_upgrade_report.render.markdown import escape
 
 API = "https://api.github.com"
 MAX_COMMENT = 65_000
@@ -132,6 +134,107 @@ def _ours(comment: object, key: str) -> bool:
     return str(comment.get("body", "")).startswith(marker(key))
 
 
+# --- the tracking issue -------------------------------------------------------------
+
+LABEL = "django-upgrade-report"
+_TASK = re.compile(r"^- \[(?P<tick>[ xX])\] (?P<text>.*?) <!-- (?P<id>[\w.:-]+) -->$")
+_LABELS = {("upgrade", "before"): "upgrade first", ("upgrade", "with"): "upgrade with Django"}
+
+
+def issue_title(report: dict, key: str) -> str:
+    where = "" if key in ("", ".") else f" ({key})"
+    return f"Django {report.get('target')} upgrade plan{where}"
+
+
+def tasks(report: dict) -> list[tuple[str, str]]:
+    """(id, text) for every row with something to do, in the report's order."""
+    found = []
+    python = report.get("python") or {}
+    rows = [("python", p) for p in python.get("packages") or [] if p.get("status") != "ready"]
+    rows += [("django", p) for p in report.get("packages") or [] if p.get("status") != "ready"]
+    for section, p in rows:
+        status = str(p.get("status"))
+        what = _LABELS.get((status, p.get("phase")), status)
+        if section == "python":
+            what = f"{what} on Python {python.get('target')}"
+        step = f" {p.get('current')} → {p.get('upgrade_to')}" if p.get("upgrade_to") else ""
+        # Metadata from the index: no markup of its own, nothing that ends the hidden id.
+        reason = escape(str(p.get("reason"))).replace("\n", " ")
+        text = f"**{escape(str(p.get('name')))}**{escape(step)}: {what}, {reason}"
+        found.append((f"{section}:{p.get('name')}", text))
+    return found
+
+
+def issue_body(report: dict, key: str, old: str = "", today: str = "") -> str:
+    """The task list, keeping the ticks of ``old`` and ticking off what needs nothing now."""
+    before = {}
+    for line in old.splitlines():
+        if match := _TASK.match(line.strip()):
+            before[match["id"]] = (match["tick"] != " ", match["text"])
+    lines = [
+        f"<!-- django-upgrade-report-issue:{key} -->",
+        f"What your dependencies need for Django {report.get('target')}, from "
+        f"`{report.get('source')}`, kept up to date by django-upgrade-report. Tick what is "
+        "done; the ticks stay when the list is updated.",
+        "",
+    ]
+    current = tasks(report)
+    for task_id, text in current:
+        ticked, was = before.get(task_id, (False, ""))
+        ticked = ticked and "(nothing to do since " not in was  # back after it was done
+        lines.append(f"- [{'x' if ticked else ' '}] {text} <!-- {task_id} -->")
+    ids = {task_id for task_id, _ in current}
+    for task_id, (_, text) in before.items():
+        if task_id in ids:
+            continue
+        if "(nothing to do since " not in text:
+            text = f"~~{text}~~ (nothing to do since {today})"
+        lines.append(f"- [x] {text} <!-- {task_id} -->")
+    if not current:
+        lines += ["", f"Everything is ready for Django {report.get('target')}."]
+    return "\n".join(lines) + "\n"
+
+
+def track(github: GitHub, repository: str, key: str, report: dict, today: str) -> str:
+    """Create or update the open issue for ``key`` and the report's target."""
+    title = issue_title(report, key)
+    existing = None
+    page = 1
+    while existing is None:
+        issues = github.get(
+            f"/repos/{repository}/issues?state=open&labels={LABEL}&per_page=100&page={page}"
+        )
+        if not isinstance(issues, list) or not issues:
+            break
+        existing = next(
+            (
+                i
+                for i in issues
+                if isinstance(i, dict) and i.get("title") == title and "pull_request" not in i
+            ),
+            None,
+        )
+        if len(issues) < 100:
+            break
+        page += 1
+    if existing is None:
+        text = issue_body(report, key, today=today)
+        github.send(
+            "POST", f"/repos/{repository}/issues", {"title": title, "body": text, "labels": [LABEL]}
+        )
+        return "created"
+    old = str(existing.get("body") or "")
+    text = issue_body(report, key, old, today)
+    if text == old:
+        return "unchanged"
+    number = existing["number"]
+    github.send("PATCH", f"/repos/{repository}/issues/{number}", {"body": text})
+    message = f"Everything is ready for Django {report.get('target')}."
+    if message in text and message not in old:  # said once, when the report gets there
+        github.send("POST", f"/repos/{repository}/issues/{number}/comments", {"body": message})
+    return "updated"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m django_upgrade_report.ci")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -140,7 +243,12 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_argument("--markdown", type=Path, required=True, help="the --format markdown report")
     sub.add_argument("--key", default=".", help="tells projects in one repository apart")
     sub.add_argument("--on-change", action="store_true", help="update only when it changed")
+    sub = commands.add_parser("issue", help="keep an issue with the plan as a task list")
+    sub.add_argument("--report", type=Path, required=True, help="the --format json report")
+    sub.add_argument("--key", default=".", help="tells projects in one repository apart")
     args = parser.parse_args(argv)
+    if args.command == "issue":
+        return _issue(args)
 
     event = os.environ.get("GITHUB_EVENT_NAME", "")
     if event not in PULL_REQUEST_EVENTS:
@@ -171,6 +279,25 @@ def main(argv: list[str] | None = None) -> int:
         print(f"django-upgrade-report: no comment: {why.replace(token, '***')}", file=sys.stderr)
         return 0
     print(f"django-upgrade-report: comment {done} on #{number}")
+    return 0
+
+
+def _issue(args: argparse.Namespace) -> int:
+    token, repository = os.environ.get("GITHUB_TOKEN"), os.environ.get("GITHUB_REPOSITORY")
+    if not token or not repository:
+        print("django-upgrade-report: no issue, GITHUB_TOKEN or GITHUB_REPOSITORY is not set")
+        return 0
+    try:
+        report = json.loads(args.report.read_text(encoding="utf-8"))
+        today = str(report.get("generated") or "")[:10]
+        done = track(GitHub(token), repository, args.key, report, today)
+    except Exception as exc:  # the report is in the job summary: never fail the job here
+        why = str(exc) or type(exc).__name__
+        if "HTTP 403" in why or "HTTP 401" in why:
+            why += " (the job needs permissions: issues: write)"
+        print(f"django-upgrade-report: no issue: {why.replace(token, '***')}", file=sys.stderr)
+        return 0
+    print(f"django-upgrade-report: issue {done}")
     return 0
 
 

@@ -20,6 +20,7 @@ Every input and output of the action, as `action.yml` describes them. [Continuou
 | `from` |  | The Django version you run today, e.g. '4.2', when your requirements only give a range. Empty reads it from the project. |
 | `fail-on` |  | Fail the step when a package is 'blocked', needs an 'upgrade' or a 'check'. Empty never fails. |
 | `comment` | `false` | 'true' puts the report on the pull request as one comment, updated on every push; 'on-change' updates it only when a status or step changed. Needs permissions: pull-requests: write. Default 'false'. |
+| `issue` | `false` | 'true' keeps one open issue per target with the plan as a task list: ticks stay, what needs nothing any more is ticked off. Needs permissions: issues: write. Default 'false'. |
 | `comment-key` |  | Tells comments apart when the action runs more than once for one path in a pull request, e.g. in a matrix. Default: the path. |
 | `baseline` |  | Path to an earlier JSON report (the report output of a previous run). The summary then starts with what changed since. A missing file is skipped, so the first run works too. |
 | `fail-on-change` |  | With baseline: fail the step when 'any'thing changed, or when something is 'worse'. Empty never fails. |

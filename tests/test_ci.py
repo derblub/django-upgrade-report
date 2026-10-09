@@ -146,3 +146,146 @@ def test_any_failure_leaves_the_job_alone(action_env, monkeypatch, capsys):
     assert ci.main(action_env) == 0
     err = capsys.readouterr().err
     assert "no comment: *** went wrong" in err and "ghs_s3cr3t" not in err
+
+
+# --- the tracking issue -------------------------------------------------------------
+
+PLAN = {
+    "target": "5.2",
+    "source": "uv.lock",
+    "generated": "2026-10-09T08:00:00+00:00",
+    "packages": [
+        {
+            "name": "django-a",
+            "status": "upgrade",
+            "phase": "before",
+            "current": "1.0",
+            "upgrade_to": "2.0",
+            "reason": "2.0 declares Django 5.2",
+        },
+        {
+            "name": "django-b",
+            "status": "blocked",
+            "phase": None,
+            "current": "1.0",
+            "upgrade_to": None,
+            "reason": "latest 1.0 requires Django<5.0",
+        },
+        {
+            "name": "django-c",
+            "status": "ready",
+            "phase": None,
+            "current": "3.0",
+            "upgrade_to": None,
+            "reason": "declares Django 5.2",
+        },
+    ],
+    "python": None,
+}
+
+
+def test_issue_is_created_with_a_task_list():
+    github = FakeGitHub()
+    assert ci.track(github, "org/repo", ".", PLAN, "2026-10-09") == "created"
+    (issue,) = github.issues
+    assert issue["title"] == "Django 5.2 upgrade plan"
+    assert issue["labels"] == ["django-upgrade-report"]
+    lines = issue["body"].splitlines()
+    a = "**django-a** 1.0 → 2.0: upgrade first, 2.0 declares Django 5.2"
+    assert f"- [ ] {a} <!-- django:django-a -->" in lines
+    assert (
+        "- [ ] **django-b**: blocked, latest 1.0 requires Django\\<5.0 <!-- django:django-b -->"
+        in lines
+    )
+    assert not any("django-c" in line for line in lines)  # nothing to do
+
+
+def test_ticks_survive_and_finished_work_is_ticked_off():
+    github = FakeGitHub()
+    ci.track(github, "org/repo", ".", PLAN, "2026-10-09")
+    issue = github.issues[0]
+    issue["body"] = issue["body"].replace("- [ ] **django-a**", "- [x] **django-a**")
+    later = {
+        **PLAN,
+        "packages": [
+            {**PLAN["packages"][0], "upgrade_to": "2.1"},  # still to do, ticked by a person
+            PLAN["packages"][2],  # django-b needs nothing any more
+        ],
+    }
+    assert ci.track(github, "org/repo", ".", later, "2026-10-16") == "updated"
+    lines = issue["body"].splitlines()
+    assert any(line.startswith("- [x] **django-a** 1.0 → 2.1") for line in lines)
+    b = "~~**django-b**: blocked, latest 1.0 requires Django\\<5.0~~"
+    assert f"- [x] {b} (nothing to do since 2026-10-16) <!-- django:django-b -->" in lines
+    assert ci.track(github, "org/repo", ".", later, "2026-10-23") == "unchanged"  # date kept
+    assert len(github.issues) == 1 and github.issue_comments == []
+
+
+def test_everything_ready_is_said_once():
+    github = FakeGitHub()
+    ci.track(github, "org/repo", ".", PLAN, "2026-10-09")
+    done = {**PLAN, "packages": [PLAN["packages"][2]]}
+    ci.track(github, "org/repo", ".", done, "2026-11-02")
+    ci.track(github, "org/repo", ".", done, "2026-11-09")
+    assert github.issue_comments == [(1, "Everything is ready for Django 5.2.")]
+    assert github.issues[0]["state"] == "open"  # closing it is for people
+    assert "Everything is ready for Django 5.2." in github.issues[0]["body"]
+
+
+def test_one_issue_per_target_and_project():
+    github = FakeGitHub()
+    ci.track(github, "org/repo", ".", PLAN, "2026-10-09")
+    ci.track(github, "org/repo", "backend", PLAN, "2026-10-09")
+    ci.track(github, "org/repo", ".", {**PLAN, "target": "6.0"}, "2026-10-09")
+    assert [i["title"] for i in github.issues] == [
+        "Django 5.2 upgrade plan",
+        "Django 5.2 upgrade plan (backend)",
+        "Django 6.0 upgrade plan",
+    ]
+
+
+def test_python_rows_are_tasks_too():
+    plan = {
+        **PLAN,
+        "python": {
+            "target": "3.12",
+            "packages": [
+                {
+                    "name": "numpy",
+                    "status": "upgrade",
+                    "phase": None,
+                    "current": "1.22.4",
+                    "upgrade_to": "1.26.0",
+                    "reason": "1.22.4 no wheel for Python 3.12",
+                }
+            ],
+        },
+    }
+    (first, *_) = ci.tasks(plan)
+    assert first == (
+        "python:numpy",
+        "**numpy** 1.22.4 → 1.26.0: upgrade on Python 3.12, 1.22.4 no wheel for Python 3.12",
+    )
+
+
+def test_issue_main_never_fails_the_job(tmp_path, monkeypatch, capsys):
+    (tmp_path / "report.json").write_text(json.dumps(PLAN))
+    monkeypatch.setenv("GITHUB_TOKEN", "ghs_s3cr3t")
+    monkeypatch.setenv("GITHUB_REPOSITORY", "org/repo")
+    monkeypatch.setattr(ci, "GitHub", lambda token: FakeGitHub(refuse=True))
+    assert ci.main(["issue", "--report", str(tmp_path / "report.json")]) == 0
+    assert "issues: write" in capsys.readouterr().err
+    github = FakeGitHub()
+    monkeypatch.setattr(ci, "GitHub", lambda token: github)
+    assert ci.main(["issue", "--report", str(tmp_path / "report.json")]) == 0
+    assert capsys.readouterr().out == "django-upgrade-report: issue created\n"
+
+
+def test_work_that_comes_back_is_not_ticked():
+    github = FakeGitHub()
+    ci.track(github, "org/repo", ".", PLAN, "2026-10-09")
+    without_b = {**PLAN, "packages": [PLAN["packages"][0]]}
+    ci.track(github, "org/repo", ".", without_b, "2026-10-16")
+    ci.track(github, "org/repo", ".", PLAN, "2026-10-23")
+    lines = github.issues[0]["body"].splitlines()
+    assert any(line.startswith("- [ ] **django-b**") for line in lines)

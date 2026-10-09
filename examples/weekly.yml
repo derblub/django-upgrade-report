@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  issues: write    # for issue: true
 
 jobs:
   report:
@@ -26,6 +27,7 @@ jobs:
         with:
           baseline: .django-upgrade-report.json
           fail-on-change: worse
+          issue: true    # one open issue with the plan as a task list
       # Keep this week's report for next week, also when the step above failed.
       - if: always() && steps.django.outputs.report
         run: cp "${{ steps.django.outputs.report }}" .django-upgrade-report.json
