@@ -730,9 +730,8 @@ def test_explain_an_upgrade(project, capsys):
     assert "  django-before 1.0 (pinned), from requirements.txt\n" in out
     assert "  classifiers: Django 4.1, 4.2: does not include 5.2\n" in out
     assert "  2.0 (2026-01-01): yes, declares Django 5.2\n" in out
-    assert (
-        "Before or with Django\n  2.0 on your Django 4.2.7: yes, declares Django 4.2 → before Django\n"
-    ) in out
+    phase = "2.0 on your Django 4.2.7: yes, declares Django 4.2 → before Django"
+    assert f"Before or with Django\n  {phase}\n" in out
     assert "Result\n  upgrade to 2.0 first, before Django: 2.0 declares Django 5.2\n" in out
     search = out.split("Releases looked at")[1].split("Before or with Django")[0]
     versions = [line.split()[0] for line in search.splitlines()[1:]]
