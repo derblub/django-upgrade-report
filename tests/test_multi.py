@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import textwrap
@@ -184,6 +185,9 @@ def test_tracking_issue_goes_project_by_project(monorepo, capsys):
 
 
 ACTION = Path(__file__).parent.parent / "action.yml"
+# Through PATH: on Windows a bare "bash" finds System32's WSL launcher before Git Bash, the
+# shell the Action runs in.
+BASH = shutil.which("bash") or "bash"
 
 
 def test_action_outputs_sum_the_projects(monorepo, capsys, tmp_path):
@@ -204,7 +208,7 @@ def test_action_reads_one_path_per_line():
     block = re.search(r"(# One path per line.*?)\n\s*common=", ACTION.read_text(), re.S).group(1)
     script = textwrap.dedent("        " + block) + '\nprintf "<%s>" "${paths[@]}"; echo " key=$key"'
     run_ = subprocess.run(
-        ["bash", "-c", script],
+        [BASH, "-c", script],
         env=_env(DUR_PATH="  services/api\n\nservices/my worker  \n"),
         capture_output=True,
         text=True,
@@ -212,7 +216,7 @@ def test_action_reads_one_path_per_line():
     )
     assert run_.stdout == "<services/api><services/my worker> key=services/api services/my worker\n"
     empty = subprocess.run(
-        ["bash", "-c", script], env=_env(DUR_PATH=""), capture_output=True, text=True, check=True
+        [BASH, "-c", script], env=_env(DUR_PATH=""), capture_output=True, text=True, check=True
     )
     assert empty.stdout == "<.> key=.\n"
 
