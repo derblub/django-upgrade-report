@@ -37,7 +37,10 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 2.3 | 0.5 | Risiko pro Schritt und Changelog-Links | erledigt |
 | 4.3 | 0.5 | pre-commit-Hook und `--offline` | erledigt |
 | 0.5 | 0.6 | Verallgemeinerte Release-Suche | erledigt |
-| 5.1 | 0.6 | `--explain` | offen |
+| 5.1 | 0.6 | `--explain` | in Arbeit |
+| 5.1a | 0.6 | Regelkette pro Release (`explain_support`) | erledigt |
+| 5.1b | 0.6 | Trace der Suche und Phase, `--explain` im Text | offen |
+| 5.1c | 0.6 | `explain` im JSON, Doku, Issue-Template | offen |
 | 7.3 | 0.6 | Fehlende Angaben nachfragen | offen |
 | 2.1 | 0.7 | Python-Readiness | offen |
 | 4.1 | 0.8 | Baseline-Diff | offen |
@@ -1184,6 +1187,14 @@ Result: upgrade first, 6.3.4
 - Marker-Auswertung wird gezeigt: welche `Requires-Dist`-Zeilen auf welcher Python galten.
 - Die Erklärung enthält die Tool-Version und das Ziel, sodass sie direkt in ein Issue kopiert
   werden kann. Das Issue-Template `wrong-verdict.yml` fordert sie an.
+
+**5.1a umgesetzt:** `explain_support(info, target, uploaded) -> list[RuleStep]` beschreibt
+die Prüfungen (requirement mit den auf der Python geltenden und den übergangenen Zeilen,
+classifiers, upper bound mit Upload- und Release-Datum) und endet mit dem Urteil von
+`supports()` **selbst**. Statt `supports()` umzubauen, kann die Erklärung so nie vom Urteil
+abweichen; ein Test prüft über alle aufgezeichneten Releases und die Ziele 4.2–6.1, dass die
+Schritte zum Urteil passen (requirement „excludes“ genau bei NO, enthaltener Classifier ohne
+Ausschluss genau bei YES).
 
 **Tests:** Erklärung für je ein Paket jeder Statusart im Fake-Index (Snapshot); Gleichheit
 `supports` vs. `explain_support` über alle Fixtures; unbekanntes Paket; übersprungenes Paket;

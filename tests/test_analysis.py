@@ -1463,8 +1463,8 @@ def test_explanations_agree_with_the_verdicts(recorded):
                 assert steps["verdict"].startswith(f"{verdict.value}: ")
                 excluded = "excludes every Django" in steps["requirement"]
                 assert excluded == (verdict is Verdict.NO), (name, version, label)
-                if verdict is not Verdict.NO and "does not include" not in steps["classifiers"]:
-                    if "includes" in steps["classifiers"]:
-                        assert verdict is Verdict.YES, (name, version, label)
+                declares = ": includes" in steps["classifiers"]
+                if declares and verdict is not Verdict.NO:
+                    assert verdict is Verdict.YES, (name, version, label)
                 checked += 1
     assert checked > 500
