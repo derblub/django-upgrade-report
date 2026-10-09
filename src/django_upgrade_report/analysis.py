@@ -515,6 +515,15 @@ def _next_feature(version: Version) -> Version:
     return Version(f"{version.major}.{version.minor + 1}")
 
 
+def skipped_lts(django: Project, current: Version, target: Version) -> list[Version]:
+    """The LTS series between ``current`` and ``target`` (X.Y), oldest first."""
+    return sorted(v for v in _series(django) if _is_lts(v) and current < v < target)
+
+
+def _is_lts(version: Version) -> bool:
+    return version.minor == 2 and version.major >= 2
+
+
 def latest_lts(django: Project) -> Version:
     """Django's LTS releases are the x.2 series."""
     lts = [v for v in _series(django) if v.minor == 2 and v.major >= 2]
@@ -1122,7 +1131,7 @@ def _warnings(
             f"Django {label} is not released yet: only classifiers count, upper bounds are ignored"
         )
     if current_minor is not None and requested in ("auto", "lts", "latest"):
-        skipped = [v for v in _series(django) if v.minor == 2 and current_minor < v < goal.version]
+        skipped = skipped_lts(django, current_minor, goal.version)
         if skipped:
             step = min(skipped)
             warnings.append(

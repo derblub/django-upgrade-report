@@ -15,6 +15,7 @@ from packaging.utils import canonicalize_name
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, sources
 from django_upgrade_report.analysis import SEVERITY, Status, analyse, from_other_index
+from django_upgrade_report.prompts import ask_missing, terminal_ask
 from django_upgrade_report.pypi import (
     OFFLINE,
     ONLINE,
@@ -120,6 +121,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="answer from the cache, however old, and ask the index only for what is missing",
     )
     parser.add_argument(
+        "--no-input",
+        action="store_true",
+        help="never ask in the terminal what the project leaves out, such as your Django "
+        "version when it is not pinned",
+    )
+    parser.add_argument(
         "--errors-as-warnings",
         action="store_true",
         help="exit with status 0 instead of 2 when the report cannot be made, e.g. offline: "
@@ -184,6 +191,18 @@ def _run(args: argparse.Namespace) -> int:
 
     index_url = args.index_url or PYPI_JSON
     pypi = PyPI(index_url, cache_dir=None if args.no_cache else default_cache_dir(), mode=mode)
+    if _interactive(args):
+        try:
+            answers = ask_missing(deps, pypi, args.target, args.current, terminal_ask)
+        except (PyPIError, ValueError):
+            answers = None  # questions are a help: the report says what is wrong itself
+        if answers is not None:
+            args.current = answers.current or args.current
+            args.target = answers.target or args.target
+            if answers.python:  # markers in the requirements depend on it: read them again
+                deps = sources.load(args.project, args.python, python_version=answers.python)
+            if tip := answers.tip():
+                print(tip, file=sys.stderr)
     # An index URL you pass, even pypi.org's, is where your packages are meant to be looked up.
     private_index = args.index_url is not None or args.check_private_on_pypi
 
@@ -250,6 +269,22 @@ def _run(args: argparse.Namespace) -> int:
             "--index-url"
         )
     return 0
+
+
+def _interactive(args: argparse.Namespace) -> bool:
+    """Questions only for a person at a terminal reading the text report, never in CI."""
+    return (
+        not args.no_input
+        and args.format == "text"
+        and args.output is None
+        and not args.explain
+        and "CI" not in os.environ
+        and _at_terminal()
+    )
+
+
+def _at_terminal() -> bool:
+    return sys.stdin.isatty() and sys.stderr.isatty()
 
 
 def _from_other_index(report) -> bool:

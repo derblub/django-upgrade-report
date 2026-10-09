@@ -121,6 +121,7 @@ django-upgrade-report [PROJECT] [options]
 | `--no-cache` | Do not cache PyPI responses. |
 | `--offline` | Answer from the cache only, however old, and never ask the package index. A package that is not in the cache counts as not checked. |
 | `--prefer-cache` | Answer from the cache, however old, and ask the index only for what is missing. |
+| `--no-input` | Never ask in the terminal. Without it, a run at a terminal asks for what the project leaves out and that changes the report: the Django you run when it is not pinned, a smaller first step when the target skips an LTS, and your Python when no file names it. Never in CI, never with `-o`, `--explain` or a format other than text. |
 | `--errors-as-warnings` | Exit with status 0 instead of 2 when the report cannot be made, for example offline without a cache. For hooks that must not block a commit. |
 | `--version` | Show the version and exit. |
 

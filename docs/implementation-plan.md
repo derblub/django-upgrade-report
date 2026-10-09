@@ -41,7 +41,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 5.1a | 0.6 | Regelkette pro Release (`explain_support`) | erledigt |
 | 5.1b | 0.6 | Trace der Suche und Phase, `--explain` im Text | erledigt |
 | 5.1c | 0.6 | FAQ, CONTRIBUTING, Issue-Template | erledigt |
-| 7.3 | 0.6 | Fehlende Angaben nachfragen | offen |
+| 7.3 | 0.6 | Fehlende Angaben nachfragen | erledigt |
 | 2.1 | 0.7 | Python-Readiness | offen |
 | 4.1 | 0.8 | Baseline-Diff | offen |
 | 4.2 | 0.8 | Sticky PR-Kommentar | offen |
@@ -1511,6 +1511,20 @@ Tip: next time pass --from 4.2.16
 - Umgesetzt mit `input()` auf stderr, ohne Abhängigkeit; in der TUI (7.2) als Dialog.
 - Nach der Antwort wird die passende Option als Tipp ausgegeben, damit der nächste Lauf
   reproduzierbar ist.
+
+**Umgesetzt:** `prompts.ask_missing(deps, pypi, target, current, ask)` stellt die Fragen über
+einen übergebenen `ask`-Callback (testbar ohne Terminal), `terminal_ask` fragt auf stderr und
+liest stdin; leere Eingabe, „skip“ und Dateiende überspringen. Die Django-Auswahl zeigt bis zu
+fünf Serien, bei mehr die LTS-Serien plus die zwei neuesten. Für die LTS-Frage gibt es nur
+„kleinerer Schritt“ oder „wie vorgeschlagen“; `--via lts` kommt mit 2.2 dazu. Nicht gefragt
+wird auch bei `--explain`. Mit `script` in einem echten Pseudo-Terminal ausprobiert.
+Aus dem Review: Die Python-Auswahl reicht zwei Versionen unter das, was das Ziel braucht (sonst
+könnte man gerade den Fall nicht angeben, für den die Frage da ist). Die angegebene Python geht
+an `sources.load(python_version=...)`, damit auch die Marker der Requirements danach
+ausgewertet werden. Eine übersprungene Django-Frage nimmt dieselbe Version an wie der Report
+(`_current_django`, bei Obergrenze die neueste erlaubte). Die Liste der übersprungenen LTS kommt
+aus dem neuen `analysis.skipped_lts()`, das auch die Warnung nutzt. Fehler des Index während
+der Fragen brechen nichts ab, der Report meldet sie selbst.
 
 **Tests:** `monkeypatch` für `isatty` und `input`; jede Frage einmal; `CI=1` und `--no-input`
 fragen nie; ungültige Eingabe wird wiederholt, `EOF` bricht ohne Frage ab (Verhalten wie heute).

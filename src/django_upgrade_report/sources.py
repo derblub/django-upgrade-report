@@ -76,21 +76,24 @@ SUPPORTED = (
 )
 
 
-def load(project: Path, python: str | None = None) -> DependencySet:
+def load(
+    project: Path, python: str | None = None, python_version: str | None = None
+) -> DependencySet:
     """Find the most precise dependency source for ``project``.
 
     An explicit interpreter wins, then lockfiles (exact versions, including
     transitive dependencies), then requirement files and ``pyproject.toml``.
     ``project`` may also be one of those files, which is then read directly.
+    ``python_version`` (X.Y) is the project's Python when the person running the tool said so.
     """
     if python:
         return from_environment(python)
     if project.is_file():
-        return _load_file(project)
+        return _load_file(project, python_version)
     if not project.is_dir():
         raise NoDependenciesFound(f"{project} does not exist")
 
-    py, py_source = _detect_python(project)
+    py, py_source = _detect_python(project, python_version)
     for name in LOCKFILES:
         path = project / name
         if path.is_file():
@@ -118,8 +121,8 @@ def load(project: Path, python: str | None = None) -> DependencySet:
     return _dependency_set(", ".join(used), found, py, py_source)
 
 
-def _load_file(path: Path) -> DependencySet:
-    py, py_source = _detect_python(path.parent)
+def _load_file(path: Path, python_version: str | None = None) -> DependencySet:
+    py, py_source = _detect_python(path.parent, python_version)
     if path.name in LOCKFILES:
         deps = _load_lockfile(path, py)
     elif path.name == "pyproject.toml":
@@ -539,7 +542,13 @@ _PYTHON_FINDERS: tuple[tuple[str, str, Callable[[Path], str | None]], ...] = (
 )
 
 
-def _detect_python(directory: Path) -> tuple[str | None, str]:
+def _detect_python(directory: Path, answered: str | None = None) -> tuple[str | None, str]:
+    if answered:
+        return answered, "your answer"
+    return _find_python(directory)
+
+
+def _find_python(directory: Path) -> tuple[str | None, str]:
     """The project's Python version (it may include the patch) and where it came from."""
     for filename, label, finder in _PYTHON_FINDERS:
         if not (directory / filename).is_file():

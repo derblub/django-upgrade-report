@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- At a terminal, the report asks for what the project leaves out and that changes it: the Django you run when it is not pinned, a smaller first step when `auto` would skip an LTS, and your Python when no file names it. It then says which option gives the same report next time. It never asks in CI, with `-o`, `--explain` or a format other than text, or with `--no-input`.
 - `--explain PACKAGE` shows step by step how the verdict on a package came about: the requirement lines that apply on your Python, the classifiers, whether an upper bound counts, every release looked at with its verdict, and whether the upgrade goes before or with Django. It also explains packages the report leaves out, such as ones skipped as not Django-related.
 - A pre-commit hook, `django-upgrade-report`: it fails a commit that changes your dependencies when a package blocks the next Django upgrade, and lets the commit through when the report cannot be made.
 - `--offline` answers from the cache only, however old, and never asks the package index; the report says how old its oldest answer is. `--prefer-cache` asks the index only for what is not in the cache.
