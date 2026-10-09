@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from html import escape
 from importlib import resources
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, commands
 from django_upgrade_report.analysis import PackageReport, PathReport, Report, Status
 from django_upgrade_report.projects import safe_url
+from django_upgrade_report.removals import DJANGO_UPGRADE
 from django_upgrade_report.render import (
     UNUSED_HINT,
     change_rows,
@@ -21,6 +23,8 @@ from django_upgrade_report.render import (
     python_hint,
     python_line,
     python_summary,
+    removal_rows,
+    removals_title,
     row_links,
     row_notes,
     sections,
@@ -71,6 +75,10 @@ h2 .count { color: var(--muted); font-weight: 400; }
 .dot.ready { background: var(--ready); } .dot.upgrade { background: var(--upgrade); }
 .dot.check { background: var(--check); } .dot.blocked { background: var(--blocked); }
 .dot.python { background: var(--python); }
+.dot.removed { background: var(--muted); }
+td.fix { white-space: nowrap; font-size: 13px; color: var(--muted); }
+.table + .hint { margin-top: 10px; }
+.hint a { color: inherit; }
 .table { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
   overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
@@ -337,6 +345,30 @@ def _body(report: Report, static: bool, prefix: str = "") -> list[str]:
             body.append(_table(packages, todo, static, command))
         body.append("</section>")
 
+    if report.removals:
+        shown, rest, urls = removal_rows(report)
+        body.append(
+            f'<section id="{prefix}removals"><h2><span class="dot removed"></span>'
+            f"{escape(removals_title(report))}</h2>"
+        )
+        if shown:
+            rows = "".join(
+                f"<tr><td>{escape(r.text)}</td>"
+                f'<td class="version">{"<br>".join(escape(w) for w in r.used_in)}</td>'
+                f'<td class="fix">{_fixer(r)}</td></tr>'
+                for r in shown
+            )
+            body.append(
+                '<div class="table"><table><thead><tr><th>Removed</th><th>Where</th><th></th>'
+                f"</tr></thead><tbody>{rows}</tbody></table></div>"
+            )
+        if rest:
+            links = ", ".join(
+                f'<a href="{escape(safe_url(url))}">{escape(_release(url))}</a>' for url in urls
+            )
+            body.append(f'<p class="hint">{escape(rest[0].upper() + rest[1:])}: {links}.</p>')
+        body.append("</section>")
+
     if report.missing:
         items = "".join(f"<li>{escape(name)}</li>" for name in report.missing)
         body.append(
@@ -448,6 +480,17 @@ def script_source() -> str:
     source = resources.files(__package__).joinpath("html_report.js").read_text(encoding="utf-8")
     lines = (line.strip() for line in source.splitlines())
     return "\n".join(line for line in lines if line and not line.startswith("//"))
+
+
+def _fixer(removal) -> str:
+    if not removal.fixer:
+        return ""
+    return f'<a class="link" href="{DJANGO_UPGRADE}">django-upgrade</a> fixes this'
+
+
+def _release(url: str) -> str:
+    match = re.search(r"/releases/([\d.]+)/", url)
+    return f"Django {match.group(1)}" if match else url
 
 
 def _filter(p: PackageReport) -> str:

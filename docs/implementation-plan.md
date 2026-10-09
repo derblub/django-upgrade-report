@@ -76,9 +76,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 2.4 | 0.11 | Ungenutzte Pakete | erledigt |
 | 2.4a | 0.11 | `usage.py` (Scan, Namenstabelle), Notiz an direkten Django-Paketen, `--no-scan-code`, `--scan-code` | erledigt |
 | 2.4b | 0.11 | Abschnitt „Possibly unused“ für alle direkten Pakete, Modulnamen über `--python`, `--explain` | erledigt |
-| 2.5 | 0.11 | Was Django entfernt hat | in Arbeit |
+| 2.5 | 0.11 | Was Django entfernt hat | erledigt |
 | 2.5a | 0.11 | Daten aus den Release-Notes (Skript, JSON im Paket), Abgleich mit dem Code, Text und JSON | erledigt |
-| 2.5b | 0.11 | Markdown und HTML | offen |
+| 2.5b | 0.11 | Markdown und HTML | erledigt |
 | 6.1 | 1.0 | Wagtail und django CMS als Ziel | offen |
 | 6.2 | 1.0 | Mehrere Projekte | offen |
 | 6.3 | separat | Öffentliche Readiness-Daten | offen |
@@ -979,6 +979,11 @@ Formen: Import oder `modul.name`, Setting (Großbuchstaben mit `_`, Wort „sett
 in `migrations/`. Der Scanner aus 2.4 sammelt dafür zusätzlich Importe, Attribute, Settings,
 Meta-Optionen und Filter. Die Fixer-Liste enthält nur, was django-upgrade sicher umschreibt;
 `length_is`, `is_ajax` und `postgres.JSONField` sind bewusst nicht drin, weil unsicher.
+
+**Umsetzung 2.5b:** Markdown: Überschrift „🗑️ Removed in …“, Tabelle (Entfernt, Fundstellen,
+django-upgrade-Link), darunter die Release-Notes als Links „Django 5.0“. HTML: eigener
+Abschnitt `#removals` nach den Paketen mit derselben Tabelle und Links. Im Text stehen die
+Links zu den Release-Notes seither je auf einer eigenen Zeile.
 
 ---
 

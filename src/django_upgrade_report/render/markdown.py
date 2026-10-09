@@ -6,6 +6,7 @@ import re
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL
 from django_upgrade_report.analysis import PackageReport, PathReport, Report, Status
+from django_upgrade_report.removals import DJANGO_UPGRADE
 from django_upgrade_report.render import (
     UNUSED_HINT,
     change_rows,
@@ -17,6 +18,8 @@ from django_upgrade_report.render import (
     python_hint,
     python_line,
     python_summary,
+    removal_rows,
+    removals_title,
     row_links,
     row_notes,
     sections,
@@ -65,6 +68,12 @@ def _table(packages: list[PackageReport]) -> list[str]:
         why += "".join(f" · [{label}]({url})" for label, url in row_links(p))
         lines.append(f"| {_code(p.display_name)} | {_cell(version_cell(p))} | {why} |")
     return lines
+
+
+def _version(url: str) -> str:
+    """``Django 5.0`` for the release notes of 5.0."""
+    match = re.search(r"/releases/([\d.]+)/", url)
+    return f"Django {match.group(1)}" if match else url
 
 
 def _changes(report: Report) -> list[str]:
@@ -117,6 +126,20 @@ def render(report: Report, only_changes: bool = False, footer: bool = True) -> s
             continue
         lines += [escape(section.hint), ""]
         lines += [*_table(section.packages), ""]
+
+    if report.removals:
+        shown, rest, urls = removal_rows(report)
+        lines += [f"### 🗑️ {escape(removals_title(report))}", ""]
+        if shown:
+            lines += ["| Removed | Where | |", "| --- | --- | --- |"]
+            for removal in shown:
+                where = ", ".join(_code(w) for w in removal.used_in)
+                fixer = f"[django-upgrade]({DJANGO_UPGRADE}) fixes this" if removal.fixer else ""
+                lines.append(f"| {_cell(removal.text)} | {where} | {fixer} |")
+            lines.append("")
+        if rest:
+            notes = ", ".join(f"[{_version(url)}]({url})" for url in urls)
+            lines += [f"{escape(rest[0].upper() + rest[1:])}: {notes}.", ""]
 
     if report.missing:
         missing = ", ".join(_code(m) for m in report.missing)

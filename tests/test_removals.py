@@ -146,3 +146,22 @@ def test_a_health_check_lists_nothing(project, capsys):
     (project / "requirements.txt").write_text("Django==5.2.3\ndjango-ready==1.0\n")
     cli.main([str(project), "-f", "json", "--target", "5.2"])
     assert json.loads(capsys.readouterr().out)["removals"] == []
+
+
+def test_markdown_and_html(project, capsys):
+    import shutil
+
+    shutil.copytree(SAMPLE, project, dirs_exist_ok=True)
+    cli.main([str(project), "--no-input", "-f", "markdown"])
+    out = capsys.readouterr().out
+    assert "### 🗑️ Removed in Django 5.0 and 5.1 (5 used in your code)" in out
+    assert (
+        "| The model's Meta.index\\_together option is removed | `shop/models.py:11` | "
+        "[django-upgrade](https://github.com/adamchainz/django-upgrade) fixes this |"
+    ) in out
+    assert "[Django 5.0](https://docs.djangoproject.com/en/5.0/releases/5.0/" in out
+    cli.main([str(project), "--no-input", "-f", "html"])
+    page = capsys.readouterr().out
+    assert '<section id="removals"><h2><span class="dot removed"></span>' in page
+    assert '<td class="version">shop/models.py:11</td>' in page
+    assert ">Django 5.1</a>.</p></section>" in page
