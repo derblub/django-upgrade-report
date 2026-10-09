@@ -82,7 +82,7 @@ django-upgrade-report --target 6.1
   <img src="docs/assets/terminal.png" alt="Terminal output for an upgrade from Django 4.2.7 to 5.2: a git fork of django-taggit is blocked by its own Django&lt;5.0 requirement, four packages can be upgraded first, one goes together with Django, two need a manual check, one is ready, and one git package is listed as not checked" width="820">
 </p>
 
-To move through a long report instead of scrolling it, open it in the terminal with `-i`: the sections and packages on the left, the chosen package on the right with its notes, signs, command and links, and `/` to search. It needs the `tui` extra:
+To move through a long report instead of scrolling it, open it in the terminal with `-i`: the sections and packages on the left, the chosen package on the right with its notes, signs, command and links. `/` searches, `f` shows one status, `space` ticks a package off, `e` copies its command, `o` opens its changelog, `t` checks another target and `w` writes the report to a file. Ticks are kept in `.django-upgrade-report/state.json` in the project: add it to `.gitignore`, or commit it to share them. It needs the `tui` extra:
 
 ```console
 uvx --with textual django-upgrade-report -i

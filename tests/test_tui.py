@@ -8,6 +8,7 @@ Skipped without Textual, which only the ``tui`` extra installs.
 from __future__ import annotations
 
 import asyncio
+import json
 
 import pytest
 
@@ -27,9 +28,11 @@ def report(project, monkeypatch):
     monkeypatch.setattr(cli, "_at_terminal", lambda: True)
     monkeypatch.setattr(cli.sys.stdout, "isatty", lambda: True)
     monkeypatch.delenv("CI", raising=False)
-    monkeypatch.setattr(tui, "run", lambda r: got.append(r) or 0)
+    monkeypatch.setattr(tui, "run", lambda *args: got.append(args) or 0)
     assert cli.main([str(project), "-i", "--no-input"]) == 0
-    return got[0]
+    report, recompute, state = got[0]
+    report.recompute, report.state = recompute, state  # for the tests below
+    return report
 
 
 def drive(app, steps):
@@ -100,3 +103,94 @@ def test_command_for_a_lockfile(report):
 
     shown = drive(tui.ReportApp(report), steps)
     assert "\nCommand  uv add 'django-before>=2.0'\nPyPI     https://pypi.org/" in shown
+
+
+def app_for(report):
+    return tui.ReportApp(report, report.recompute, report.state)
+
+
+def test_filter_by_status(report):
+    async def steps(app, pilot):
+        await pilot.press("f")
+        await pilot.pause()
+        first = (app.status, sorted(p.name for p in app.rows.values()))
+        await pilot.press("f", "f", "f")
+        await pilot.pause()
+        return first, app.status
+
+    first, back = drive(app_for(report), steps)
+    assert first == ("blocked", ["django-blocked"])
+    assert back is None  # blocked, upgrade, ready, then everything again
+
+
+def test_ticks_are_kept_in_the_project(report):
+    async def steps(app, pilot):
+        await pilot.press("space")
+        await pilot.pause()
+        return details(app)
+
+    shown = drive(app_for(report), steps)
+    assert "\nDone  " in shown
+    kept = json.loads(report.state.read_text())
+    assert [(d["package"], d["target"]) for d in kept["done"]] == [("django-blocked", "5.2")]
+    assert report.state.parent.name == ".django-upgrade-report"
+
+    async def again(app, pilot):
+        await pilot.press("space")  # untick
+        await pilot.pause()
+        return app.done
+
+    assert drive(app_for(report), again) == {}
+    assert json.loads(report.state.read_text()) == {"done": []}
+
+
+def test_copy_and_open(report, monkeypatch):
+    report.source = "uv.lock"
+    opened = []
+    monkeypatch.setattr(tui.webbrowser, "open", opened.append)
+
+    async def steps(app, pilot):
+        copied = []
+        app.copy_to_clipboard = copied.append
+        await pilot.press("e")  # blocked: no command
+        await pilot.press("down", "e", "o")
+        await pilot.pause()
+        return copied
+
+    assert drive(app_for(report), steps) == ["uv add 'django-before>=2.0'"]
+    assert opened == ["https://pypi.org/project/django-before/"]
+
+
+def test_another_target(report):
+    async def steps(app, pilot):
+        await pilot.press("t", *"6.0", "enter")
+        await app.workers.wait_for_complete()
+        await pilot.pause()
+        return app.report.target, str(app.query_one("#head").render())
+
+    target, head = drive(app_for(report), steps)
+    assert target == "6.0"
+    assert head.startswith("Django 4.2.7 → 6.0")
+
+
+def test_a_target_that_cannot_be_checked(report):
+    async def steps(app, pilot):
+        await pilot.press("t", *"9.9", "enter")
+        await app.workers.wait_for_complete()
+        await pilot.pause()
+        return app.report.target, app.busy
+
+    assert drive(app_for(report), steps) == ("5.2", "")  # the report stays, a note says why
+
+
+@pytest.mark.parametrize("name", ["report.html", "report.md", "report.json", "report.txt"])
+def test_write_the_report(report, tmp_path, monkeypatch, name):
+    monkeypatch.chdir(tmp_path)
+
+    async def steps(app, pilot):
+        await pilot.press("w", *name, "enter")
+        await pilot.pause()
+
+    drive(app_for(report), steps)
+    written = (tmp_path / name).read_text()
+    assert "django-blocked" in written

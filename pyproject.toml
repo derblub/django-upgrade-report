@@ -120,6 +120,8 @@ markers = [
 [tool.coverage.run]
 source = ["django_upgrade_report"]
 branch = true
+# -i runs only with the tui extra; its tests (tests/test_tui.py) run in a CI job of their own.
+omit = ["*/django_upgrade_report/tui.py"]
 
 [tool.coverage.report]
 show_missing = true

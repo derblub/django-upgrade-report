@@ -46,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
-      - run: uv run --group dev --with textual pytest --cov=django_upgrade_report --cov-report=term-missing
+      - run: uv run --group dev --with textual pytest
 
   # Runs the script of the HTML report in Chromium.
   browser:

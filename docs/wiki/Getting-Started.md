@@ -62,7 +62,22 @@ Work from the top: deal with the blockers, upgrade the "first" packages one at a
 
 ## In the terminal
 
-`-i` opens the report in the terminal: the sections and packages on the left, the chosen package on the right with its notes, signs of support, the command to upgrade it and its links. Arrow keys choose a package, `/` searches names, reasons and notes, `Esc` clears the search, `?` shows the keys and `q` quits. It needs the `tui` extra, which brings [Textual](https://textual.textualize.io/); the tool itself does not depend on it:
+`-i` opens the report in the terminal: the sections and packages on the left, the chosen package on the right with its notes, signs of support, the command to upgrade it and its links. The keys:
+
+| Key | What it does |
+| --- | --- |
+| `↑` `↓` | Choose a package. |
+| `/` | Search names, reasons and notes. |
+| `f` | Show one status at a time: blocked, to upgrade, to check, ready, then everything again. |
+| `space` | Tick the package off, or tick it on again. |
+| `e` | Copy the command that upgrades it (through the terminal, so over SSH too, where the terminal allows it). |
+| `o` | Open its changelog, else its repository, else its page on PyPI. |
+| `t` | Check against another target, such as `6.0` or `latest`. The cache makes it quick. |
+| `w` | Write the report to a file; the name says the format: `.html`, `.md`, `.json`, else text. |
+| `Esc` | Clear the search and the filter. |
+| `?`, `q` | Show the keys, quit. |
+
+Ticks are kept per package and target in `.django-upgrade-report/state.json` in the project, not in the cache: add it to `.gitignore`, or commit it so the team sees them. It needs the `tui` extra, which brings [Textual](https://textual.textualize.io/); the tool itself does not depend on it:
 
 ```console
 uvx --with textual django-upgrade-report -i

@@ -386,7 +386,16 @@ def _run(args: argparse.Namespace) -> int:
     if args.interactive:
         from django_upgrade_report import tui
 
-        return tui.run(report)
+        def recompute(target: str) -> Report:
+            again = analyse(deps, pypi, target, current=args.current, private_index=private_index)
+            python = python_target(args.python_target, again)
+            if python is not None:
+                again.python = plan_python(python, again, deps, pypi)
+            _evidence(args, again, deps, mode)
+            return again
+
+        where = args.project if args.project.is_dir() else args.project.parent
+        return tui.run(report, recompute, where / ".django-upgrade-report" / "state.json")
     if args.only_changes and report.changes.compared and not report.changes.items:
         return 0  # nothing to say, not even an empty file
     elif explained and args.format == "text":

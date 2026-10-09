@@ -70,9 +70,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 1.2b | 0.10 | `--evidence`: Testmatrix im Repository (tox, Workflows, nox), Action-Input, FAQ | erledigt |
 | 1.2c | 0.10 | `--evidence`: Changelog im Repository | erledigt |
 | 1.3 | 0.10 | Upstream-Issues und -PRs | erledigt |
-| 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | in Arbeit |
+| 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | erledigt |
 | 7.2a | 0.10 | `tui.py` (Extra `tui`), Liste und Details, Suche, Hilfe, `-i`-Prüfungen, Pilot-Tests, CI-Job | erledigt |
-| 7.2b | 0.10 | Ziel wechseln (`t`), Filter (`f`), Abhaken mit Zustandsdatei, Befehl kopieren (`e`), Link öffnen (`o`), Schreiben (`w`) | offen |
+| 7.2b | 0.10 | Ziel wechseln (`t`), Filter (`f`), Abhaken mit Zustandsdatei, Befehl kopieren (`e`), Link öffnen (`o`), Schreiben (`w`) | erledigt |
 | 2.4 | 0.11 | Ungenutzte Pakete | offen |
 | 2.5 | 0.11 | Was Django entfernt hat | offen |
 | 6.1 | 1.0 | Wagtail und django CMS als Ziel | offen |
@@ -1716,7 +1716,18 @@ anderes Format, kein `-o`, `--fail-on*`, `--emit`, `--explain`, `--via`, `--quie
 Textual, nennt die Meldung beide Wege (`pip install …[tui]`, `uvx --with textual …`).
 `--via` im TUI kommt später (bisher nur Einzelreport). Tests mit `App.run_test()` über
 `asyncio.run`, ohne pytest-asyncio; der CI-Job `tui` führt die ganze Suite mit Textual aus
-(dort 94 %, ohne Textual 92 %, weil `tui.py` dann nicht läuft).
+(`tui.py` ist von der Abdeckungsmessung ausgenommen, weil es nur mit dem Extra läuft; mit
+7.2b wäre die Gesamtabdeckung ohne Textual sonst unter 90 % gefallen).
+
+**Umsetzung 7.2b:** `t` und `w` fragen über ein zweites Eingabefeld; das neue Ziel rechnet ein
+Worker-Thread über einen Rückruf aus dem CLI (`analyse`, Python-Plan, `--evidence` wie beim
+Start), ein Fehler wird zur Meldung und der Report bleibt. `f` wechselt nur zwischen den
+Status, die es gibt. `e` nutzt `App.copy_to_clipboard` (OSC 52). `o` öffnet den Changelog, sonst
+das Repository, sonst PyPI; eine Auswahl unter mehreren Links wäre eine Taste mehr, ohne viel
+Nutzen. Zustandsdatei: `{"done": [{"package", "target", "at"}]}`, Abhaken pro Ziel. Dabei
+behoben: Trennlinien zählen in der `OptionList` nicht als Optionen, die Startmarkierung lag
+mit mehreren Abschnitten deshalb auf einem Titel; nach jedem Füllen wird das gewählte Paket
+gezeigt.
 
 ### 7.3 Fehlende Angaben nachfragen
 
