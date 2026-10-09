@@ -46,6 +46,10 @@ Top level (schema_version 1):
   Django-related metadata could be read locally), as objects with
   ``name`` and ``source`` (e.g. ``"git https://github.com/org/repo"``).
 - ``skipped_non_django`` (int): dependencies without a Django requirement.
+- ``explain`` (object): for each package given with ``--explain``, by canonical name, how its
+  verdict came about: a list of objects with ``section`` (``"inputs"``, ``"release"``,
+  ``"search"``, ``"phase"`` or ``"result"``) and ``text``, in the order they happened. Empty
+  without ``--explain``.
 """
 
 from __future__ import annotations
@@ -116,6 +120,10 @@ def as_dict(report: Report) -> dict:
         "not_checked": report.failed,
         "external": [{"name": name, "source": where} for name, where in report.external],
         "skipped_non_django": report.skipped,
+        "explain": {
+            name: [{"section": line.section, "text": line.text} for line in lines]
+            for name, lines in report.explanations.items()
+        },
     }
 
 

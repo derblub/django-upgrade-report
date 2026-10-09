@@ -113,6 +113,7 @@ django-upgrade-report [PROJECT] [options]
 | `-f`, `--format` | `text` (default), `markdown`, `json` or `html`. |
 | `-o`, `--output` | Write the report to a file instead of stdout. Missing directories are created. |
 | `--fail-on` | Exit with status 1 when a package is `blocked`, needs an `upgrade` (or is blocked), or needs a `check` (or anything worse). |
+| `--explain PACKAGE` | Show step by step how the verdict on a package came about instead of the report: the requirement lines that apply, the classifiers, whether an upper bound counts, every release looked at, and whether it goes before or with Django. Can be given more than once. Paste it into an issue when you think a verdict is wrong. |
 | `-v`, `--verbose` | Text output only: list every ready package with its reason. The other formats always do. |
 | `-q`, `--quiet` | Text output only: just the headline, warnings, blocked packages and the counts. |
 | `--index-url` | Base URL of an index that implements PyPI's JSON API. Default: `https://pypi.org/pypi`. |

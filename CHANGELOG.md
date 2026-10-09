@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- `--explain PACKAGE` shows step by step how the verdict on a package came about: the requirement lines that apply on your Python, the classifiers, whether an upper bound counts, every release looked at with its verdict, and whether the upgrade goes before or with Django. It also explains packages the report leaves out, such as ones skipped as not Django-related.
 - A pre-commit hook, `django-upgrade-report`: it fails a commit that changes your dependencies when a package blocks the next Django upgrade, and lets the commit through when the report cannot be made.
 - `--offline` answers from the cache only, however old, and never asks the package index; the report says how old its oldest answer is. `--prefer-cache` asks the index only for what is not in the cache.
 - `--errors-as-warnings` exits with status 0 instead of 2 when the report cannot be made, for hooks that must not block a commit.

@@ -140,6 +140,16 @@ class PackageReport:
         return (datetime.now(timezone.utc) - self.last_release).days > STALE_AFTER_DAYS
 
 
+@dataclass(frozen=True)
+class ExplainLine:
+    """One line of ``--explain``: a section such as ``"search"``, and what happened."""
+
+    section: str
+    text: str
+    version: Version | None = None
+    """The release the line is about, to order the releases looked at."""
+
+
 @dataclass
 class Report:
     target: str
@@ -163,6 +173,8 @@ class Report:
     generated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     kind: str = "report"
     """What the JSON document holds: one report. Other kinds will wrap several reports."""
+    explanations: dict[str, list[ExplainLine]] = field(default_factory=dict)
+    """For each package asked about with ``--explain``, how its verdict came about."""
 
     def by_status(self, status: Status) -> list[PackageReport]:
         return [p for p in self.packages if p.status is status]
@@ -642,11 +654,13 @@ def analyse(
     progress: Callable[[str], None] | None = None,
     current: str | None = None,
     private_index: bool = False,
+    explain: Iterable[str] = (),
 ) -> Report:
     """Judge every Django-related dependency of ``deps`` against ``target``.
 
     ``current`` overrides the project's Django version (``--from``). With ``private_index``
     the index is the project's own, so packages from a private index are looked up there.
+    For each canonical name in ``explain``, the report records how its verdict came about.
     """
     django = pypi.project("django")
     if django is None:
@@ -673,7 +687,30 @@ def analyse(
         for d in deps.dependencies.values()
         if not checked(d) and d.external and d.name != "django"
     ]
+    traces: dict[str, list[ExplainLine]] = {canonicalize_name(n): [] for n in explain}
+    _explain_inputs(traces, deps, goal, today, current_django)
     # A fork or a local package cannot be looked up, but what it declares itself can be judged.
+    for d in unchecked:
+        if d.name in traces:
+            traces[d.name].append(ExplainLine("inputs", f"not from PyPI: {d.external}"))
+            if d.metadata is not None and not is_django_related(d.metadata):
+                why = "skipped: its own metadata does not mention Django"
+            elif d.metadata is None and from_other_index(d.external):
+                why = (
+                    "not checked: it comes from another index; pass --check-private-on-pypi "
+                    "if that index mirrors PyPI, or its JSON API with --index-url"
+                )
+            elif d.metadata is None:
+                why = "not checked: its metadata could not be read locally"
+            else:
+                why = None
+            if why:
+                traces[d.name].append(ExplainLine("result", why))
+            else:
+                traces[d.name] += [
+                    ExplainLine("release", f"{s.check}: {s.finding}")
+                    for s in explain_support(d.metadata, goal)
+                ]
     local = [
         _judge_local(d, goal, d.metadata, d.external)
         for d in unchecked
@@ -694,6 +731,7 @@ def analyse(
     ):
         private = frozenset(d.name for d in deps.dependencies.values() if not checked(d))
         checker = _Checker(pypi, goal, today, release_pool, workers, pinned, private)
+        checker.traces = traces
         checker.installed.update((d.name, d.metadata) for d in unchecked if d.metadata is not None)
 
         def check(dep: Dependency) -> PackageReport | str | _Failed | None:
@@ -726,6 +764,7 @@ def analyse(
 
     rank = _upgrade_rank(packages, checker.links)
     packages.sort(key=lambda p: (-SEVERITY[p.status], p.phase is Phase.WITH, rank[p.name], p.name))
+    _explain_results(traces, packages, missing, failed)
 
     return Report(
         target=goal.label,
@@ -741,7 +780,66 @@ def analyse(
         notices=_notices(target, goal, django, current_minor, current_django),
         project_python=project_python,
         target_released=goal.released,
+        explanations=traces,
     )
+
+
+def _explain_inputs(
+    traces: dict[str, list[ExplainLine]],
+    deps: DependencySet,
+    goal: Target,
+    today: Target | None,
+    current_django: str | None,
+) -> None:
+    """What every explanation starts from: the dependency, the Django versions, the Python."""
+    for name, lines in traces.items():
+        dep = deps.dependencies.get(name)
+        if dep is None:
+            lines.append(ExplainLine("result", f"{name} is not among your dependencies"))
+            continue
+        have = f"{dep.version} (pinned)" if dep.version else f"{dep.spec or 'any'} (not pinned)"
+        lines.append(ExplainLine("inputs", f"{dep.name} {have}, from {deps.source}"))
+        lines.append(ExplainLine("inputs", f"your Django {current_django or 'unknown'}"))
+        python = f"Python {goal.python}" if goal.python else "the running Python"
+        lines.append(ExplainLine("inputs", f"against Django {goal.label}, markers on {python}"))
+        if today is not None and today.python and today.python != goal.python:
+            lines.append(
+                ExplainLine(
+                    "inputs", f"against your Django {today.label}, markers on Python {today.python}"
+                )
+            )
+
+
+def _explain_results(
+    traces: dict[str, list[ExplainLine]],
+    packages: list[PackageReport],
+    missing: list[str],
+    failed: list[_Failed],
+) -> None:
+    """How each explained package ends up in the report."""
+    by_name = {p.name: p for p in packages}
+    problems = {f.name: f.problem for f in failed}
+    for name, lines in traces.items():
+        if any(line.section == "result" for line in lines):
+            continue
+        p = by_name.get(name)
+        if p is not None:
+            verdict = {
+                Phase.BEFORE: f"upgrade to {p.target_version} first, before Django",
+                Phase.WITH: f"upgrade to {p.target_version} together with Django",
+            }.get(p.phase) or (
+                f"{p.status.value}, {p.target_version}" if p.target_version else p.status.value
+            )
+            lines.append(ExplainLine("result", f"{verdict}: {p.reason}"))
+            lines += [ExplainLine("result", note) for note in p.notes]
+        elif name in missing:
+            lines.append(ExplainLine("result", "not on the package index"))
+        elif name in problems:
+            lines.append(ExplainLine("result", f"could not be checked: {problems[name]}"))
+        elif name == "django":
+            lines.append(ExplainLine("result", "Django itself: the version you upgrade from"))
+        else:
+            lines.append(ExplainLine("result", "skipped: not Django-related"))
 
 
 def _judge_local(dep: Dependency, goal: Target, info: ReleaseInfo, where: str) -> PackageReport:
@@ -830,6 +928,7 @@ def _plan_order(packages: list[PackageReport], checker: _Checker, python: str | 
             if waits:
                 p.phase = Phase.WITH
                 p.notes.append(f"goes with {', '.join(waits)}")
+                checker.trace(p.name, "phase", f"goes with {', '.join(waits)}, so with Django")
                 changed = True
 
     _merge_cycles(packages, checker.links)
@@ -1112,11 +1211,35 @@ class _Checker:
         self.private = private
         """Packages that must never be looked up on the index (git, paths, private indexes)."""
         """Exact versions of the project's other packages, to see what a release conflicts with."""
+        self.traces: dict[str, list[ExplainLine]] = {}
+        """The packages to explain, with what was found so far."""
         self.installed: dict[str, ReleaseInfo] = {}
         """Metadata of the installed release of every package looked up."""
         self.links: dict[str, set[str]] = {}
         """Package -> the packages whose installed release forbids its upgrade."""
         self._lock = threading.Lock()
+
+    def trace(self, name: str, section: str, text: str, version: Version | None = None) -> None:
+        """Note what happened, when ``name`` is to be explained; else nothing."""
+        lines = self.traces.get(name)
+        if lines is not None:
+            with self._lock:
+                lines.append(ExplainLine(section, text, version))
+
+    def _judge(
+        self, name: str, rule: Rule, version: Version, info: ReleaseInfo, uploaded
+    ) -> Support:
+        """``rule.judge``, traced for ``--explain``."""
+        support = rule.judge(info, uploaded)
+        if name in self.traces:
+            when = f" ({uploaded:%Y-%m-%d})" if uploaded else ""
+            self.trace(
+                name,
+                "search",
+                f"{version}{when}: {support.verdict.value}, {support.reason}",
+                version,
+            )
+        return support
 
     def link(self, name: str, needs: str) -> None:
         with self._lock:
@@ -1133,6 +1256,12 @@ class _Checker:
             with self._lock:
                 self.installed[dep.name] = current_info
             if not replaced and not is_django_related(current_info):
+                self.trace(
+                    dep.name,
+                    "result",
+                    f"skipped: {dep.version} has no Django requirement and no "
+                    "Framework :: Django classifier",
+                )
                 return None
         project = self.pypi.project(dep.name)
         if project is None:
@@ -1168,7 +1297,7 @@ class _Checker:
             for version, info in zip(chunk, infos, strict=True):
                 if info is None:
                     continue
-                support = rule.judge(info, dates.get(version))
+                support = self._judge(name, rule, version, info, dates.get(version))
                 if accept(support.verdict):
                     return version, info, support
                 if support.verdict is Verdict.NO and rule.side(info) == passed:
@@ -1195,7 +1324,7 @@ class _Checker:
             info = self.pypi.release(name, str(version))
             if info is None:
                 return None
-            support = rule.judge(info, dates.get(version))
+            support = self._judge(name, rule, version, info, dates.get(version))
             return (version, info, support) if support.verdict is Verdict.YES else None
 
         if len(versions) <= self.batch:
@@ -1238,7 +1367,7 @@ class _Checker:
             info = self.pypi.release(name, str(version))
             side = 0
             if info is not None:
-                support = rule.judge(info, dates.get(version))
+                support = self._judge(name, rule, version, info, dates.get(version))
                 if support.verdict is not Verdict.NO:
                     found = version, info, support
                     lo, hi = (mid + 1, hi) if highest else (lo, mid)
@@ -1308,6 +1437,10 @@ class _Package:
             report.notes.append(note)
 
         if self.current_info is not None:
+            if self.dep.name in self.checker.traces:
+                uploaded = self._uploaded(self.current_info)
+                for step in explain_support(self.current_info, self.target, uploaded):
+                    self.checker.trace(self.dep.name, "release", f"{step.check}: {step.finding}")
             self._pinned()
         elif self.dep.version:
             self._not_on_index()
@@ -1483,12 +1616,14 @@ class _Package:
             return []
         return [v for v in self.stable if v > installed]
 
-    def _supports(self, info: ReleaseInfo, target: Target | None = None) -> Support:
+    def _uploaded(self, info: ReleaseInfo) -> datetime | None:
         try:
-            uploaded = self.dates.get(Version(info.version))
+            return self.dates.get(Version(info.version))
         except InvalidVersion:
-            uploaded = None
-        return supports(info, target or self.target, uploaded)
+            return None
+
+    def _supports(self, info: ReleaseInfo, target: Target | None = None) -> Support:
+        return supports(info, target or self.target, self._uploaded(info))
 
     def _find(
         self, versions: Iterable[Version], accept, newest_first: bool = False
@@ -1563,13 +1698,25 @@ class _Package:
             if bound is None:
                 self.checker.link(self.dep.name, name)
                 self.report.notes.append(f"{needed}: upgrade {display} first")
+                self._trace_phase(f"{needed}: {display} can be upgraded first")
             else:
                 phase = Phase.WITH
                 self.report.notes.append(
                     f"{needed}, and {display} {bound} no longer runs on Django {current.label}"
                 )
+                self._trace_phase(f"{needed}, and {display} {bound} needs a newer Django")
         if current.version != self.target.version:  # no phases in a health check
             self.report.phase = phase
+            self.checker.trace(
+                self.dep.name,
+                "phase",
+                f"{info.version} on your Django {exact}: {support.verdict.value}, "
+                f"{support.reason} → {'with Django' if phase is Phase.WITH else 'before Django'}",
+            )
+
+    def _trace_phase(self, text: str) -> None:
+        if self.checker.current and self.checker.current.version != self.target.version:
+            self.checker.trace(self.dep.name, "phase", text)
 
     def _conflicts(
         self, info: ReleaseInfo, python: str | None

@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 from conftest import release
+from packaging.version import Version
 
 from django_upgrade_report import cli
 from django_upgrade_report.pypi import PyPIError
@@ -716,3 +717,81 @@ def test_quiet_shows_only_what_blocks(project, capsys):
     assert "Blocked (1)" in out and "django-blocked" in out
     assert "Upgrade first" not in out and "from requirements.txt" not in out
     assert out.rstrip().endswith("1 ready · 1 to upgrade · 0 to check · 1 blocked")
+
+
+# --- --explain ----------------------------------------------------------------------
+
+
+def test_explain_an_upgrade(project, capsys):
+    assert cli.main([str(project), "--explain", "Django_Before"]) == 0
+    out = capsys.readouterr().out
+    assert out.startswith("django-before against Django 5.2 · django-upgrade-report ")
+    assert "Upgrade first" not in out  # the explanation instead of the report
+    assert "  django-before 1.0 (pinned), from requirements.txt\n" in out
+    assert "  classifiers: Django 4.1, 4.2: does not include 5.2\n" in out
+    assert "  2.0 (2026-01-01): yes, declares Django 5.2\n" in out
+    assert (
+        "Before or with Django\n  2.0 on your Django 4.2.7: yes, declares Django 4.2 → before Django\n"
+    ) in out
+    assert "Result\n  upgrade to 2.0 first, before Django: 2.0 declares Django 5.2\n" in out
+    search = out.split("Releases looked at")[1].split("Before or with Django")[0]
+    versions = [line.split()[0] for line in search.splitlines()[1:]]
+    assert versions == sorted(versions, key=Version, reverse=True)  # newest first
+
+
+def test_explain_several_and_the_ones_not_in_the_report(project, capsys):
+    (project / "requirements.txt").write_text(
+        "Django==4.2.7\ndjango-blocked==1.0\nrequests==2.31.0\ndjango-private==1.0\n"
+    )
+    args = ["--explain", "django-blocked", "--explain", "requests", "--explain", "django-private"]
+    assert cli.main([str(project), *args]) == 0
+    blocks = capsys.readouterr().out.split("\n\n")
+    assert "Result\n  blocked: latest 1.0 requires Django<5.0\n" in blocks[0]
+    assert blocks[1].endswith(
+        "Result\n  skipped: 2.31.0 has no Django requirement and no Framework :: Django classifier"
+    )
+    assert blocks[2].endswith("Result\n  not on the package index\n")
+
+
+def test_explain_a_fork(project, capsys):
+    fork = project / "vendor" / "taggit"
+    fork.mkdir(parents=True)
+    (fork / "pyproject.toml").write_text(
+        '[project]\nname = "django-taggit"\nversion = "4.0"\ndependencies = ["Django<5.0"]\n'
+    )
+    (project / "requirements.txt").write_text("Django==4.2.7\n-e ./vendor/taggit\n")
+    assert cli.main([str(project), "--explain", "django-taggit"]) == 0
+    out = capsys.readouterr().out
+    assert "  not from PyPI: path " in out
+    assert "  requirement: Django<5.0: excludes every Django 5.2\n" in out
+    assert "Result\n  blocked: requires Django<5.0\n" in out
+
+
+def test_explain_a_name_that_is_not_a_dependency(project, capsys):
+    assert cli.main([str(project), "--explain", "django-befor"]) == 2
+    err = capsys.readouterr().err
+    assert err.startswith("error: --explain: django-befor is not among your dependencies, ")
+    assert "did you mean django-before" in err
+
+
+def test_explain_in_json_and_with_other_options(project, capsys):
+    assert cli.main([str(project), "--explain", "django-before", "-f", "json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["counts"]["upgrade"] == 1  # the report is still there
+    sections = [line["section"] for line in data["explain"]["django-before"]]
+    assert sections[0] == "inputs" and sections[-1] == "result"
+    cli.main([str(project), "-f", "json"])
+    assert json.loads(capsys.readouterr().out)["explain"] == {}
+    for extra in (["-f", "markdown"], ["--fail-on", "blocked"], ["--quiet"]):
+        assert cli.main([str(project), "--explain", "django-before", *extra]) == 2
+        assert "error: --explain " in capsys.readouterr().err
+
+
+def test_explain_a_package_from_another_index(project, capsys):
+    (project / "requirements.txt").write_text(
+        "--index-url https://pkgs.example.com/simple\nDjango==4.2.7\ndjango-inhouse==1.0\n"
+    )
+    assert cli.main([str(project), "--explain", "django-inhouse"]) == 0
+    out = capsys.readouterr().out
+    assert "not from PyPI: index https://pkgs.example.com/simple" in out
+    assert "it comes from another index; pass --check-private-on-pypi" in out

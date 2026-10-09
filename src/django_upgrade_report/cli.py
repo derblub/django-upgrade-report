@@ -3,12 +3,15 @@ from __future__ import annotations
 import argparse
 import codecs
 import contextlib
+import difflib
 import os
 import sys
 import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+from packaging.utils import canonicalize_name
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, sources
 from django_upgrade_report.analysis import SEVERITY, Status, analyse, from_other_index
@@ -21,7 +24,7 @@ from django_upgrade_report.pypi import (
     PyPIError,
     default_cache_dir,
 )
-from django_upgrade_report.render import html, json, markdown, text
+from django_upgrade_report.render import explain, html, json, markdown, text
 
 _FAIL_ON = {"blocked": Status.BLOCKED, "upgrade": Status.UPGRADE, "check": Status.CHECK}
 """``--fail-on`` value -> the least severe status that fails."""
@@ -79,6 +82,14 @@ def build_parser() -> argparse.ArgumentParser:
         "(errors exit with status 2)",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="list ready packages too")
+    parser.add_argument(
+        "--explain",
+        action="append",
+        default=[],
+        metavar="PACKAGE",
+        help="show step by step how the verdict on PACKAGE came about, instead of the report; "
+        "can be given more than once",
+    )
     parser.add_argument(
         "-q",
         "--quiet",
@@ -159,6 +170,18 @@ def _run(args: argparse.Namespace) -> int:
     except (sources.NoDependenciesFound, sources.SourceError, OSError, ValueError) as exc:
         raise Error(exc) from None
 
+    explained = [canonicalize_name(name) for name in args.explain]
+    if explained and args.format in ("markdown", "html"):
+        raise Error("--explain prints text, or with --format json the explain field")
+    if explained and (args.fail_on or args.quiet):
+        flag = "--fail-on" if args.fail_on else "--quiet"
+        raise Error(f"--explain shows one package, it cannot go with {flag}")
+    for name in explained:
+        if name not in deps.dependencies:
+            close = difflib.get_close_matches(name, deps.dependencies, n=3)
+            hint = f", did you mean {' or '.join(close)}?" if close else ""
+            raise Error(f"--explain: {name} is not among your dependencies{hint}")
+
     index_url = args.index_url or PYPI_JSON
     pypi = PyPI(index_url, cache_dir=None if args.no_cache else default_cache_dir(), mode=mode)
     # An index URL you pass, even pypi.org's, is where your packages are meant to be looked up.
@@ -178,6 +201,7 @@ def _run(args: argparse.Namespace) -> int:
             progress=progress,
             current=args.current,
             private_index=private_index,
+            explain=explained,
         )
     except NotCached as exc:
         raise Error(f"{pypi.redact(str(exc))}, run once without --offline") from None
@@ -190,7 +214,9 @@ def _run(args: argparse.Namespace) -> int:
         day = datetime.fromtimestamp(oldest, timezone.utc).date()
         report.notices.append(f"Answers from the cache, the oldest from {day}")
 
-    if args.format == "text":
+    if explained and args.format == "text":
+        output = explain.render(report)
+    elif args.format == "text":
         use_color = args.output is None and sys.stdout.isatty() and "NO_COLOR" not in os.environ
         output = text.render(report, color=use_color, verbose=args.verbose, quiet=args.quiet)
         output += "\n"

@@ -39,8 +39,8 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 0.5 | 0.6 | Verallgemeinerte Release-Suche | erledigt |
 | 5.1 | 0.6 | `--explain` | in Arbeit |
 | 5.1a | 0.6 | Regelkette pro Release (`explain_support`) | erledigt |
-| 5.1b | 0.6 | Trace der Suche und Phase, `--explain` im Text | offen |
-| 5.1c | 0.6 | `explain` im JSON, Doku, Issue-Template | offen |
+| 5.1b | 0.6 | Trace der Suche und Phase, `--explain` im Text | erledigt |
+| 5.1c | 0.6 | FAQ, CONTRIBUTING, Issue-Template | offen |
 | 7.3 | 0.6 | Fehlende Angaben nachfragen | offen |
 | 2.1 | 0.7 | Python-Readiness | offen |
 | 4.1 | 0.8 | Baseline-Diff | offen |
@@ -1195,6 +1195,20 @@ classifiers, upper bound mit Upload- und Release-Datum) und endet mit dem Urteil
 abweichen; ein Test prüft über alle aufgezeichneten Releases und die Ziele 4.2–6.1, dass die
 Schritte zum Urteil passen (requirement „excludes“ genau bei NO, enthaltener Classifier ohne
 Ausschluss genau bei YES).
+
+**5.1b umgesetzt:** `analyse(explain=...)` legt pro angefragtem Paket eine Liste von
+`ExplainLine(section, text, version)` an (`Report.explanations`). `_Checker.trace()` ist ein
+No-op für alle anderen Pakete; `_Checker._judge()` protokolliert jedes in der Suche beurteilte
+Release. Abschnitte: Inputs (Version, Quelle, die Pythons für die Marker), Your release
+(`explain_support`), Releases looked at (neueste zuerst, doppelt beurteilte einmal), Before or
+with Django, Result (Status, Begründung, alle Notizen). Auch übersprungene, nicht gefundene,
+geforkte und nicht prüfbare Pakete bekommen ein Ergebnis. Ein unbekannter Name ist ein Fehler
+mit ähnlichen Namen (`difflib`). Im Textformat ersetzt die Erklärung den Report.
+Aus dem Review: Der Phasen-Abschnitt nennt auch Konflikte und das Warten auf Pakete, die mit
+Django gehen, und fehlt im Health-Check (dort gibt es keine Phase). Hinweise und Warnungen des
+Reports stehen über der Erklärung. `--explain` mit `--fail-on` oder `--quiet` ist ein Fehler,
+mit Markdown/HTML ebenso; mit `--format json` steht die Erklärung im neuen Feld `explain`
+(damit ist der JSON-Teil von 5.1c schon erledigt).
 
 **Tests:** Erklärung für je ein Paket jeder Statusart im Fake-Index (Snapshot); Gleichheit
 `supports` vs. `explain_support` über alle Fixtures; unbekanntes Paket; übersprungenes Paket;
