@@ -40,6 +40,10 @@ At the end: dependencies not on the package index, dependencies not from PyPI (n
 
 The version column shows what you have and the release to move to: the **oldest** release that declares the target, so each change stays small. After it come the reason, then the notes. The Markdown and HTML rows link the package's changelog; the text report shows it with `-v`.
 
+## The HTML report as a checklist
+
+`--format html` writes one self-contained file. Every row with something to do has a box: tick it when it is done, and a tile counts the ticks, "3 / 8 done". The ticks are kept in your browser for this plan; a report with other packages or versions starts unticked. Nothing leaves the page, and it prints without colours.
+
 ## The notes
 
 | Note | Meaning |

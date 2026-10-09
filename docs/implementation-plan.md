@@ -51,7 +51,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 4.1b | 0.8 | Markdown/HTML, Action-Input `baseline`, Rezept im README | erledigt |
 | 4.2 | 0.8 | Sticky PR-Kommentar | erledigt |
 | W | 0.8 | Wiki (`docs/wiki/`, generierte Referenzen, Veröffentlichung per Workflow), auf Wunsch außerhalb des Plans | erledigt |
-| 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | offen |
+| 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | in Arbeit |
+| 3.3a | 0.8 | HTML-Checkliste | erledigt |
+| 3.3b | 0.8 | Tracking-Issue in der Action | offen |
 | 7.1 | 0.8 | Interaktiver HTML-Report | offen |
 | 0.4 | 0.9 | Direkte und transitive Abhängigkeiten | offen |
 | 3.1 | 0.9 | Befehle ausgeben (`--emit`) | offen |
@@ -988,6 +990,13 @@ ergänzen.
 - Fortschrittsanzeige in den Kacheln: `3 / 8 done`.
 - Druck-CSS: Checkboxen als Kästchen, Hintergrundfarben aus, Tabellen nicht umbrechen.
 - Kein externes Skript, alles inline (die Datei bleibt eigenständig).
+
+**3.3a umgesetzt:** Checkboxen in allen Zeilen außer „Ready“, auch im Python-Abschnitt
+(`data-todo="django:name"` bzw. `python:name`), Kachel „N / M done“, Schlüssel
+`django-upgrade-report:` plus 16 Hex-Zeichen von sha256 über Ziel, Quelle und
+`name=current>upgrade_to` aller Zeilen. Kein `localStorage`: Haken gehen, werden aber nicht
+gemerkt. Druck-CSS. In Chromium geprüft (Haken, Zähler, Neuladen, keine JS-Fehler). Nebenbei
+behoben: Der Titel des Python-Abschnitts überschrieb seit 2.1c den `<title>` der Seite.
 
 **B. Tracking-Issue (nur in der Action)**
 

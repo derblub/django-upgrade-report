@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from html import escape
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__
@@ -45,7 +46,8 @@ main { max-width: 960px; margin: 0 auto; padding: 48px 16px 64px; }
 header p { color: var(--muted); margin: 4px 0 0; }
 h1 { font-size: 32px; letter-spacing: -0.02em; margin: 0; }
 h1 .arrow { color: var(--muted); font-weight: 400; }
-.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 32px 0 40px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;
+  margin: 32px 0 40px; }
 .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
   padding: 16px; }
 .tile b { display: block; font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -94,6 +96,18 @@ a.link { color: var(--muted); font-size: 13px; }
 .meta { color: var(--muted); font-size: 13px; margin-top: 48px; border-top: 1px solid var(--line);
   padding-top: 16px; }
 .meta a { color: inherit; }
+td.tick, th.tick { width: 28px; padding-right: 0; }
+td.tick input { width: 16px; height: 16px; margin: 3px 0 0; accent-color: var(--ready); }
+tr.done td:not(.tick) { opacity: 0.45; text-decoration: line-through; }
+.tile.progress b { color: var(--text); }
+.tile.progress b span { color: inherit; font-size: inherit; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media print {
+  body { background: #fff; color: #000; }
+  .tile, .table, .chip, .note, .warnings { background: none !important; border-color: #999; }
+  tr { break-inside: avoid; }
+  a.link { display: none; }
+}
 @media (max-width: 640px) {
   .tiles { grid-template-columns: repeat(2, 1fr); }
   h1 { font-size: 26px; }
@@ -121,6 +135,14 @@ def render(report: Report) -> str:
     intro = " ".join(f"{escape(n)}." for n in report.notices)
     intro = f"{intro} {kind} for {packages_line(report)}".strip()
 
+    todos = sum(1 for p in report.packages if p.status is not Status.READY)
+    todos += len(report.python.packages) if report.python else 0
+    progress = (
+        f'<div class="tile progress"><b><span id="done">0</span> / {todos}</b>'
+        "<span>done</span></div>"
+        if todos
+        else ""
+    )
     tiles = "".join(
         f'<div class="tile {css}{" zero" if not counts[status] else ""}">'
         f"<b>{counts[status]}</b><span>{label}</span></div>"
@@ -146,14 +168,15 @@ def render(report: Report) -> str:
         )
     plan = report.python
     if plan is not None:
-        title = f"Python {plan.target} first" if plan.packages else f"Python {plan.target}"
+        python_title = f"Python {plan.target} first" if plan.packages else f"Python {plan.target}"
         count = f' <span class="count">{len(plan.packages)}</span>' if plan.packages else ""
         body.append(
-            f'<section id="python"><h2><span class="dot python"></span>{escape(title)}{count}</h2>'
+            f'<section id="python"><h2><span class="dot python"></span>{escape(python_title)}'
+            f"{count}</h2>"
         )
         if plan.packages:
             body.append(f'<p class="hint">{escape(python_hint(report))}</p>')
-            body.append(_table(plan.packages))
+            body.append(_table(plan.packages, todo="python"))
         summary = "".join(f"<p>{escape(line)}.</p>" for line in python_summary(report))
         body.append(f'<div class="hint">{summary}</div></section>')
     for section in sections(report):
@@ -173,7 +196,7 @@ def render(report: Report) -> str:
                 )
                 body.append(f'<div class="chips">{chips}</div>')
         if packages:
-            body.append(_table(packages))
+            body.append(_table(packages, todo=None if section.key == "ready" else "django"))
         body.append("</section>")
 
     if report.missing:
@@ -222,23 +245,42 @@ def render(report: Report) -> str:
 <style>{_CSS}</style>
 </head>
 <body>
-<main>
+<main data-checklist="{checklist_key(report)}">
 <header>
 <h1>{heading}</h1>
 <p>{intro}</p>
 </header>
-{warnings}<div class="tiles">{tiles}</div>
+{warnings}<div class="tiles">{tiles}{progress}</div>
 {"".join(body)}
 <p class="meta">{" ".join(meta)}</p>
 </main>
+<script>{_SCRIPT}</script>
 </body>
 </html>
 """
 
 
-def _table(packages: list[PackageReport]) -> str:
+def checklist_key(report: Report) -> str:
+    """Where the ticks of this plan are kept in the browser: a new plan starts unticked."""
+    rows = sorted(f"{p.name}={p.current}>{p.target_version}" for p in report.packages)
+    if report.python:
+        rows += sorted(
+            f"py:{p.name}={p.current}>{p.target_version}" for p in report.python.packages
+        )
+    plan = "\n".join([report.target, report.source, *rows])
+    return "django-upgrade-report:" + hashlib.sha256(plan.encode()).hexdigest()[:16]
+
+
+def _table(packages: list[PackageReport], todo: str | None = None) -> str:
+    """``todo`` adds a checkbox per row, named ``todo:name`` to keep the tick."""
     rows = []
     for p in packages:
+        tick = (
+            f'<td class="tick"><input type="checkbox" data-todo="{escape(todo)}:{escape(p.name)}" '
+            f'aria-label="{escape(p.display_name)} done"></td>'
+            if todo
+            else ""
+        )
         notes = "".join(
             f'<span class="note{" warn" if n.startswith("no release") else ""}">{escape(n)}</span>'
             for n in row_notes(p)
@@ -248,11 +290,43 @@ def _table(packages: list[PackageReport]) -> str:
             for label, url in row_links(p)
         )
         rows.append(
-            f'<tr><td class="name">{escape(p.display_name)}</td>'
+            f'<tr>{tick}<td class="name">{escape(p.display_name)}</td>'
             f'<td class="version">{escape(version_cell(p))}</td>'
             f"<td>{escape(p.reason)}{links}{'<br>' + notes if notes else ''}</td></tr>"
         )
+    done = '<th class="tick"><span class="sr">Done</span></th>' if todo else ""
     return (
-        '<div class="table"><table><thead><tr><th>Package</th><th>Version</th>'
+        f'<div class="table"><table><thead><tr>{done}<th>Package</th><th>Version</th>'
         f"<th>Why</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
     )
+
+
+# Ticks are kept in the browser's localStorage, per plan. Without it (a file:// page in some
+# browsers, private mode), the boxes still tick, they are just not remembered.
+_SCRIPT = """
+(function () {
+  var main = document.querySelector("main");
+  var key = main.getAttribute("data-checklist");
+  var boxes = Array.prototype.slice.call(document.querySelectorAll("input[data-todo]"));
+  var state = {};
+  try { state = JSON.parse(window.localStorage.getItem(key) || "{}"); } catch (e) { state = {}; }
+  function update() {
+    var done = 0;
+    boxes.forEach(function (box) {
+      if (box.checked) { done += 1; }
+      box.closest("tr").classList.toggle("done", box.checked);
+    });
+    var counter = document.getElementById("done");
+    if (counter) { counter.textContent = done; }
+  }
+  boxes.forEach(function (box) {
+    box.checked = state[box.getAttribute("data-todo")] === true;
+    box.addEventListener("change", function () {
+      state[box.getAttribute("data-todo")] = box.checked;
+      try { window.localStorage.setItem(key, JSON.stringify(state)); } catch (e) {}
+      update();
+    });
+  });
+  update();
+})();
+"""

@@ -859,3 +859,35 @@ def test_fail_on_python(py_project, index):
     assert (
         cli.main([str(py_project), "--fail-on-python", "blocked", "--python-target", "none"]) == 0
     )
+
+
+# --- the HTML checklist -------------------------------------------------------------
+
+
+def test_html_checklist(project, capsys):
+    cli.main([str(project), "-f", "html"])
+    page = capsys.readouterr().out
+    assert '<input type="checkbox" data-todo="django:django-before"' in page
+    assert '<input type="checkbox" data-todo="django:django-blocked"' in page
+    assert 'data-todo="django:django-ready"' not in page  # nothing to do for ready ones
+    assert '<b><span id="done">0</span> / 2</b><span>done</span>' in page
+    assert "<title>Django 4.2.7 → 5.2 · upgrade report</title>" in page
+    assert "localStorage" in page and "<script src" not in page  # self-contained
+
+
+def test_checklist_key_follows_the_plan(project, capsys):
+    def key():
+        cli.main([str(project), "-f", "html"])
+        return re.search(r'data-checklist="([^"]+)"', capsys.readouterr().out).group(1)
+
+    first = key()
+    assert key() == first  # the same plan keeps its ticks
+    (project / "requirements.txt").write_text("Django==4.2.7\ndjango-before==1.5\n")
+    assert key() != first  # another plan starts unticked
+
+
+def test_python_section_title_does_not_replace_the_page_title(py_project, capsys):
+    cli.main([str(py_project), "--python-target", "3.12", "-f", "html"])
+    page = capsys.readouterr().out
+    assert "<title>Django 4.2.7 → 5.2 · upgrade report</title>" in page
+    assert 'data-todo="python:django-before"' in page
