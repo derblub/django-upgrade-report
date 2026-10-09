@@ -9,15 +9,12 @@ import threading
 from pathlib import Path
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, sources
-from django_upgrade_report.analysis import Status, analyse, from_other_index
+from django_upgrade_report.analysis import SEVERITY, Status, analyse, from_other_index
 from django_upgrade_report.pypi import PyPI, PyPIError, default_cache_dir
 from django_upgrade_report.render import html, json, markdown, text
 
-_FAIL_ON = {
-    "blocked": {Status.BLOCKED},
-    "upgrade": {Status.BLOCKED, Status.UPGRADE},
-    "check": {Status.BLOCKED, Status.UPGRADE, Status.CHECK},
-}
+_FAIL_ON = {"blocked": Status.BLOCKED, "upgrade": Status.UPGRADE, "check": Status.CHECK}
+"""``--fail-on`` value -> the least severe status that fails."""
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -173,7 +170,8 @@ def _run(args: argparse.Namespace) -> int:
             "If it mirrors PyPI, pass --check-private-on-pypi; else pass its JSON API with "
             "--index-url"
         )
-    if args.fail_on and any(p.status in _FAIL_ON[args.fail_on] for p in report.packages):
+    threshold = SEVERITY[_FAIL_ON[args.fail_on]] if args.fail_on else None
+    if threshold is not None and any(SEVERITY[p.status] >= threshold for p in report.packages):
         return 1
     return 0
 

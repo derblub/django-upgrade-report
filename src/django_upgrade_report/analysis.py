@@ -49,6 +49,10 @@ class Status(enum.Enum):
     BLOCKED = "blocked"
 
 
+SEVERITY = {Status.READY: 0, Status.CHECK: 1, Status.UPGRADE: 2, Status.BLOCKED: 3}
+"""How much work a status means: a higher number is worse. Orders reports and ``--fail-on``."""
+
+
 class Phase(enum.Enum):
     BEFORE = "before"  # the new version still runs on your current Django: upgrade it first
     WITH = "with"  # the new version needs the new Django: upgrade it together with Django
@@ -140,6 +144,8 @@ class Report:
     project_python: str | None = None
     target_released: bool = True
     generated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    kind: str = "report"
+    """What the JSON document holds: one report. Other kinds will wrap several reports."""
 
     def by_status(self, status: Status) -> list[PackageReport]:
         return [p for p in self.packages if p.status is status]
@@ -609,9 +615,8 @@ def analyse(
     missing = [r for r in results if isinstance(r, str)]
     skipped = sum(1 for r in results if r is None)
 
-    order = {Status.BLOCKED: 0, Status.UPGRADE: 1, Status.CHECK: 2, Status.READY: 3}
     rank = _upgrade_rank(packages, checker.links)
-    packages.sort(key=lambda p: (order[p.status], p.phase is Phase.WITH, rank[p.name], p.name))
+    packages.sort(key=lambda p: (-SEVERITY[p.status], p.phase is Phase.WITH, rank[p.name], p.name))
 
     return Report(
         target=goal.label,

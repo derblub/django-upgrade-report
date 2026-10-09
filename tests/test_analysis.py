@@ -1162,3 +1162,11 @@ def test_a_successor_only_counts_from_the_django_that_has_it(index):
     assert successor("django-template-partials", Version("5.2")) is None
     assert successor("django-template-partials", Version("6.0")) is not None
     assert successor("django-debug-toolbar", Version("6.0")) is None
+
+
+def test_severity_orders_the_statuses():
+    """Reports list the most work first, and --fail-on fails on a status and everything worse."""
+    from django_upgrade_report.analysis import SEVERITY
+
+    worst_first = sorted(Status, key=lambda s: -SEVERITY[s])
+    assert worst_first == [Status.BLOCKED, Status.UPGRADE, Status.CHECK, Status.READY]

@@ -31,7 +31,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | --- | --- | --- | --- |
 | 0.1 | 0.5 | HTTP-Client herauslösen | erledigt |
 | 0.2 | 0.5 | Cache-Format v2 und neue Metadaten | erledigt |
-| 0.3 | 0.5 | Erweiterungen am Report-Modell | offen |
+| 0.3 | 0.5 | Erweiterungen am Report-Modell | erledigt |
 | 0.6 | 0.5 | Testinfrastruktur | offen |
 | 1.1 | 0.5 | Pre-Releases | offen |
 | 2.3 | 0.5 | Risiko pro Schritt und Changelog-Links | offen |
@@ -203,42 +203,26 @@ Dateilisten; kaputte Werte (keine Strings) werden ignoriert, wie heute in `_stri
 **Wofür:** Fast alle Funktionen hängen strukturierte Daten an Pakete. Heute gibt es nur
 `notes: list[str]`, was für Diff, `--emit` und `--explain` nicht reicht.
 
-**Design**
+**Design** (umgesetzt)
 
-- In `analysis.py`:
-  ```python
-  SEVERITY = {Status.READY: 0, Status.CHECK: 1, Status.UPGRADE: 2, Status.BLOCKED: 3}
-  ```
-  Die Reihenfolge in `analyse()` (`order = {...}`) und `_FAIL_ON` in `cli.py` werden daraus
-  abgeleitet, damit 4.1 „besser/schlechter“ konsistent bestimmt.
-- `PackageReport` bekommt optionale Felder (alle mit Default `None` oder leerer Liste), die
-  einzelne Funktionen füllen:
-  ```python
-  prerelease: PreRelease | None = None  # 1.1
-  evidence: list[Evidence] = field(...)  # 1.2
-  upstream: list[UpstreamItem] = field(...)  # 1.3
-  majors_crossed: int | None = None  # 2.3
-  changelog_url: str | None = None  # 2.3
-  repository_url: str | None = None  # 2.3, 1.2, 1.3
-  usage: Usage | None = None  # 2.4
-  direct: bool | None = None  # 0.4
-  ```
-- `Report` bekommt:
-  ```python
-  kind: str = "report"  # "report"; Pfad und Multi siehe 2.2, 6.2
-  framework: str = "django"  # 6.1
-  python_plan: PythonPlan | None = None  # 2.1
-  removals: list[Removal] = field(...)  # 2.5
-  changes: list[Change] | None = None  # 4.1
-  ```
-- `render/json.py` gibt jedes neue Feld aus, auch wenn es leer ist (`null` oder `[]`), damit
-  Skripte nicht raten müssen. Die Feldliste im Docstring wird ergänzt.
-- Alle Renderer lesen neue Felder nur über Helfer in `render/__init__.py`, damit die vier
-  Formate dieselbe Reihenfolge behalten (das ist heute schon die Regel: „Every renderer walks
-  the same sections in the same order“).
+- `analysis.SEVERITY = {READY: 0, CHECK: 1, UPGRADE: 2, BLOCKED: 3}`. Die Sortierung in
+  `analyse()` und `--fail-on` in `cli.py` leiten sich daraus ab (`_FAIL_ON` nennt pro Wert den
+  mildesten Status, der fehlschlägt). 4.1 bestimmt „besser/schlechter“ über dieselbe Tabelle.
+- `Report.kind = "report"`, im JSON als `kind` direkt nach `schema_version`. Pfad (2.2) und
+  mehrere Projekte (6.2) schreiben später andere Arten.
+- **Abweichung vom ursprünglichen Plan:** Die Felder für spätere Funktionen (`prerelease`,
+  `evidence`, `upstream`, `majors_crossed`, `changelog_url`, `repository_url`, `usage`,
+  `direct`, `framework`, `python_plan`, `removals`, `changes`) kommen **mit ihrer Funktion**,
+  nicht jetzt als leere Platzhalter. Ihre Typen gibt es noch nicht, und ein JSON-Feld, das
+  heute immer `null` ist, legt die Form fest, bevor die Funktion gebaut ist; eine spätere
+  Korrektur wäre ein Bruch von `schema_version` 1. Für jedes dieser Felder gilt beim
+  Einführen: Default `None` oder leere Liste, im JSON immer ausgegeben (`null`/`[]`),
+  im Docstring von `render/json.py` beschrieben, und die Renderer lesen es über Helfer in
+  `render/__init__.py`.
 
-**Tests:** `tests/test_cli.py` prüft, dass JSON alle neuen Schlüssel enthält und
-`schema_version` 1 bleibt.
+**Tests:** `tests/test_cli.py` prüft `kind` und dass `schema_version` 1 bleibt; ein Test
+prüft die Reihenfolge von `SEVERITY`. Die bestehenden `--fail-on`-Tests decken die
+abgeleiteten Schwellen ab.
 
 **Aufwand:** S.
 

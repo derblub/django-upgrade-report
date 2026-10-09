@@ -86,6 +86,22 @@ def test_fail_on_not_hit(project):
     assert cli.main([str(project), "--fail-on", "check"]) == 0
 
 
+@pytest.mark.parametrize(
+    ("package", "failing"),
+    [
+        ("django-ready==1.0", set()),
+        ("django-lagging==1.0", {"check"}),
+        ("django-before==1.0", {"check", "upgrade"}),
+        ("django-blocked==1.0", {"check", "upgrade", "blocked"}),
+    ],
+)
+def test_fail_on_is_a_threshold(project, package, failing):
+    """Each value fails on its own status and on every worse one."""
+    (project / "requirements.txt").write_text(f"Django==4.2.7\n{package}\n")
+    for value in ("check", "upgrade", "blocked"):
+        assert cli.main([str(project), "--fail-on", value]) == (1 if value in failing else 0)
+
+
 def test_unknown_target(project, capsys):
     assert cli.main([str(project), "--target", "5.3"]) == 2
     err = capsys.readouterr().err
@@ -300,6 +316,7 @@ def test_json_schema(busy_project, capsys):
     cli.main([str(busy_project), "--format", "json", "--target", "6.1"])
     data = json.loads(capsys.readouterr().out)
     assert data["schema_version"] == 1
+    assert data["kind"] == "report"
     assert data["target_released"] is False
     assert data["project_python"] == "3.12"
     assert any("not released yet" in w for w in data["warnings"])

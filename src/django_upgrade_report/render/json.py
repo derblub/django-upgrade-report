@@ -5,6 +5,8 @@ Adding a field keeps the version; renaming, removing or retyping one bumps it.
 Top level (schema_version 1):
 
 - ``schema_version`` (int): 1.
+- ``kind`` (str): ``"report"``, one report for one project and target. Read it before the
+  rest: later versions may write documents of other kinds.
 - ``tool``: ``name``, ``version`` and ``author`` of the tool that wrote the report.
 - ``generated`` (str): ISO 8601 timestamp, UTC.
 - ``target`` (str): the Django version checked against, e.g. ``"5.2"``.
@@ -51,6 +53,7 @@ SCHEMA_VERSION = 1
 def as_dict(report: Report) -> dict:
     return {
         "schema_version": SCHEMA_VERSION,
+        "kind": report.kind,
         "tool": {
             "name": "django-upgrade-report",
             "version": __version__,

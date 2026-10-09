@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- The JSON report says what kind of document it is: `"kind": "report"`. Scripts can check it before reading the rest, so later kinds that hold several reports do not break them.
+
 ### Changed
 
 - The cache keeps a little more of each answer for the features to come: the project's links, the Django versions its description names, and per release the Python it requires and the tags of its Linux wheels. Answers cached by 0.4 are fetched once more; the old files are ignored, delete `~/.cache/django-upgrade-report` to free the space.
