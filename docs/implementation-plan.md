@@ -73,7 +73,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | erledigt |
 | 7.2a | 0.10 | `tui.py` (Extra `tui`), Liste und Details, Suche, Hilfe, `-i`-Prüfungen, Pilot-Tests, CI-Job | erledigt |
 | 7.2b | 0.10 | Ziel wechseln (`t`), Filter (`f`), Abhaken mit Zustandsdatei, Befehl kopieren (`e`), Link öffnen (`o`), Schreiben (`w`) | erledigt |
-| 2.4 | 0.11 | Ungenutzte Pakete | offen |
+| 2.4 | 0.11 | Ungenutzte Pakete | in Arbeit |
+| 2.4a | 0.11 | `usage.py` (Scan, Namenstabelle), Notiz an direkten Django-Paketen, `--no-scan-code`, `--scan-code` | erledigt |
+| 2.4b | 0.11 | Abschnitt „Possibly unused“ für alle direkten Pakete, Modulnamen über `--python`, `--explain` | offen |
 | 2.5 | 0.11 | Was Django entfernt hat | offen |
 | 6.1 | 1.0 | Wagtail und django CMS als Ziel | offen |
 | 6.2 | 1.0 | Mehrere Projekte | offen |
@@ -903,6 +905,16 @@ zählen, Hinweis).
 und einem nur in `INSTALLED_APPS` genutzten Paket; Grenzwerte; Dev-Gruppen; `--no-scan-code`.
 
 **Aufwand:** L. **Abhängigkeiten:** 0.4, 0.3.
+
+**Umsetzung 2.4a:** Die Namenstabelle (`usage.MODULES`, rund 60 Einträge) ist von Hand aus den
+`top_level.txt` bekannter Pakete zusammengestellt; ein Skript, das sie aus den Top-500
+erzeugt, bräuchte Netz und Wheels und lohnt erst, wenn die Tabelle Lücken zeigt. Dev-Gruppen
+kennt `Dependency` nicht; statt ihrer gilt eine Liste von Werkzeugen und Präfixen (`pytest`,
+`sphinx`, `types-`, Server, Linter), die nie als ungenutzt gelten. Zusätzlich zum Plan: Ein
+Projekt ohne eine einzige Python-Datei bekommt keine Notiz (sonst wäre bei einem Ordner mit
+nur `requirements.txt` jedes Paket „ungenutzt“), alle Listen in Namen auf `APPS` zählen
+(`THIRD_PARTY_APPS`, `+=`), und `call_command("…")` zählt wie ein Befehl im Skript. Der Scan
+läuft einmal pro Lauf, auch bei `--via` und Zielwechsel in `-i`.
 
 ### 2.5 Was Django entfernt hat
 

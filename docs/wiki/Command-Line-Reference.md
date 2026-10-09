@@ -27,6 +27,8 @@ Every option, as `django-upgrade-report --help` describes it. The pages [Getting
 | `--python-target` | `VERSION` | `auto` | Check every dependency on this Python too, e.g. 3.12: 'auto' (default) when the target Django needs a newer Python than your project uses, 'none' never. |
 | `--explain` | `PACKAGE` |  | Show step by step how the verdict on PACKAGE came about, instead of the report; can be given more than once. |
 | `--evidence` |  |  | For packages to check, look for signs of support in their GitHub repository: the test matrix of the default branch. Sends the repository names to GitHub. |
+| `--no-scan-code` |  |  | Do not read your code to find dependencies it never uses (it is read locally and never sent anywhere). |
+| `--scan-code` | `DIR` |  | Read the code in DIR for dependencies it never uses; the default is the project directory, and nothing when PROJECT is a file. |
 | `-i`, `--interactive` |  |  | Move through the report in the terminal instead of printing it; needs the tui extra: pip install 'django-upgrade-report[tui]'. |
 | `-q`, `--quiet` |  |  | Text output only: the headline, warnings, blocked packages and the counts. |
 | `--index-url` | `INDEX_URL` |  | PyPI JSON API base URL (default: https://pypi.org/pypi). Packages your project installs from another index are looked up only when you pass this. |

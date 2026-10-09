@@ -128,6 +128,8 @@ django-upgrade-report [PROJECT] [options]
 | `--fail-on-change` | With `--baseline`: exit with status 1 when `any`thing changed, or when something is `worse` (a status that needs more work, a new package to look at, a new warning). |
 | `--python-target` | `auto` (default): also check every dependency on the Python the target Django needs, when your project uses an older one. `none`: never. `3.12` and so on: on that Python, whatever Django needs. See [Upgrading Python too](#upgrading-python-too). |
 | `--fail-on-python` | Like `--fail-on`, for the dependencies on that Python. |
+| `--no-scan-code` | Do not read your code for dependencies it never uses. |
+| `--scan-code DIR` | Read the code in `DIR` for them; the default is the project directory, and nothing when `PROJECT` is a file. |
 | `--evidence` | For packages to check, look for signs of support in their GitHub repository: the test matrix on the default branch (tox, nox, GitHub workflows) and the changelog; for blocked packages and ones without a sign, issues and pull requests about the target. Sends the names of those repositories to GitHub. |
 | `--explain PACKAGE` | Show step by step how the verdict on a package came about instead of the report: the requirement lines that apply, the classifiers, whether an upper bound counts, every release looked at, and whether it goes before or with Django. Can be given more than once. Paste it into an issue when you think a verdict is wrong. |
 | `-v`, `--verbose` | Text output only: list every ready package with its reason. The other formats always do. |
@@ -339,6 +341,8 @@ From these verdicts, per package:
 
 A package to check can still show **signs of support**: its README on PyPI naming the target ("README of 2.1 mentions Django 5.2"), for the release the report names or else the newest. With `--evidence`, also its GitHub repository: a test matrix on the default branch that runs the target (tox, nox or a GitHub workflow: "main branch tests Django 6.0 (tox.ini)"), and a changelog section after your version that adds or tests it ("changelog of 1.14.5 mentions Django 5.1 support"). For blocked packages and ones to check without a sign, it also lists up to two issues or pull requests whose title names the target ("open PR: Add Django 5.2 support (#912)"; a merged one means the next release likely has it). Signs are notes, linked to where they come from, and never change a status or `--fail-on`. Packages to check without any sign come first, since that is where the work is.
 
+A direct dependency that your code never names gets the note "not imported or configured in your code: remove it instead?": removing it is often less work than upgrading it. The code in the project directory is read locally, never imported and never sent: imports, dotted paths in strings (`INSTALLED_APPS`, `MIDDLEWARE`, `ENGINE` and the like), app lists, `{% load %}` in templates and `manage.py` commands in scripts. Anything unsure counts as used: servers and tools you run rather than import, a project with more than 20,000 files, and one without Python code give no note. `--no-scan-code` turns it off.
+
 A package counts as Django-related when it depends on Django or has a `Framework :: Django` classifier. Packages that only depend on Wagtail or django CMS are included too, with a note to check them against that framework. Everything else is skipped.
 
 > [!NOTE]
@@ -349,7 +353,7 @@ A package counts as Django-related when it depends on Django or has a `Framework
 <details>
 <summary><strong>Does it send my code anywhere?</strong></summary>
 
-No. It reads your lockfile or requirement files locally and sends only names and versions of packages that come from PyPI to the package index, PyPI by default. Packages from git, local paths or a private index are never looked up unless you ask for it. It does not import your project and does not need Django installed.
+No. It reads your lockfile or requirement files locally, and your code to find dependencies it never uses (see below), and sends only names and versions of packages that come from PyPI to the package index, PyPI by default. Packages from git, local paths or a private index are never looked up unless you ask for it. It does not import your project and does not need Django installed.
 
 `--evidence` reads files from the public GitHub repositories of packages to check, so GitHub learns the names of those repositories: only of packages from PyPI that name a GitHub repository, never of a package from git, a path or a private index. It also searches their issues through the GitHub API, which allows 10 searches a minute, 30 with `GITHUB_TOKEN` set; with the token it also lists their workflow files.
 </details>

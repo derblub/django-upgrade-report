@@ -23,6 +23,7 @@ from django_upgrade_report import (
     commands,
     evidence,
     sources,
+    usage,
 )
 from django_upgrade_report.analysis import (
     SEVERITY,
@@ -164,6 +165,19 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="for packages to check, look for signs of support in their GitHub repository: "
         "the test matrix of the default branch. Sends the repository names to GitHub",
+    )
+    parser.add_argument(
+        "--no-scan-code",
+        action="store_true",
+        help="do not read your code to find dependencies it never uses (it is read locally "
+        "and never sent anywhere)",
+    )
+    parser.add_argument(
+        "--scan-code",
+        type=Path,
+        metavar="DIR",
+        help="read the code in DIR for dependencies it never uses; the default is the "
+        "project directory, and nothing when PROJECT is a file",
     )
     parser.add_argument(
         "-i",
@@ -310,6 +324,10 @@ def _run(args: argparse.Namespace) -> int:
                 "-i needs the tui extra: pip install 'django-upgrade-report[tui]', "
                 "or uvx --with textual django-upgrade-report -i"
             ) from None
+    if args.scan_code is not None and not args.scan_code.is_dir():
+        raise Error(f"--scan-code: {args.scan_code} is not a directory")
+    if args.scan_code is not None and args.no_scan_code:
+        raise Error("--scan-code and --no-scan-code cannot go together")
     if args.static and args.format != "html":
         raise Error("--static goes with --format html")
     if args.only_changes and (args.format == "html" or args.explain):
@@ -370,6 +388,7 @@ def _run(args: argparse.Namespace) -> int:
         if python is not None:
             report.python = plan_python(python, report, deps, pypi)
         _evidence(args, report, deps, mode)
+        _usage(args, report, deps)
     except NotCached as exc:
         raise Error(f"{pypi.redact(str(exc))}, run once without --offline") from None
     except (PyPIError, ValueError, RuntimeError, OSError) as exc:
@@ -392,6 +411,7 @@ def _run(args: argparse.Namespace) -> int:
             if python is not None:
                 again.python = plan_python(python, again, deps, pypi)
             _evidence(args, again, deps, mode)
+            _usage(args, again, deps)
             return again
 
         where = args.project if args.project.is_dir() else args.project.parent
@@ -467,6 +487,28 @@ def _run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _usage(args: argparse.Namespace, report: Report, deps: sources.DependencySet) -> None:
+    """A note on each direct dependency the project's code never names: remove it instead?"""
+    if args.no_scan_code:
+        return
+    root = args.scan_code or (args.project if args.project.is_dir() else None)
+    if root is None:
+        return
+    if not hasattr(args, "_scan"):  # one scan per run, however many steps or targets
+        args._scan = usage.scan(root)
+    found = args._scan
+    if not found.complete:
+        report.notices.append(
+            f"Your code in {root} was not read for unused dependencies: it has more than "
+            f"{usage.MAX_FILES:,} files or {usage.MAX_BYTES // 2**20} MB"
+        )
+        return
+    for p in report.packages:
+        dep = deps.dependencies.get(p.name)
+        if dep is not None and dep.direct is True and usage.unused(p.name, found):
+            p.notes.append(usage.NOTE)
+
+
 def _evidence(
     args: argparse.Namespace, report: Report, deps: sources.DependencySet, mode: str
 ) -> None:
@@ -503,6 +545,7 @@ def _run_path(
         if python is not None:
             report.python = plan_python(python, report, step_deps, pypi)
         _evidence(args, report, step_deps, pypi.mode)
+        _usage(args, report, step_deps)
 
     try:
         path = analyse_path(
