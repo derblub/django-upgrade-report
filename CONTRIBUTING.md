@@ -35,6 +35,8 @@ The tests never touch the network. Please keep it that way. There are two packag
 
 CI also measures coverage: `uv run --group dev pytest --cov=django_upgrade_report`.
 
+The script of the HTML report (`src/django_upgrade_report/render/html_report.js`) has tests that run it in Chromium, `tests/test_browser.py`. They are skipped unless Playwright is there: `uv run --group dev --with playwright pytest -m browser`, after `uv run --with playwright playwright install chromium` once, or with `CHROMIUM` naming a Chromium you have. The page gets the script without comments, and it must stay under 8 KB.
+
 ## The wiki
 
 The wiki is written in [`docs/wiki/`](docs/wiki) and published to the GitHub wiki on every push to `main`, so change it with a pull request. Three pages are generated from the code: after changing an option, the JSON report or `action.yml`, run `PYTHONPATH=src python3 scripts/wiki.py`. A test fails when they are out of date.

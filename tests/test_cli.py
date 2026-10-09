@@ -907,6 +907,14 @@ def test_html_rows_carry_what_the_script_filters_by(project, capsys):
     assert 'class="tile check zero">' in page  # nothing to filter by
     assert '<div class="toolbar" id="toolbar" role="search" hidden>' in page
     assert html.script_source() in page
+    assert '<th data-sort="name">Package</th>' in page
+    assert '<details class="more"><summary>details</summary><dl><dt>Links</dt><dd>' in page
+    assert (
+        '<a href="https://pypi.org/project/django-before/">PyPI</a>' in page
+        and "<dt>Pin</dt><dd><code>django-before==2.0</code>"
+        '<button type="button" class="copy" hidden>copy</button>'
+        in page
+    )
 
 
 def test_html_embeds_the_json_report(project, capsys, monkeypatch):
@@ -932,6 +940,7 @@ def test_html_static_has_no_script(project, capsys):
     assert "<script" not in page
     assert 'id="toolbar"' not in page and 'id="done"' not in page
     assert '<tr data-filter="before"' in page  # the rows stay as they are
+    assert '<details class="more">' in page and 'class="copy"' not in page
     assert cli.main([str(project), "--static"]) == 2
     assert "--static goes with --format html" in capsys.readouterr().err
 
@@ -939,6 +948,7 @@ def test_html_static_has_no_script(project, capsys):
 def test_html_script_is_small_and_shipped_in_the_package():
     from importlib import resources
 
-    script = resources.files("django_upgrade_report.render") / "html_report.js"
-    assert script.is_file()
-    assert len(script.read_bytes()) < 8 * 1024
+    assert (resources.files("django_upgrade_report.render") / "html_report.js").is_file()
+    script = html.script_source()
+    assert len(script.encode()) < 8 * 1024
+    assert "// " not in script.replace("file://", "")  # the comments stay in the source

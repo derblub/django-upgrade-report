@@ -107,6 +107,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["browser: runs the HTML report in Chromium, needs Playwright (skipped without)"]
 
 [tool.coverage.run]
 source = ["django_upgrade_report"]

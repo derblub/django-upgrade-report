@@ -1,5 +1,6 @@
-// The script of the HTML report. The page is complete without it: it only ticks, filters
-// and searches the rows the page already has. No framework, no build step, under 8 KB.
+// The script of the HTML report. The page is complete without it: it only ticks, filters,
+// sorts and opens the rows the page already has. No framework, no build step; the page
+// gets it without comments and indentation, under 8 KB.
 (function () {
   "use strict";
   var main = document.querySelector("main");
@@ -32,6 +33,63 @@
   });
   count();
 
+  // --- rows: open state for screen readers, a copy button for the line to pin.
+  all("details.more").forEach(function (more) {
+    var summary = more.querySelector("summary");
+    summary.setAttribute("aria-expanded", "false");
+    more.addEventListener("toggle", function () {
+      summary.setAttribute("aria-expanded", more.open ? "true" : "false");
+    });
+  });
+  all("button.copy").forEach(function (button) {
+    var code = button.previousElementSibling;
+    button.hidden = false;
+    function said(text) {
+      button.textContent = text;
+      setTimeout(function () { button.textContent = "copy"; }, 1500);
+    }
+    // A file:// page may not get the clipboard: select the line to copy it by hand.
+    function select() {
+      var range = document.createRange();
+      range.selectNodeContents(code);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      said("press Ctrl+C");
+    }
+    button.addEventListener("click", function () {
+      if (!navigator.clipboard) { select(); return; }
+      navigator.clipboard.writeText(code.textContent).then(function () { said("copied"); }, select);
+    });
+  });
+
+  // --- sorting: a click on a column heading sorts that table, again the other way round.
+  all("th[data-sort]").forEach(function (th) {
+    var by = th.getAttribute("data-sort");
+    var button = document.createElement("button");
+    button.type = "button";
+    button.className = "sort";
+    button.textContent = th.textContent;
+    th.textContent = "";
+    th.appendChild(button);
+    th.setAttribute("aria-sort", "none");
+    button.addEventListener("click", function () {
+      var up = th.getAttribute("aria-sort") !== "ascending";
+      var body = th.closest("table").tBodies[0];
+      var rows = Array.prototype.slice.call(body.rows);
+      rows.sort(function (a, b) {
+        var x = a.getAttribute("data-" + by), y = b.getAttribute("data-" + by);
+        var order = by === "majors" ? Number(x) - Number(y) : x < y ? -1 : x > y ? 1 : 0;
+        return (up ? order : -order) ||
+          (a.getAttribute("data-name") < b.getAttribute("data-name") ? -1 : 1);
+      });
+      rows.forEach(function (row) { body.appendChild(row); });
+      th.closest("tr").querySelectorAll("th[data-sort]").forEach(function (other) {
+        other.setAttribute("aria-sort", "none");
+      });
+      th.setAttribute("aria-sort", up ? "ascending" : "descending");
+    });
+  });
+
   // --- filters: kept in the URL fragment, e.g. #status=blocked,check&q=allauth&notes=1,
   // so a filtered view can be passed on.
   var bar = document.getElementById("toolbar");
@@ -47,7 +105,8 @@
   function read() {
     var hash = window.location.hash.slice(1);
     state = { status: [], q: "", notes: false };
-    if (hash.indexOf("=") < 0) { return; } // a plain anchor such as #blocked
+    // A plain anchor such as #blocked is not a filter.
+    if (hash.indexOf("=") < 0) { return; }
     hash.split("&").forEach(function (part) {
       var pair = part.split("=");
       var value = decodeURIComponent((pair[1] || "").replace(/\+/g, " "));
@@ -63,9 +122,10 @@
     if (state.q) { parts.push("q=" + encodeURIComponent(state.q)); }
     if (state.notes) { parts.push("notes=1"); }
     var url = window.location.pathname + window.location.search;
+    // Some browsers refuse it on file:// pages.
     try {
       window.history.replaceState(null, "", parts.length ? url + "#" + parts.join("&") : url);
-    } catch (e) {} // some browsers refuse it on file:// pages
+    } catch (e) {}
   }
 
   function same(a, b) {
@@ -136,14 +196,30 @@
     var field = event.target;
     var typing = field.tagName === "TEXTAREA" || field.isContentEditable ||
       (field.tagName === "INPUT" && !/^(checkbox|radio|button)$/.test(field.type));
-    if (event.key === "/" && !typing && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    var plain = !typing && !event.ctrlKey && !event.metaKey && !event.altKey;
+    if (event.key === "/" && plain) {
       event.preventDefault();
       search.focus();
+    } else if ((event.key === "j" || event.key === "k") && plain) {
+      move(event.key === "j" ? 1 : -1);
     } else if (event.key === "Escape") {
       reset();
       if (event.target === search) { search.blur(); }
     }
   });
+  // j and k go from row to row, Enter opens the row's details.
+  var current = null;
+  function move(step) {
+    var rows = all("tr[data-filter]").filter(function (row) { return row.offsetParent; });
+    if (!rows.length) { return; }
+    var at = rows.indexOf(current) + step;
+    if (current) { current.classList.remove("current"); }
+    current = rows[Math.max(0, Math.min(rows.length - 1, at))];
+    current.classList.add("current");
+    var target = current.querySelector("summary") || current.querySelector("input");
+    if (target) { target.focus(); }
+    current.scrollIntoView({ block: "nearest" });
+  }
   window.addEventListener("hashchange", function () { read(); apply(); });
 
   bar.hidden = false;

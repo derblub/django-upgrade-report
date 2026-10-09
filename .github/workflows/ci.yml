@@ -40,6 +40,15 @@ jobs:
           python-version: "3.12"
       - run: uv run --group dev pytest
 
+  # Runs the script of the HTML report in Chromium.
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv run --group dev --with playwright playwright install --with-deps chromium
+      - run: uv run --group dev --with playwright pytest -m browser
+
   # Builds the package and checks that the README renders on PyPI.
   package:
     runs-on: ubuntu-latest

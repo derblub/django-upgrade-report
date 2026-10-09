@@ -54,9 +54,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | erledigt |
 | 3.3a | 0.8 | HTML-Checkliste | erledigt |
 | 3.3b | 0.8 | Tracking-Issue in der Action | erledigt |
-| 7.1 | 0.8 | Interaktiver HTML-Report | in Arbeit |
+| 7.1 | 0.8 | Interaktiver HTML-Report | erledigt |
 | 7.1a | 0.8 | Suche, Filter-Chips, Kacheln als Filter, URL-Fragment, `/` und `Esc`, Skript als `html_report.js`, eingebettetes JSON, `--static` | erledigt |
-| 7.1b | 0.8 | Sortierbare Spalten, aufklappbare Zeilen mit Links und Kopier-Knopf, `j`/`k`/`Enter`, Playwright-Test als eigener CI-Job, Beispielreport neu | offen |
+| 7.1b | 0.8 | Sortierbare Spalten, aufklappbare Zeilen mit Links und Kopier-Knopf, `j`/`k`/`Enter`, Playwright-Test als eigener CI-Job, Beispielreport neu | erledigt |
 | 0.4 | 0.9 | Direkte und transitive Abhängigkeiten | offen |
 | 3.1 | 0.9 | Befehle ausgeben (`--emit`) | offen |
 | 3.2 | 0.9 | Renovate- und Dependabot-Konfiguration | offen |
@@ -1531,6 +1531,19 @@ Skript gezeigt. Das Fragment wird nur gelesen, wenn es ein `=` enthält, damit A
 `#blocked` weiter funktionieren. `--static` lässt auch die Datenkopie und die
 Fortschrittskachel weg (ohne Skript zählt sie nicht). „only direct dependencies“ kommt mit 0.4.
 Dass die Datei im Wheel ist, prüft der CI-Job `package` am gebauten Wheel.
+
+**Umsetzung 7.1b:** Die Zeile klappt nicht als Ganzes auf, sondern trägt am Ende der Spalte
+„Why“ ein `<details class="more">` („details“), damit Begründung, Changelog-Link und Notizen
+sichtbar bleiben; darin Links zu PyPI (nicht für Pakete aus Git oder lokal), Changelog und
+Repository, neuestes und letztes Release und die Zeile zum Pinnen (`name==version`) mit
+Kopier-Knopf. Der Befehl aus 3.1, die Erklärung aus 5.1 (HTML und `--explain` schließen sich
+aus) und Belege aus 1.2/1.3 kommen dazu, wenn es sie gibt. Sortiert wird pro Tabelle nach
+Name, Major-Sprüngen (Spalte „Version“) und letztem Release (Spalte „Why“), ohne Status-Spalte,
+weil die Abschnitte schon nach Status getrennt sind. `j`/`k` setzen den Fokus auf das
+„details“ der Zeile, `Enter` klappt es nativ auf. Damit das Skript lesbar bleibt und die Seite
+trotzdem unter 8 KB, bekommt sie es ohne Kommentarzeilen und Einrückung
+(`html.script_source()`). Die Browser-Tests (`tests/test_browser.py`, Marker `browser`) werden
+ohne Playwright übersprungen und laufen im CI-Job `browser`.
 
 ### 7.2 Terminal-Oberfläche (`--interactive`)
 

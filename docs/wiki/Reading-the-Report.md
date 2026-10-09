@@ -44,9 +44,11 @@ The version column shows what you have and the release to move to: the **oldest*
 
 `--format html` writes one self-contained file. Above the sections, a search field finds packages by name, reason or note; press `/` to get there. The chips show one status only ("upgrade first", "to check" and so on), and the tiles at the top do the same: click "3 blocked" to see the blockers. "only with notes" hides the rows without notes, and `Esc` shows everything again.
 
+A click on a column heading sorts the table: by name, by how many major versions the step crosses, or by the last release. Every row has "details" to open: links to PyPI, the changelog and the repository, the newest release and when the last one came out, and the line to pin, `django-filter==25.1`, with a button that copies it. `j` and `k` go from row to row, `Enter` opens one.
+
 The search and the filters are kept in the address, such as `report.html#status=blocked,check&q=allauth`, so you can send someone the view you are looking at. Printing always shows every row. The page also carries the JSON report, in the element `report-data`, for anyone who wants to read it with a script.
 
-Without JavaScript the page shows every row, as it did before there were filters. `--static` writes it without any script, for mail systems and ticket trackers that block scripts in attachments.
+Without JavaScript the page shows every row, and the details still open; only the search, the filters, sorting and the copy button need the script. `--static` writes it without any script, for mail systems and ticket trackers that block scripts in attachments.
 
 ## The HTML report as a checklist
 

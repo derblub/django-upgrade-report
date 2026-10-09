@@ -8,6 +8,7 @@ from importlib import resources
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__
 from django_upgrade_report.analysis import PackageReport, Report, Status
+from django_upgrade_report.projects import safe_url
 from django_upgrade_report.render import (
     change_rows,
     changes_title,
@@ -116,13 +117,28 @@ tr.done td:not(.tick) { opacity: 0.45; text-decoration: line-through; }
 .tile[data-tile] { cursor: pointer; }
 .tile[aria-pressed=true] { border-color: var(--text); }
 :focus-visible { outline: 2px solid var(--check); outline-offset: 2px; }
+details.more { margin-top: 4px; font-size: 13px; color: var(--muted); }
+details.more summary { cursor: pointer; width: max-content; }
+details.more dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px;
+  margin: 6px 0 2px; }
+details.more dt { color: var(--muted); } details.more dd { margin: 0; color: var(--text); }
+details.more a { color: inherit; }
+details.more code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+button.copy { font: inherit; font-size: 12px; color: var(--muted); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 6px; padding: 0 8px; margin-left: 6px;
+  cursor: pointer; }
+th button.sort { font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit;
+  background: none; border: 0; padding: 0; cursor: pointer; }
+th[aria-sort=ascending] button.sort::after { content: " ↑"; }
+th[aria-sort=descending] button.sort::after { content: " ↓"; }
+tr.current { box-shadow: inset 3px 0 0 var(--check); }
 @media screen { .filtered { display: none !important; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 @media print {
   body { background: #fff; color: #000; }
   .tile, .table, .chip, .note, .warnings { background: none !important; border-color: #999; }
   tr { break-inside: avoid; }
-  a.link, .toolbar { display: none !important; }
+  a.link, .toolbar, details.more { display: none !important; }
 }
 @media (max-width: 640px) {
   .tiles { grid-template-columns: repeat(2, 1fr); }
@@ -207,7 +223,7 @@ def render(report: Report, static: bool = False) -> str:
         )
         if plan.packages:
             body.append(f'<p class="hint">{escape(python_hint(report))}</p>')
-            body.append(_table(plan.packages, todo="python"))
+            body.append(_table(plan.packages, "python", static))
         summary = "".join(f"<p>{escape(line)}.</p>" for line in python_summary(report))
         body.append(f'<div class="hint">{summary}</div></section>')
     for section in sections(report):
@@ -228,7 +244,7 @@ def render(report: Report, static: bool = False) -> str:
                 )
                 body.append(f'<div class="chips">{chips}</div>')
         if packages:
-            body.append(_table(packages, todo=None if section.key == "ready" else "django"))
+            body.append(_table(packages, None if section.key == "ready" else "django", static))
         body.append("</section>")
 
     if report.missing:
@@ -326,8 +342,11 @@ def checklist_key(report: Report) -> str:
 
 
 def script_source() -> str:
-    """The page's script, shipped in the package next to this module."""
-    return resources.files(__package__).joinpath("html_report.js").read_text(encoding="utf-8")
+    """The page's script, shipped in the package next to this module, without the comments
+    on lines of their own and without indentation."""
+    source = resources.files(__package__).joinpath("html_report.js").read_text(encoding="utf-8")
+    lines = (line.strip() for line in source.splitlines())
+    return "\n".join(line for line in lines if line and not line.startswith("//"))
 
 
 def _filter(p: PackageReport) -> str:
@@ -345,13 +364,45 @@ def _tile(css: str, counted: list[str]) -> str:
 
 
 def _data(p: PackageReport) -> str:
-    """What the script filters and searches a row by."""
+    """What the script filters, searches and sorts a row by."""
     words = " ".join([p.name, p.display_name, p.reason, *row_notes(p)]).lower()
     noted = " data-notes" if row_notes(p) else ""
-    return f' data-filter="{_filter(p)}" data-search="{escape(words)}"{noted}'
+    majors = -1 if p.majors_crossed is None else p.majors_crossed
+    released = f"{p.last_release:%Y-%m-%d}" if p.last_release else ""
+    return (
+        f' data-filter="{_filter(p)}" data-search="{escape(words)}"{noted}'
+        f' data-name="{escape(p.name)}" data-majors="{majors}" data-released="{released}"'
+    )
 
 
-def _table(packages: list[PackageReport], todo: str | None = None) -> str:
+def _more(p: PackageReport, static: bool) -> str:
+    """What a row shows when it is opened: links, the newest release, the line to pin."""
+    facts = []
+    links = []
+    if not p.source:
+        links.append(("PyPI", f"https://pypi.org/project/{p.name}/"))
+    links += [(label, url) for label, url in row_links(p)]
+    if p.repository_url:
+        links.append(("repository", safe_url(p.repository_url)))
+    if links:
+        anchors = " · ".join(f'<a href="{escape(url)}">{escape(label)}</a>' for label, url in links)
+        facts.append(("Links", anchors))
+    if p.latest:
+        facts.append(("Newest", escape(p.latest)))
+    if p.last_release:
+        facts.append(("Last release", f"{p.last_release:%Y-%m-%d}"))
+    if p.target_version and not p.source:
+        pin = f"<code>{escape(p.display_name)}=={escape(p.target_version)}</code>"
+        if not static:
+            pin += '<button type="button" class="copy" hidden>copy</button>'
+        facts.append(("Pin", pin))
+    if not facts:
+        return ""
+    rows = "".join(f"<dt>{label}</dt><dd>{value}</dd>" for label, value in facts)
+    return f'<details class="more"><summary>details</summary><dl>{rows}</dl></details>'
+
+
+def _table(packages: list[PackageReport], todo: str | None = None, static: bool = False) -> str:
     """``todo`` adds a checkbox per row, named ``todo:name`` to keep the tick."""
     rows = []
     for p in packages:
@@ -372,10 +423,13 @@ def _table(packages: list[PackageReport], todo: str | None = None) -> str:
         rows.append(
             f'<tr{_data(p)}>{tick}<td class="name">{escape(p.display_name)}</td>'
             f'<td class="version">{escape(version_cell(p))}</td>'
-            f"<td>{escape(p.reason)}{links}{'<br>' + notes if notes else ''}</td></tr>"
+            f"<td>{escape(p.reason)}{links}{'<br>' + notes if notes else ''}{_more(p, static)}"
+            "</td></tr>"
         )
     done = '<th class="tick"><span class="sr">Done</span></th>' if todo else ""
     return (
-        f'<div class="table"><table><thead><tr>{done}<th>Package</th><th>Version</th>'
-        f"<th>Why</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
+        f'<div class="table"><table><thead><tr>{done}<th data-sort="name">Package</th>'
+        '<th data-sort="majors" title="sorted by major versions crossed">Version</th>'
+        '<th data-sort="released" title="sorted by last release">Why</th></tr></thead>'
+        f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
