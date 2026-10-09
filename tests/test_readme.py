@@ -34,3 +34,12 @@ def test_links_within_the_page_find_their_heading():
     links = re.findall(r"\]\(#([^)]+)\)", README) + re.findall(r'href="#([^"]+)"', README)
     assert links
     assert sorted(set(links) - anchors) == []
+
+
+def test_reports_link_the_ecosystem_page(project, capsys):
+    from django_upgrade_report import ECOSYSTEM_URL, cli
+
+    assert ECOSYSTEM_URL in README
+    for fmt in ("markdown", "html"):
+        assert cli.main([str(project), "-f", fmt, "--target", "5.2", "--no-input"]) == 0
+        assert ECOSYSTEM_URL in capsys.readouterr().out

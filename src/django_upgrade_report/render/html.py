@@ -7,7 +7,15 @@ import re
 from html import escape
 from importlib import resources
 
-from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, commands
+from django_upgrade_report import (
+    AUTHOR,
+    COMPANY,
+    COMPANY_URL,
+    ECOSYSTEM_URL,
+    REPO_URL,
+    __version__,
+    commands,
+)
 from django_upgrade_report.analysis import PackageReport, PathReport, Report, Status
 from django_upgrade_report.multi import MultiReport
 from django_upgrade_report.projects import safe_url
@@ -489,7 +497,8 @@ def _meta(report: Report, path: bool = False) -> list[str]:
         f'<a href="{REPO_URL}">django-upgrade-report</a> {__version__} '
         f'by {AUTHOR}, <a href="{COMPANY_URL}">{COMPANY}</a>, '
         "from the metadata packages publish on PyPI. "
-        "A green row means the maintainers declare support, not that your tests pass."
+        "A green row means the maintainers declare support, not that your tests pass. "
+        f'<a href="{ECOSYSTEM_URL}">How ready the Django ecosystem is</a>.'
     )
     return meta
 

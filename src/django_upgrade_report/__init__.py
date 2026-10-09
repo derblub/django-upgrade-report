@@ -7,3 +7,5 @@ AUTHOR = __author__
 COMPANY = "Pushing Pixels"
 COMPANY_URL = "https://pushingpixels.at"
 REPO_URL = "https://github.com/derblub/django-upgrade-report"
+ECOSYSTEM_URL = "https://derblub.github.io/django-upgrade-report/"
+"""How ready the most used Django packages are for each Django version, rebuilt every week."""

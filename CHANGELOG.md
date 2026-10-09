@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- The footer of the Markdown and HTML reports and the README link the weekly page on how ready the Django ecosystem is.
+
 ### Fixed
 
 - The README has a table of contents, and its links to its own sections now also work on PyPI.

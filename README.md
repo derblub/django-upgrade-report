@@ -30,6 +30,7 @@
   <a href="#in-ci">CI</a> ·
   <a href="#how-it-decides">How it decides</a> ·
   <a href="#faq">FAQ</a> ·
+  <a href="https://derblub.github.io/django-upgrade-report/">Ecosystem</a> ·
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
@@ -87,6 +88,7 @@ uvx django-upgrade-report
 - **Honest about uncertainty.** A missing classifier means "check manually", not "blocked". An upper bound written before the target was released is not taken as a promise. Packages without a release in two years, or marked inactive, are flagged.
 - **Knows your Python.** Finds your project's Python version, warns when the target Django needs a newer one, and evaluates environment markers for your project, not for the machine running the tool.
 - **Made for pipelines and for people.** Markdown for pull request summaries, versioned JSON for scripts, a self-contained HTML report to attach to a ticket, and `--fail-on` to break the build.
+- **The whole ecosystem, every week.** [How ready the 300 most downloaded Django packages are](https://derblub.github.io/django-upgrade-report/) for each Django version, and how fast they caught up after each release.
 - **Your code stays put.** Only names and versions of packages that come from PyPI are sent to PyPI. Git, path and private-index packages are listed, never looked up. No account, no configuration.
 
 ## Quick start
@@ -470,7 +472,7 @@ $ django-upgrade-report --emit dependabot
 <details>
 <summary><strong>How ready is the Django ecosystem as a whole?</strong></summary>
 
-Every week, a workflow judges the newest release of the 300 most downloaded Django-related packages against every Django version from 4.2 on, plus the next one, with the rules above, and publishes the result to GitHub Pages: per version the share that is ready, to check or blocked, and how fast packages caught up after the release. The code is in [`ecosystem/`](ecosystem/build.py), outside the package: the tool itself never talks to a server of its own. The package list comes from the public [top-pypi-packages](https://github.com/hugovk/top-pypi-packages) data and is checked in, so runs stay comparable.
+Every week, a workflow judges the newest release of the 300 most downloaded Django-related packages against every Django version from 4.2 on, plus the next one, with the rules above, and publishes the result to [GitHub Pages](https://derblub.github.io/django-upgrade-report/): per version the share that is ready, to check or blocked, and how fast packages caught up after the release. The code is in [`ecosystem/`](ecosystem/build.py), outside the package: the tool itself never talks to a server of its own. The package list comes from the public [top-pypi-packages](https://github.com/hugovk/top-pypi-packages) data and is checked in, so runs stay comparable.
 </details>
 
 ## Related projects
