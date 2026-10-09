@@ -22,6 +22,7 @@ from django_upgrade_report import (
     __version__,
     commands,
     evidence,
+    removals,
     sources,
     usage,
 )
@@ -489,15 +490,19 @@ def _run(args: argparse.Namespace) -> int:
 
 
 def _usage(args: argparse.Namespace, report: Report, deps: sources.DependencySet) -> None:
-    """A note on each direct dependency the project's code never names: remove it instead?"""
-    if args.no_scan_code:
-        return
+    """A note on each direct dependency the project's code never names: remove it instead?
+    And what Django removed on the way, with where the code still uses it."""
     root = args.scan_code or (args.project if args.project.is_dir() else None)
-    if root is None:
+    if args.no_scan_code or root is None:
+        if not report.health_check:
+            report.removals = removals.check(report.current_django, report.target, None)
         return
     if not hasattr(args, "_scan"):  # one scan per run, however many steps or targets
         args._scan = usage.scan(root)
     found = args._scan
+    if not report.health_check:
+        report.removals = removals.check(report.current_django, report.target, found)
+    report.code_read = found.complete and found.python > 0
     if not found.complete:
         report.notices.append(
             f"Your code in {root} was not read for unused dependencies: it has more than "

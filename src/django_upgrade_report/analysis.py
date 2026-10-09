@@ -229,6 +229,10 @@ class Report:
     """The requirement file line that pins or names Django, as ``path:line``."""
     unused: list[str] = field(default_factory=list)
     """Direct dependencies, Django-related or not, that the project's code never names."""
+    removals: list = field(default_factory=list)
+    """What Django removed on the way to the target (``removals.Removal``)."""
+    code_read: bool = False
+    """The project's code was read: ``unused`` and where removals are used are known."""
 
     def by_status(self, status: Status) -> list[PackageReport]:
         return [p for p in self.packages if p.status is status]

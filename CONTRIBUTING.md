@@ -53,6 +53,7 @@ The wiki is written in [`docs/wiki/`](docs/wiki) and published to the GitHub wik
 | `src/django_upgrade_report/analysis.py` | The target (`resolve_target()`), the verdict rules (`supports()`) and the per-package status and phase |
 | `src/django_upgrade_report/render/` | Text, Markdown, JSON and HTML output. `render/json.py` documents the JSON fields and `schema_version` |
 | `src/django_upgrade_report/successors.py` | Packages whose job Django took over, each with a source |
+| `src/django_upgrade_report/data/django_removals.json` | What each Django release removed, from its release notes. After a Django feature release, run `python3 scripts/django_removals.py` and commit the result |
 | `src/django_upgrade_report/cli.py` | Command line interface |
 | `action.yml` | The GitHub Action |
 

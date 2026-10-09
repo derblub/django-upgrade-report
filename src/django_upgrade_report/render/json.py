@@ -58,6 +58,12 @@ Top level (schema_version 1):
   Django-related metadata could be read locally), as objects with
   ``name`` and ``source`` (e.g. ``"git https://github.com/org/repo"``).
 - ``skipped_non_django`` (int): dependencies without a Django requirement.
+- ``removals`` (list): what Django removed in the releases after the project's Django up to
+  the target, from the "Features removed" sections of its release notes: ``version``,
+  ``text`` (the first sentence), ``url`` (the release notes), ``fixer`` (django-upgrade
+  rewrites it) and ``used_in`` (where the project's code uses it, at most three places such
+  as ``"mysite/settings.py:12"``, or null when the code was not read). Empty for a health
+  check.
 - ``unused`` (list of str): direct dependencies, Django-related or not, that the project's
   code never names (read locally); empty when the code was not read (``--no-scan-code``, a
   file as the project, no Python code, or too big to read).
@@ -130,6 +136,16 @@ def as_dict(report: Report) -> dict:
         "external": [{"name": name, "source": where} for name, where in report.external],
         "skipped_non_django": report.skipped,
         "unused": report.unused,
+        "removals": [
+            {
+                "version": r.version,
+                "text": r.text,
+                "url": r.url,
+                "fixer": r.fixer,
+                "used_in": r.used_in if report.code_read else None,
+            }
+            for r in report.removals
+        ],
         "changes": _changes(report),
         "python": _python(report),
         "explain": {

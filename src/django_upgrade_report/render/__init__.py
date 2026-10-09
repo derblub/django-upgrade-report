@@ -270,3 +270,34 @@ def path_blocked(path: PathReport) -> str | None:
         f"{'is' if len(names) == 1 else 'are'} blocked there, and the steps after it assume "
         "they are not"
     )
+
+
+def removals_title(report: Report) -> str:
+    """``Removed in Django 5.0 and 5.1 (3 used in your code)``."""
+    versions = list(dict.fromkeys(r.version for r in report.removals))
+    named = versions[0] if len(versions) == 1 else f"{', '.join(versions[:-1])} and {versions[-1]}"
+    if report.code_read:
+        used = sum(1 for r in report.removals if r.used_in)
+        return f"Removed in Django {named} ({used} used in your code)"
+    return f"Removed in Django {named} ({len(report.removals)})"
+
+
+def removal_rows(report: Report, verbose: bool = False) -> tuple[list, str | None]:
+    """The removals to show (the used ones, every one with ``verbose``) and a line for the
+    rest with the release notes to read."""
+    shown = [r for r in report.removals if verbose or r.used_in]
+    rest = len(report.removals) - len(shown)
+    if not rest:
+        return shown, None
+    urls = " · ".join(dict.fromkeys(r.url for r in report.removals))
+    what = "you do not use" if report.code_read else "to look for in your code"
+    more = "more " if shown else ""
+    return shown, f"{rest} {more}removals {what}: {urls}"
+
+
+def removal_note(removal) -> str:
+    """Where it is used and whether django-upgrade rewrites it."""
+    parts = [removal.used_in[0]] if removal.used_in else []
+    if removal.fixer:
+        parts.append("django-upgrade fixes this")
+    return " · ".join(parts)

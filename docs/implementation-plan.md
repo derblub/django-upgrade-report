@@ -76,7 +76,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 2.4 | 0.11 | Ungenutzte Pakete | erledigt |
 | 2.4a | 0.11 | `usage.py` (Scan, Namenstabelle), Notiz an direkten Django-Paketen, `--no-scan-code`, `--scan-code` | erledigt |
 | 2.4b | 0.11 | Abschnitt „Possibly unused“ für alle direkten Pakete, Modulnamen über `--python`, `--explain` | erledigt |
-| 2.5 | 0.11 | Was Django entfernt hat | offen |
+| 2.5 | 0.11 | Was Django entfernt hat | in Arbeit |
+| 2.5a | 0.11 | Daten aus den Release-Notes (Skript, JSON im Paket), Abgleich mit dem Code, Text und JSON | erledigt |
+| 2.5b | 0.11 | Markdown und HTML | offen |
 | 6.1 | 1.0 | Wagtail und django CMS als Ziel | offen |
 | 6.2 | 1.0 | Mehrere Projekte | offen |
 | 6.3 | separat | Öffentliche Readiness-Daten | offen |
@@ -966,6 +968,17 @@ Summenzeile mit Link. `-v` zeigt alle. JSON: `removals: [{version, text, url, fi
 Beispielprojekt; Paketdaten werden ins Wheel aufgenommen (`tests/test_packaging.py`).
 
 **Aufwand:** M–L. **Abhängigkeiten:** 2.4 (Scanner), 0.3.
+
+**Umsetzung 2.5a:** `scripts/django_removals.py` liest die Notes 3.0 bis 6.2 von GitHub (oder
+aus einem Verzeichnis) und schreibt 127 Einträge; Geschwister wie `urlquote_plus` nach
+`django.utils.http.urlquote()` bekommen dessen Modul, Werte wie `False` oder `'http'` zählen
+nicht als Namen. Abgleich in `removals.py`, ein Eintrag zählt nur, wenn er sagt, dass das Ding
+selbst entfernt ist (nicht „Support for passing …“, Argumente, Standardwerte, „no longer“).
+Formen: Import oder `modul.name`, Setting (Großbuchstaben mit `_`, Wort „setting“ im Text),
+`Meta.x`, Template-Filter `|x`, Methode `.x` (mit `_` oder ab zehn Zeichen), Modellfeld außer
+in `migrations/`. Der Scanner aus 2.4 sammelt dafür zusätzlich Importe, Attribute, Settings,
+Meta-Optionen und Filter. Die Fixer-Liste enthält nur, was django-upgrade sicher umschreibt;
+`length_is`, `is_ajax` und `postgres.JSONField` sind bewusst nicht drin, weil unsicher.
 
 ---
 

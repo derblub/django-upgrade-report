@@ -1,0 +1,1220 @@
+{
+ "source": "docs/releases/*.txt of https://github.com/django/django",
+ "removals": [
+  {
+   "version": "3.0",
+   "text": "The django.db.backends.postgresql_psycopg2 module is removed",
+   "symbols": [
+    "django.db.backends.postgresql_psycopg2"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0",
+   "fixer": false
+  },
+  {
+   "version": "3.0",
+   "text": "django.shortcuts.render_to_response() is removed",
+   "symbols": [
+    "django.shortcuts.render_to_response"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0",
+   "fixer": false
+  },
+  {
+   "version": "3.0",
+   "text": "The DEFAULT_CONTENT_TYPE setting is removed",
+   "symbols": [
+    "DEFAULT_CONTENT_TYPE"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0",
+   "fixer": false
+  },
+  {
+   "version": "3.0",
+   "text": "HttpRequest.xreadlines() is removed",
+   "symbols": [
+    "HttpRequest.xreadlines"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0",
+   "fixer": false
+  },
+  {
+   "version": "3.0",
+   "text": "Support for the context argument of Field.from_db_value() and Expression.convert_value() is removed",
+   "symbols": [
+    "context",
+    "Field.from_db_value",
+    "Expression.convert_value"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0",
+   "fixer": false
+  },
+  {
+   "version": "3.0",
+   "text": "The field_name keyword argument of QuerySet.earliest() and latest() is removed",
+   "symbols": [
+    "field_name",
+    "QuerySet.earliest",
+    "latest"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0",
+   "fixer": false
+  },
+  {
+   "version": "3.0",
+   "text": "The ForceRHR GIS function is removed",
+   "symbols": [
+    "ForceRHR"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0",
+   "fixer": false
+  },
+  {
+   "version": "3.0",
+   "text": "django.utils.http.cookie_date() is removed",
+   "symbols": [
+    "django.utils.http.cookie_date"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0",
+   "fixer": false
+  },
+  {
+   "version": "3.0",
+   "text": "The staticfiles and admin_static template tag libraries are removed",
+   "symbols": [
+    "staticfiles",
+    "admin_static"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0",
+   "fixer": false
+  },
+  {
+   "version": "3.0",
+   "text": "django.contrib.staticfiles.templatetags.staticfiles.static() is removed",
+   "symbols": [
+    "django.contrib.staticfiles.templatetags.staticfiles.static"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.0/releases/3.0/#features-removed-in-3-0",
+   "fixer": false
+  },
+  {
+   "version": "3.1",
+   "text": "django.utils.timezone.FixedOffset is removed",
+   "symbols": [
+    "django.utils.timezone.FixedOffset"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.1/releases/3.1/#features-removed-in-3-1",
+   "fixer": true
+  },
+  {
+   "version": "3.1",
+   "text": "django.core.paginator.QuerySetPaginator is removed",
+   "symbols": [
+    "django.core.paginator.QuerySetPaginator"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.1/releases/3.1/#features-removed-in-3-1",
+   "fixer": true
+  },
+  {
+   "version": "3.1",
+   "text": "A model's Meta.ordering doesn't affect GROUP BY queries",
+   "symbols": [
+    "Meta.ordering"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.1/releases/3.1/#features-removed-in-3-1",
+   "fixer": false
+  },
+  {
+   "version": "3.1",
+   "text": "django.contrib.postgres.fields.FloatRangeField and django.contrib.postgres.forms.FloatRangeField are removed",
+   "symbols": [
+    "django.contrib.postgres.fields.FloatRangeField",
+    "django.contrib.postgres.forms.FloatRangeField"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.1/releases/3.1/#features-removed-in-3-1",
+   "fixer": false
+  },
+  {
+   "version": "3.1",
+   "text": "The FILE_CHARSET setting is removed",
+   "symbols": [
+    "FILE_CHARSET"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.1/releases/3.1/#features-removed-in-3-1",
+   "fixer": false
+  },
+  {
+   "version": "3.1",
+   "text": "django.contrib.staticfiles.storage.CachedStaticFilesStorage is removed",
+   "symbols": [
+    "django.contrib.staticfiles.storage.CachedStaticFilesStorage"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.1/releases/3.1/#features-removed-in-3-1",
+   "fixer": false
+  },
+  {
+   "version": "3.1",
+   "text": "The RemoteUserBackend.configure_user() method requires request as the first positional argument",
+   "symbols": [
+    "RemoteUserBackend.configure_user",
+    "request"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.1/releases/3.1/#features-removed-in-3-1",
+   "fixer": false
+  },
+  {
+   "version": "3.1",
+   "text": "Support for SimpleTestCase.allow_database_queries and TransactionTestCase.multi_db is removed",
+   "symbols": [
+    "SimpleTestCase.allow_database_queries",
+    "TransactionTestCase.multi_db"
+   ],
+   "url": "https://docs.djangoproject.com/en/3.1/releases/3.1/#features-removed-in-3-1",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "django.utils.http.urlquote(), urlquote_plus(), urlunquote(), and urlunquote_plus() are removed",
+   "symbols": [
+    "django.utils.http.urlquote",
+    "django.utils.http.urlquote_plus",
+    "django.utils.http.urlunquote",
+    "django.utils.http.urlunquote_plus"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "django.utils.encoding.force_text() and smart_text() are removed",
+   "symbols": [
+    "django.utils.encoding.force_text",
+    "django.utils.encoding.smart_text"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": true
+  },
+  {
+   "version": "4.0",
+   "text": "django.utils.translation.ugettext(), ugettext_lazy(), ugettext_noop(), ungettext(), and ungettext_lazy() are removed",
+   "symbols": [
+    "django.utils.translation.ugettext",
+    "django.utils.translation.ugettext_lazy",
+    "django.utils.translation.ugettext_noop",
+    "django.utils.translation.ungettext",
+    "django.utils.translation.ungettext_lazy"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": true
+  },
+  {
+   "version": "4.0",
+   "text": "django.views.i18n.set_language() doesn't set the user language in request.session (key _language)",
+   "symbols": [
+    "django.views.i18n.set_language",
+    "request.session",
+    "_language"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "alias=None is required in the signature of django.db.models.Expression.get_group_by_cols() subclasses",
+   "symbols": [
+    "django.db.models.Expression.get_group_by_cols"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "django.utils.text.unescape_entities() is removed",
+   "symbols": [
+    "django.utils.text.unescape_entities"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "django.utils.http.is_safe_url() is removed",
+   "symbols": [
+    "django.utils.http.is_safe_url"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The PASSWORD_RESET_TIMEOUT_DAYS setting is removed",
+   "symbols": [
+    "PASSWORD_RESET_TIMEOUT_DAYS"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The isnull lookup no longer allows using non-boolean values as the right-hand side",
+   "symbols": [
+    "isnull"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The django.db.models.query_utils.InvalidQuery exception class is removed",
+   "symbols": [
+    "django.db.models.query_utils.InvalidQuery"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The django-admin.py entry point is removed",
+   "symbols": [],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The HttpRequest.is_ajax() method is removed",
+   "symbols": [
+    "HttpRequest.is_ajax"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "Support for the pre-Django 3.1 encoding format of cookies values used by django.contrib.messages.storage.cookie.CookieStorage is removed",
+   "symbols": [
+    "django.contrib.messages.storage.cookie.CookieStorage"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "Support for the pre-Django 3.1 password reset tokens in the admin site (that use the SHA-1 hashing algorithm) is removed",
+   "symbols": [],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "Support for the pre-Django 3.1 encoding format of sessions is removed",
+   "symbols": [],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "Support for the pre-Django 3.1 django.core.signing.Signer signatures (encoded with the SHA-1 algorithm) is removed",
+   "symbols": [
+    "django.core.signing.Signer"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "Support for the pre-Django 3.1 django.core.signing.dumps() signatures (encoded with the SHA-1 algorithm) in django.core.signing.loads() is removed",
+   "symbols": [
+    "django.core.signing.dumps",
+    "django.core.signing.loads"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "Support for the pre-Django 3.1 user sessions (that use the SHA-1 algorithm) is removed",
+   "symbols": [],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The get_response argument for django.utils.deprecation.MiddlewareMixin.__init__() is required and doesn't accept None",
+   "symbols": [
+    "get_response",
+    "django.utils.deprecation.MiddlewareMixin.__init__"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The providing_args argument for django.dispatch.Signal is removed",
+   "symbols": [
+    "providing_args",
+    "django.dispatch.Signal"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The length argument for django.utils.crypto.get_random_string() is required",
+   "symbols": [
+    "length",
+    "django.utils.crypto.get_random_string"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The list message for ModelMultipleChoiceField is removed",
+   "symbols": [
+    "list",
+    "ModelMultipleChoiceField"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "Support for passing raw column aliases to QuerySet.order_by() is removed",
+   "symbols": [
+    "QuerySet.order_by"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The NullBooleanField model field is removed, except for support in historical migrations",
+   "symbols": [
+    "NullBooleanField"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": true
+  },
+  {
+   "version": "4.0",
+   "text": "django.conf.urls.url() is removed",
+   "symbols": [
+    "django.conf.urls.url"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": true
+  },
+  {
+   "version": "4.0",
+   "text": "The django.contrib.postgres.fields.JSONField model field is removed, except for support in historical migrations",
+   "symbols": [
+    "django.contrib.postgres.fields.JSONField"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "django.contrib.postgres.fields.jsonb.KeyTransform and django.contrib.postgres.fields.jsonb.KeyTextTransform are removed",
+   "symbols": [
+    "django.contrib.postgres.fields.jsonb.KeyTransform",
+    "django.contrib.postgres.fields.jsonb.KeyTextTransform"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "django.contrib.postgres.forms.JSONField is removed",
+   "symbols": [
+    "django.contrib.postgres.forms.JSONField"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The {% ifequal %} and {% ifnotequal %} template tags are removed",
+   "symbols": [],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.0",
+   "text": "The DEFAULT_HASHING_ALGORITHM transitional setting is removed",
+   "symbols": [
+    "DEFAULT_HASHING_ALGORITHM"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.0/releases/4.0/#features-removed-in-4-0",
+   "fixer": false
+  },
+  {
+   "version": "4.1",
+   "text": "Support for assigning objects which don't support creating deep copies with copy.deepcopy() to class attributes in TestCase.setUpTestData() is removed",
+   "symbols": [
+    "copy.deepcopy",
+    "TestCase.setUpTestData"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.1/releases/4.1/#features-removed-in-4-1",
+   "fixer": false
+  },
+  {
+   "version": "4.1",
+   "text": "Support for using a boolean value in BaseCommand.requires_system_checks is removed",
+   "symbols": [
+    "BaseCommand.requires_system_checks"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.1/releases/4.1/#features-removed-in-4-1",
+   "fixer": false
+  },
+  {
+   "version": "4.1",
+   "text": "The whitelist argument and domain_whitelist attribute of django.core.validators.EmailValidator are removed",
+   "symbols": [
+    "whitelist",
+    "domain_whitelist",
+    "django.core.validators.EmailValidator"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.1/releases/4.1/#features-removed-in-4-1",
+   "fixer": false
+  },
+  {
+   "version": "4.1",
+   "text": "The default_app_config application configuration variable is removed",
+   "symbols": [
+    "default_app_config"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.1/releases/4.1/#features-removed-in-4-1",
+   "fixer": false
+  },
+  {
+   "version": "4.1",
+   "text": "TransactionTestCase.assertQuerysetEqual() no longer calls repr() on a queryset when compared to string values",
+   "symbols": [
+    "TransactionTestCase.assertQuerysetEqual",
+    "repr"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.1/releases/4.1/#features-removed-in-4-1",
+   "fixer": false
+  },
+  {
+   "version": "4.1",
+   "text": "The django.core.cache.backends.memcached.MemcachedCache backend is removed",
+   "symbols": [
+    "django.core.cache.backends.memcached.MemcachedCache"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.1/releases/4.1/#features-removed-in-4-1",
+   "fixer": false
+  },
+  {
+   "version": "4.1",
+   "text": "Support for the pre-Django 3.2 format of messages used by django.contrib.messages.storage.cookie.CookieStorage is removed",
+   "symbols": [
+    "django.contrib.messages.storage.cookie.CookieStorage"
+   ],
+   "url": "https://docs.djangoproject.com/en/4.1/releases/4.1/#features-removed-in-4-1",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The SERIALIZE test setting is removed",
+   "symbols": [
+    "SERIALIZE"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The undocumented django.utils.baseconv module is removed",
+   "symbols": [
+    "django.utils.baseconv"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The undocumented django.utils.datetime_safe module is removed",
+   "symbols": [
+    "django.utils.datetime_safe"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The default value of the USE_TZ setting is changed from False to True",
+   "symbols": [
+    "USE_TZ"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The default sitemap protocol for sitemaps built outside the context of a request is changed from 'http' to 'https'",
+   "symbols": [],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The extra_tests argument for DiscoverRunner.build_suite() and DiscoverRunner.run_tests() is removed",
+   "symbols": [
+    "extra_tests",
+    "DiscoverRunner.build_suite",
+    "DiscoverRunner.run_tests"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The django.contrib.postgres.aggregates.ArrayAgg, JSONBAgg, and StringAgg aggregates no longer return [], [], and '', respectively, when there are no rows",
+   "symbols": [
+    "django.contrib.postgres.aggregates.ArrayAgg",
+    "django.contrib.postgres.aggregates.JSONBAgg",
+    "django.contrib.postgres.aggregates.StringAgg"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The USE_L10N setting is removed",
+   "symbols": [
+    "USE_L10N"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": true
+  },
+  {
+   "version": "5.0",
+   "text": "The USE_DEPRECATED_PYTZ transitional setting is removed",
+   "symbols": [
+    "USE_DEPRECATED_PYTZ"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "Support for pytz timezones is removed",
+   "symbols": [
+    "pytz"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The is_dst argument is removed from:",
+   "symbols": [
+    "is_dst",
+    "QuerySet.datetimes",
+    "django.utils.timezone.make_aware",
+    "django.db.models.functions.Trunc",
+    "django.db.models.functions.TruncSecond",
+    "django.db.models.functions.TruncMinute",
+    "django.db.models.functions.TruncHour",
+    "django.db.models.functions.TruncDay",
+    "django.db.models.functions.TruncWeek",
+    "django.db.models.functions.TruncMonth",
+    "django.db.models.functions.TruncQuarter",
+    "django.db.models.functions.TruncYear"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The django.contrib.gis.admin.GeoModelAdmin and OSMGeoAdmin classes are removed",
+   "symbols": [
+    "django.contrib.gis.admin.GeoModelAdmin",
+    "django.contrib.gis.admin.OSMGeoAdmin"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The undocumented BaseForm._html_output() method is removed",
+   "symbols": [
+    "BaseForm._html_output"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The ability to return a str, rather than a SafeString, when rendering an ErrorDict and ErrorList is removed",
+   "symbols": [
+    "SafeString",
+    "ErrorDict",
+    "ErrorList"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The SitemapIndexItem.__str__() method is removed",
+   "symbols": [
+    "SitemapIndexItem.__str__"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The CSRF_COOKIE_MASKED transitional setting is removed",
+   "symbols": [
+    "CSRF_COOKIE_MASKED"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The name argument of django.utils.functional.cached_property() is removed",
+   "symbols": [
+    "name",
+    "django.utils.functional.cached_property"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The opclasses argument of django.contrib.postgres.constraints.ExclusionConstraint is removed",
+   "symbols": [
+    "opclasses",
+    "django.contrib.postgres.constraints.ExclusionConstraint"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The undocumented ability to pass errors=None to SimpleTestCase.assertFormError() and assertFormsetError() is removed",
+   "symbols": [
+    "SimpleTestCase.assertFormError",
+    "assertFormsetError"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": true
+  },
+  {
+   "version": "5.0",
+   "text": "django.contrib.sessions.serializers.PickleSerializer is removed",
+   "symbols": [
+    "django.contrib.sessions.serializers.PickleSerializer"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The usage of QuerySet.iterator() on a queryset that prefetches related objects without providing the chunk_size argument is no longer allowed",
+   "symbols": [
+    "QuerySet.iterator",
+    "chunk_size"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "Passing unsaved model instances to related filters is no longer allowed",
+   "symbols": [],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "created=True is required in the signature of RemoteUserBackend.configure_user() subclasses",
+   "symbols": [
+    "RemoteUserBackend.configure_user"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "Support for logging out via GET requests in the django.contrib.auth.views.LogoutView and django.contrib.auth.views.logout_then_login() is removed",
+   "symbols": [
+    "GET",
+    "django.contrib.auth.views.LogoutView",
+    "django.contrib.auth.views.logout_then_login"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The django.utils.timezone.utc alias to datetime.timezone.utc is removed",
+   "symbols": [
+    "django.utils.timezone.utc",
+    "datetime.timezone.utc"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": true
+  },
+  {
+   "version": "5.0",
+   "text": "Passing a response object and a form/formset name to SimpleTestCase.assertFormError() and assertFormSetError() is no longer allowed",
+   "symbols": [
+    "SimpleTestCase.assertFormError",
+    "assertFormSetError"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": true
+  },
+  {
+   "version": "5.0",
+   "text": "The django.contrib.gis.admin.OpenLayersWidget is removed",
+   "symbols": [
+    "django.contrib.gis.admin.OpenLayersWidget"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The \"django/forms/default.html\" and \"django/forms/formsets/default.html\" templates are removed",
+   "symbols": [],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "The default form and formset rendering style is changed to the div-based",
+   "symbols": [],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.0",
+   "text": "Passing nulls_first=False or nulls_last=False to Expression.asc() and Expression.desc() methods, and the OrderBy expression is no longer allowed",
+   "symbols": [
+    "Expression.asc",
+    "Expression.desc",
+    "OrderBy"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.0/releases/5.0/#features-removed-in-5-0",
+   "fixer": false
+  },
+  {
+   "version": "5.1",
+   "text": "The BaseUserManager.make_random_password() method is removed",
+   "symbols": [
+    "BaseUserManager.make_random_password"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": false
+  },
+  {
+   "version": "5.1",
+   "text": "The model's Meta.index_together option is removed",
+   "symbols": [
+    "Meta.index_together"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": true
+  },
+  {
+   "version": "5.1",
+   "text": "The length_is template filter is removed",
+   "symbols": [
+    "length_is"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": false
+  },
+  {
+   "version": "5.1",
+   "text": "The django.contrib.auth.hashers.SHA1PasswordHasher, django.contrib.auth.hashers.UnsaltedSHA1PasswordHasher, and django.contrib.auth.hashers.UnsaltedMD5PasswordHasher are removed",
+   "symbols": [
+    "django.contrib.auth.hashers.SHA1PasswordHasher",
+    "django.contrib.auth.hashers.UnsaltedSHA1PasswordHasher",
+    "django.contrib.auth.hashers.UnsaltedMD5PasswordHasher"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": false
+  },
+  {
+   "version": "5.1",
+   "text": "The model django.contrib.postgres.fields.CICharField, django.contrib.postgres.fields.CIEmailField, and django.contrib.postgres.fields.CITextField are removed, except for support in historical migrations",
+   "symbols": [
+    "django.contrib.postgres.fields.CICharField",
+    "django.contrib.postgres.fields.CIEmailField",
+    "django.contrib.postgres.fields.CITextField"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": false
+  },
+  {
+   "version": "5.1",
+   "text": "The django.contrib.postgres.fields.CIText mixin is removed",
+   "symbols": [
+    "django.contrib.postgres.fields.CIText"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": false
+  },
+  {
+   "version": "5.1",
+   "text": "The map_width and map_height attributes of BaseGeometryWidget are removed",
+   "symbols": [
+    "map_width",
+    "map_height",
+    "BaseGeometryWidget"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": false
+  },
+  {
+   "version": "5.1",
+   "text": "The SimpleTestCase.assertFormsetError() method is removed",
+   "symbols": [
+    "SimpleTestCase.assertFormsetError"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": true
+  },
+  {
+   "version": "5.1",
+   "text": "The TransactionTestCase.assertQuerysetEqual() method is removed",
+   "symbols": [
+    "TransactionTestCase.assertQuerysetEqual"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": false
+  },
+  {
+   "version": "5.1",
+   "text": "Support for passing encoded JSON string literals to JSONField and associated lookups and expressions is removed",
+   "symbols": [
+    "JSONField"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": false
+  },
+  {
+   "version": "5.1",
+   "text": "Support for passing positional arguments to Signer and TimestampSigner is removed",
+   "symbols": [
+    "Signer",
+    "TimestampSigner"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": false
+  },
+  {
+   "version": "5.1",
+   "text": "The DEFAULT_FILE_STORAGE and STATICFILES_STORAGE settings is removed",
+   "symbols": [
+    "DEFAULT_FILE_STORAGE",
+    "STATICFILES_STORAGE"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": false
+  },
+  {
+   "version": "5.1",
+   "text": "The django.core.files.storage.get_storage_class() function is removed",
+   "symbols": [
+    "django.core.files.storage.get_storage_class"
+   ],
+   "url": "https://docs.djangoproject.com/en/5.1/releases/5.1/#features-removed-in-5-1",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "Support for passing positional arguments to BaseConstraint is removed",
+   "symbols": [
+    "BaseConstraint"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The DjangoDivFormRenderer and Jinja2DivFormRenderer transitional form renderers are removed",
+   "symbols": [
+    "DjangoDivFormRenderer",
+    "Jinja2DivFormRenderer"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "BaseDatabaseOperations.field_cast_sql() is removed",
+   "symbols": [
+    "BaseDatabaseOperations.field_cast_sql"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "request is required in the signature of ModelAdmin.lookup_allowed() subclasses",
+   "symbols": [
+    "request",
+    "ModelAdmin.lookup_allowed"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "Support for calling format_html() without passing args or kwargs is removed",
+   "symbols": [
+    "format_html"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The default scheme for forms.URLField has changed from \"http\" to \"https\"",
+   "symbols": [
+    "forms.URLField"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is removed",
+   "symbols": [
+    "FORMS_URLFIELD_ASSUME_HTTPS"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The django.db.models.sql.datastructures.Join no longer falls back to get_joining_columns()",
+   "symbols": [
+    "django.db.models.sql.datastructures.Join",
+    "django.db.models.sql.datastructures.get_joining_columns"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The get_joining_columns() method of ForeignObject and ForeignObjectRel is removed",
+   "symbols": [
+    "get_joining_columns",
+    "ForeignObject",
+    "ForeignObjectRel"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The ForeignObject.get_reverse_joining_columns() method is removed",
+   "symbols": [
+    "ForeignObject.get_reverse_joining_columns"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "Support for cx_Oracle is removed",
+   "symbols": [
+    "cx_Oracle"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The ChoicesMeta alias to django.db.models.enums.ChoicesType is removed",
+   "symbols": [
+    "ChoicesMeta",
+    "django.db.models.enums.ChoicesType"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The Prefetch.get_current_queryset() method is removed",
+   "symbols": [
+    "Prefetch.get_current_queryset"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The get_prefetch_queryset() method of related managers and descriptors is removed",
+   "symbols": [
+    "get_prefetch_queryset"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "get_prefetcher() and prefetch_related_objects() no longer fall back to get_prefetch_queryset()",
+   "symbols": [
+    "get_prefetcher",
+    "prefetch_related_objects",
+    "get_prefetch_queryset"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "django.urls.register_converter() no longer allows overriding existing converters",
+   "symbols": [
+    "django.urls.register_converter"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The ModelAdmin.log_deletion() and LogEntryManager.log_action() methods are removed",
+   "symbols": [
+    "ModelAdmin.log_deletion",
+    "LogEntryManager.log_action"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The undocumented django.utils.itercompat.is_iterable() function and the django.utils.itercompat module are removed",
+   "symbols": [
+    "django.utils.itercompat.is_iterable",
+    "django.utils.itercompat"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The django.contrib.gis.geoip2.GeoIP2.coords() method is removed",
+   "symbols": [
+    "django.contrib.gis.geoip2.GeoIP2.coords"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The django.contrib.gis.geoip2.GeoIP2.open() method is removed",
+   "symbols": [
+    "django.contrib.gis.geoip2.GeoIP2.open"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "Support for passing positional arguments to Model.save() and Model.asave() is removed",
+   "symbols": [
+    "Model.save",
+    "Model.asave"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The setter for django.contrib.gis.gdal.OGRGeometry.coord_dim is removed",
+   "symbols": [
+    "django.contrib.gis.gdal.OGRGeometry.coord_dim"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The check keyword argument of CheckConstraint is removed",
+   "symbols": [
+    "check",
+    "CheckConstraint"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The get_cache_name() method of FieldCacheMixin is removed",
+   "symbols": [
+    "get_cache_name",
+    "FieldCacheMixin"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.0",
+   "text": "The OS_OPEN_FLAGS attribute of django.core.files.storage.FileSystemStorage is removed",
+   "symbols": [
+    "OS_OPEN_FLAGS",
+    "django.core.files.storage.FileSystemStorage"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.0/releases/6.0/#features-removed-in-6-0",
+   "fixer": false
+  },
+  {
+   "version": "6.1",
+   "text": "The all parameter for the django.contrib.staticfiles.finders.find() function is removed in favor of the find_all parameter",
+   "symbols": [
+    "all",
+    "django.contrib.staticfiles.finders.find",
+    "django.contrib.staticfiles.finders.find_all"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.1/releases/6.1/#features-removed-in-6-1",
+   "fixer": false
+  },
+  {
+   "version": "6.1",
+   "text": "Fallbacks to request.user and request.auser() when user is None in django.contrib.auth.login() and django.contrib.auth.alogin(), respectively, are removed",
+   "symbols": [
+    "request.user",
+    "request.auser",
+    "user",
+    "django.contrib.auth.login",
+    "django.contrib.auth.alogin"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.1/releases/6.1/#features-removed-in-6-1",
+   "fixer": false
+  },
+  {
+   "version": "6.1",
+   "text": "The ordering keyword parameter of the PostgreSQL specific aggregation functions django.contrib.postgres.aggregates.ArrayAgg, django.contrib.postgres.aggregates.JSONBAgg, and django.contrib.postgres.aggregates.StringAgg are removed in favor of the order_by parameter",
+   "symbols": [
+    "ordering",
+    "django.contrib.postgres.aggregates.ArrayAgg",
+    "django.contrib.postgres.aggregates.JSONBAgg",
+    "django.contrib.postgres.aggregates.StringAgg",
+    "django.contrib.postgres.aggregates.order_by"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.1/releases/6.1/#features-removed-in-6-1",
+   "fixer": false
+  },
+  {
+   "version": "6.1",
+   "text": "Support for subclasses of RemoteUserMiddleware that override process_request() without overriding aprocess_request() is removed",
+   "symbols": [
+    "RemoteUserMiddleware",
+    "process_request",
+    "aprocess_request"
+   ],
+   "url": "https://docs.djangoproject.com/en/6.1/releases/6.1/#features-removed-in-6-1",
+   "fixer": false
+  }
+ ]
+}

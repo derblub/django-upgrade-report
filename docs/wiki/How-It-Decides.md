@@ -45,6 +45,23 @@ When `PROJECT` is a directory, the code in it is read, locally and without impor
 
 A direct dependency none of whose modules appears gets the note "not imported or configured in your code: remove it instead?", and the end of the report lists all of them, Django-related or not, under "Possibly unused". `--explain PACKAGE` says where the code uses it ("your code uses it: mysite/settings.py:7"). Module names come, with `--python`, from the environment itself (`importlib.metadata.packages_distributions()`, Python 3.10 and newer), else from a table of the packages whose modules are named otherwise (`djangorestframework` → `rest_framework`, `django-filter` → `django_filters`, `pillow` → `PIL`), else from the package name without `django-` or `python-`. The note is never given for a server or tool you run rather than import (gunicorn, pytest plugins, linters), when the project has no Python code, or when it is too big to read whole (20,000 files or 50 MB). A file that cannot be parsed is skipped. It never changes a status. `--no-scan-code` turns it off, `--scan-code DIR` points it at another directory, or at one at all when `PROJECT` is a file.
 
+## What Django removed
+
+The report lists what Django removed in the releases after yours up to the target, one line per entry of "Features removed in X.Y" in Django's release notes, and, when your code was read, where it still uses each: "The model's Meta.index_together option is removed  shop/models.py:11". Only the used ones are shown, the others as a link to the release notes; `-v` shows every one. "django-upgrade fixes this" marks what [django-upgrade](https://github.com/adamchainz/django-upgrade) rewrites.
+
+A removal counts as used only when the code names the very thing that is gone, and only for an entry that says that thing is removed, not one about an argument, a default or a behaviour:
+
+| Kind | Found as |
+| --- | --- |
+| `django.utils.timezone.utc` | an import of it, or `timezone.utc` after importing the module |
+| `USE_L10N` setting | an assignment at module level in a file with "settings" in its path, or `settings.USE_L10N` |
+| `Meta.index_together` | an option set in a `class Meta` |
+| `length_is` template filter | `|length_is` in a template |
+| `HttpRequest.is_ajax()` method | `.is_ajax` anywhere (names as common as `iterator` are not matched) |
+| `NullBooleanField` model field | `models.NullBooleanField` or an import of it, not in migrations |
+
+The list is kept in `src/django_upgrade_report/data/django_removals.json`, made by `scripts/django_removals.py` from Django's release notes once per Django release.
+
 ## Packages Django took over
 
 Some packages did a job Django now does itself, and no metadata says so: South, django-jsonfield, django-secure and a few more. Their rows say what Django has instead. Every entry in [`successors.py`](https://github.com/derblub/django-upgrade-report/blob/main/src/django_upgrade_report/successors.py) needs a source: the package's maintainers pointing to Django, or Django's release notes.

@@ -66,6 +66,7 @@ jobs:
       - run: uv build
       # The HTML report reads its script from the package.
       - run: unzip -l dist/*.whl | grep -q django_upgrade_report/render/html_report.js
+      - run: unzip -l dist/*.whl | grep -q django_upgrade_report/data/django_removals.json
       - run: uvx twine check --strict dist/*
       - uses: actions/upload-artifact@v7
         with:

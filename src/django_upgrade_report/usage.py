@@ -170,6 +170,7 @@ TOOLS = {
 _TOOL_PREFIXES = ("pytest", "flake8-", "sphinx", "mkdocs", "types-", "django-stubs")
 _DOTTED = re.compile(r"^[A-Za-z_]\w*(?:\.\w+)+$")
 _LOAD = re.compile(r"\{%-?\s*load\s+([^%]+?)\s*-?%\}")
+_FILTER = re.compile(r"\|\s*([a-z_]+)")
 _MANAGE = re.compile(r"manage\.py\s+([a-z_]+)")
 _SCRIPTS = ("Makefile", "Procfile", "Dockerfile", "justfile", "tox.ini", "setup.cfg")
 
@@ -187,6 +188,17 @@ class Scan:
     """Python files that could not be parsed: skipped."""
     complete: bool = True
     """False when the project is too big to read: then nothing is called unused."""
+    imports: dict[str, str] = field(default_factory=dict)
+    """Full dotted names imported (``django.utils.timezone.utc``), to where."""
+    attributes: dict[str, str] = field(default_factory=dict)
+    """Attribute names used (``is_ajax`` of ``request.is_ajax()``) and dotted chains of names
+    (``timezone.utc``), to where."""
+    settings: dict[str, str] = field(default_factory=dict)
+    """Upper-case names assigned at module level in a settings file, or read as ``settings.X``."""
+    meta: dict[str, str] = field(default_factory=dict)
+    """Options set in a ``class Meta``."""
+    filters: dict[str, str] = field(default_factory=dict)
+    """Template filters used, ``|length_is``."""
 
     def add(self, name: str, where: str) -> None:
         if name:
@@ -224,6 +236,9 @@ def scan(root: Path) -> Scan:
                 if not _python(text, where, found):
                     found.unreadable.append(where)
             elif kind == "template":
+                for number, line in enumerate(text.splitlines(), 1):
+                    for name in _FILTER.findall(line):
+                        found.filters.setdefault(name, f"{where}:{number}")
                 for match in _LOAD.finditer(text):
                     for library in match.group(1).split():
                         if library == "from":
@@ -253,13 +268,36 @@ def _python(text: str, where: str, found: Scan) -> bool:
         tree = ast.parse(text)
     except (SyntaxError, ValueError):
         return False
+    settings = "settings" in where.lower()
+    for node in tree.body if settings else ():
+        if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            for target in targets:
+                if isinstance(target, ast.Name) and target.id.isupper():
+                    found.settings.setdefault(target.id, f"{where}:{node.lineno}")
     for node in ast.walk(tree):
         line = f"{where}:{getattr(node, 'lineno', 0)}"
         if isinstance(node, ast.Import):
             for alias in node.names:
                 found.add(alias.name.split(".")[0], line)
+                found.imports.setdefault(alias.name, line)
         elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
             found.add(node.module.split(".")[0], line)
+            for alias in node.names:
+                found.imports.setdefault(f"{node.module}.{alias.name}", line)
+        elif isinstance(node, ast.Attribute):
+            found.attributes.setdefault(node.attr, line)
+            chain = _chain(node)
+            if chain:
+                found.attributes.setdefault(chain, line)
+                if chain.startswith("settings.") and chain.count(".") == 1:
+                    found.settings.setdefault(node.attr, line)
+        elif isinstance(node, ast.ClassDef) and node.name == "Meta":
+            for item in node.body:
+                if isinstance(item, ast.Assign):
+                    for target in item.targets:
+                        if isinstance(target, ast.Name):
+                            found.meta.setdefault(target.id, f"{where}:{item.lineno}")
         elif isinstance(node, ast.Constant) and isinstance(node.value, str):
             if _DOTTED.match(node.value):
                 found.add(node.value.split(".")[0], line)
@@ -271,6 +309,19 @@ def _python(text: str, where: str, found: Scan) -> bool:
             command = node.args[0].value
             found.add(COMMANDS.get(command, ""), line)
     return True
+
+
+def _chain(node: ast.Attribute) -> str | None:
+    """``timezone.utc`` for ``timezone.utc``, ``models.NullBooleanField`` and so on."""
+    parts = [node.attr]
+    value = node.value
+    while isinstance(value, ast.Attribute):
+        parts.append(value.attr)
+        value = value.value
+    if not isinstance(value, ast.Name):
+        return None
+    parts.append(value.id)
+    return ".".join(reversed(parts))
 
 
 def _apps(node: ast.Assign | ast.AugAssign | ast.AnnAssign) -> bool:

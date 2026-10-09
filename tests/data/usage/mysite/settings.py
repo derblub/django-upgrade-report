@@ -15,3 +15,6 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql"}}
+
+USE_L10N = True
+DEFAULT_FILE_STORAGE = "storages.backends.s3.S3Storage"
