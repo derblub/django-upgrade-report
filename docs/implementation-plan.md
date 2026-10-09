@@ -20,8 +20,48 @@ Release-Reihenfolge, Risiken und eine Checkliste pro Pull Request.
 
 ---
 
+## Fortschritt
+
+Die Schleife `/loop /plan-step` (Skill in `.claude/skills/plan-step/`) arbeitet diese Tabelle
+von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
+`erledigt` oder `blockiert: <Grund>`. Ein zu großer Punkt wird in Unterschritte
+(`2.1a`, `2.1b`, …) geteilt, die direkt unter ihm eingefügt werden.
+
+| Schritt | Release | Punkt | Status |
+| --- | --- | --- | --- |
+| 0.1 | 0.5 | HTTP-Client herauslösen | offen |
+| 0.2 | 0.5 | Cache-Format v2 und neue Metadaten | offen |
+| 0.3 | 0.5 | Erweiterungen am Report-Modell | offen |
+| 0.6 | 0.5 | Testinfrastruktur | offen |
+| 1.1 | 0.5 | Pre-Releases | offen |
+| 2.3 | 0.5 | Risiko pro Schritt und Changelog-Links | offen |
+| 4.3 | 0.5 | pre-commit-Hook und `--offline` | offen |
+| 0.5 | 0.6 | Verallgemeinerte Release-Suche | offen |
+| 5.1 | 0.6 | `--explain` | offen |
+| 7.3 | 0.6 | Fehlende Angaben nachfragen | offen |
+| 2.1 | 0.7 | Python-Readiness | offen |
+| 4.1 | 0.8 | Baseline-Diff | offen |
+| 4.2 | 0.8 | Sticky PR-Kommentar | offen |
+| 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | offen |
+| 7.1 | 0.8 | Interaktiver HTML-Report | offen |
+| 0.4 | 0.9 | Direkte und transitive Abhängigkeiten | offen |
+| 3.1 | 0.9 | Befehle ausgeben (`--emit`) | offen |
+| 3.2 | 0.9 | Renovate- und Dependabot-Konfiguration | offen |
+| 2.2 | 0.9 | Mehrstufiger Pfad (`--via`) | offen |
+| 1.2 | 0.10 | Schwächere Belege | offen |
+| 1.3 | 0.10 | Upstream-Issues und -PRs | offen |
+| 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | offen |
+| 2.4 | 0.11 | Ungenutzte Pakete | offen |
+| 2.5 | 0.11 | Was Django entfernt hat | offen |
+| 6.1 | 1.0 | Wagtail und django CMS als Ziel | offen |
+| 6.2 | 1.0 | Mehrere Projekte | offen |
+| 6.3 | separat | Öffentliche Readiness-Daten | offen |
+
+---
+
 ## Inhalt
 
+- [Fortschritt](#fortschritt)
 - [Phase 0: Fundament](#phase-0-fundament)
   - [0.1 HTTP-Client herauslösen](#01-http-client-herauslösen)
   - [0.2 Cache-Format v2 und neue Metadaten](#02-cache-format-v2-und-neue-metadaten)
