@@ -27,6 +27,7 @@ Every input and output of the action, as `action.yml` describes them. [Continuou
 | `fail-on-change` |  | With baseline: fail the step when 'any'thing changed, or when something is 'worse'. Empty never fails. |
 | `python-target` | `auto` | Also check every dependency on this Python: 'auto' (when the target Django needs a newer one than your project uses), 'none' or e.g. '3.12'. |
 | `fail-on-python` |  | Fail the step when a dependency is 'blocked', needs an 'upgrade' or a 'check' on that Python. Empty never fails. |
+| `evidence` | `false` | 'true' looks for signs of support for packages to check in their public GitHub repositories (the test matrix on the default branch). Sends those repository names to GitHub. |
 | `check-private-on-pypi` | `false` | 'true' looks up packages your project installs from another index on PyPI, too: for an index that mirrors PyPI (Artifactory, Nexus, devpi). Their names are sent to PyPI. |
 
 ## Outputs

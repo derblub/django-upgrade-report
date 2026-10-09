@@ -8,6 +8,7 @@ import os
 import sys
 import threading
 import time
+import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -20,6 +21,7 @@ from django_upgrade_report import (
     REPO_URL,
     __version__,
     commands,
+    evidence,
     sources,
 )
 from django_upgrade_report.analysis import (
@@ -156,6 +158,12 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="PACKAGE",
         help="show step by step how the verdict on PACKAGE came about, instead of the report; "
         "can be given more than once",
+    )
+    parser.add_argument(
+        "--evidence",
+        action="store_true",
+        help="for packages to check, look for signs of support in their GitHub repository: "
+        "the test matrix of the default branch. Sends the repository names to GitHub",
     )
     parser.add_argument(
         "-q",
@@ -331,6 +339,7 @@ def _run(args: argparse.Namespace) -> int:
         python = python_target(args.python_target, report)
         if python is not None:
             report.python = plan_python(python, report, deps, pypi)
+        _evidence(args, report, deps, mode)
     except NotCached as exc:
         raise Error(f"{pypi.redact(str(exc))}, run once without --offline") from None
     except (PyPIError, ValueError, RuntimeError, OSError) as exc:
@@ -415,6 +424,27 @@ def _run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _evidence(
+    args: argparse.Namespace, report: Report, deps: sources.DependencySet, mode: str
+) -> None:
+    """``--evidence``: signs from the GitHub repositories of public packages to check.
+
+    Nothing goes to GitHub for a package from a private index, even one looked up on PyPI.
+    """
+    if not args.evidence:
+        return
+    host = urllib.parse.urlsplit(args.index_url or PYPI_JSON).hostname or ""
+    if host.lower() not in ("pypi.org", "pypi.python.org"):
+        report.notices.append("--evidence looks at packages from PyPI only, none were checked")
+        return
+    private = {
+        name for name, d in deps.dependencies.items() if (d.external or "").startswith("index ")
+    }
+    cache = None if args.no_cache else default_cache_dir()
+    files = evidence.GitHubFiles(cache, mode, os.environ.get("GITHUB_TOKEN"))
+    report.notices += evidence.gather(report, files, skip=private)
+
+
 def _run_path(
     args: argparse.Namespace,
     deps: sources.DependencySet,
@@ -429,6 +459,7 @@ def _run_path(
         python = python_target(args.python_target, report)
         if python is not None:
             report.python = plan_python(python, report, step_deps, pypi)
+        _evidence(args, report, step_deps, pypi.mode)
 
     try:
         path = analyse_path(

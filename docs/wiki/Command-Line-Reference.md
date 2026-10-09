@@ -26,6 +26,7 @@ Every option, as `django-upgrade-report --help` describes it. The pages [Getting
 | `--fail-on-change` | `any` `worse` |  | With --baseline: exit with status 1 when anything changed, or when something needs more attention than before. |
 | `--python-target` | `VERSION` | `auto` | Check every dependency on this Python too, e.g. 3.12: 'auto' (default) when the target Django needs a newer Python than your project uses, 'none' never. |
 | `--explain` | `PACKAGE` |  | Show step by step how the verdict on PACKAGE came about, instead of the report; can be given more than once. |
+| `--evidence` |  |  | For packages to check, look for signs of support in their GitHub repository: the test matrix of the default branch. Sends the repository names to GitHub. |
 | `-q`, `--quiet` |  |  | Text output only: the headline, warnings, blocked packages and the counts. |
 | `--index-url` | `INDEX_URL` |  | PyPI JSON API base URL (default: https://pypi.org/pypi). Packages your project installs from another index are looked up only when you pass this. |
 | `--check-private-on-pypi` |  |  | Look up packages your project installs from another index on PyPI, too: for an index that mirrors PyPI (Artifactory, Nexus, devpi). Their names are sent to PyPI. |

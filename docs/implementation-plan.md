@@ -67,7 +67,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 2.2b | 0.9 | Markdown und HTML, Action-Input `via` | erledigt |
 | 1.2 | 0.10 | Schwächere Belege | in Arbeit |
 | 1.2a | 0.10 | `Evidence`, README auf PyPI, Sortierung, Hinweis, alle Formate, JSON `evidence` | erledigt |
-| 1.2b | 0.10 | `--evidence`: Testmatrix im Repository (tox, Workflows, nox), Action-Input, FAQ | offen |
+| 1.2b | 0.10 | `--evidence`: Testmatrix im Repository (tox, Workflows, nox), Action-Input, FAQ | erledigt |
 | 1.2c | 0.10 | `--evidence`: Changelog im Repository | offen |
 | 1.3 | 0.10 | Upstream-Issues und -PRs | offen |
 | 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | offen |
@@ -489,6 +489,19 @@ die Analyse sie erzeugt; `evidence.py` kommt mit 1.2b für die Parser. Belege er
 im JSON zusätzlich unter `evidence`. Die README-Erkennung nutzt `django_mentions` aus 0.2 und
 ist bewusst streng (nur eine Version direkt nach „Django“); bei den 18 Paketen des Beispiels
 findet sie heute nichts, was stimmt. Sortierschlüssel: `bool(p.evidence)` nach der Phase.
+
+**Umsetzung 1.2b:** `evidence.py` mit `GitHubFiles` (Rohdateien über `JsonClient` als
+`{"text": …}` gecacht, 404 gecacht, höchstens 512 KB pro Datei, vier Verbindungen; mit
+`GITHUB_TOKEN` die Workflow-Liste über die API, bei 403 zurück zum Raten). Zusätzlich zu den
+geplanten Formen: tox 4 `env_list` und `[tool.tox] env_list` in `pyproject.toml`; nox liest
+auch Dict-Schlüssel und `list(X.keys())` (so bei django-allauth); im Workflow wird `exclude:`
+übersprungen. Ablauf: `cli._evidence()` nach der Analyse (und pro `--via`-Schritt), dann
+stabile Neusortierung, damit Pakete mit Beleg nach unten rücken. Lesefehler werden zu
+Hinweisen (`notices`), keine Warnungen. Mit einem Index, der nicht PyPI ist, geht nichts an
+GitHub; Pakete aus einem privaten Index (auch mit `--check-private-on-pypi`) werden
+ausgelassen. Echter Lauf (Beispiel, Ziel 6.0): vier von sieben Paketen mit Beleg, zwei davon
+von Hand nachgeprüft. Testdateien sind echte Dateien von django-taggit, django-filter,
+django-storages und django-allauth (`tests/data/evidence/`, von Ruff ausgenommen).
 
 ### 1.3 Upstream-Issues und -PRs
 

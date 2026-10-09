@@ -42,6 +42,9 @@ inputs:
   fail-on-python:
     description: "Fail the step when a dependency is 'blocked', needs an 'upgrade' or a 'check' on that Python. Empty never fails."
     default: ""
+  evidence:
+    description: "'true' looks for signs of support for packages to check in their public GitHub repositories (the test matrix on the default branch). Sends those repository names to GitHub."
+    default: "false"
   check-private-on-pypi:
     description: "'true' looks up packages your project installs from another index on PyPI, too: for an index that mirrors PyPI (Artifactory, Nexus, devpi). Their names are sent to PyPI."
     default: "false"
@@ -111,6 +114,7 @@ runs:
         DUR_FROM: ${{ inputs.from }}
         DUR_VIA: ${{ inputs.via }}
         DUR_CHECK_PRIVATE: ${{ inputs.check-private-on-pypi }}
+        DUR_EVIDENCE: ${{ inputs.evidence }}
         DUR_PYTHON_TARGET: ${{ inputs.python-target }}
         DUR_BASELINE: ${{ inputs.baseline }}
         DUR_COMMENT: ${{ inputs.comment }}
@@ -126,6 +130,7 @@ runs:
         common=("$DUR_PATH" --target "$DUR_TARGET" --python-target "$DUR_PYTHON_TARGET")
         if [ -n "$DUR_FROM" ]; then common+=(--from "$DUR_FROM"); fi
         if [ "$DUR_CHECK_PRIVATE" = true ]; then common+=(--check-private-on-pypi); fi
+        if [ "$DUR_EVIDENCE" = true ]; then common+=(--evidence); fi
         if [ -n "$DUR_VIA" ]; then
           common+=(--via "$DUR_VIA")
           if [ -n "$DUR_BASELINE" ]; then
