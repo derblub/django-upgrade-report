@@ -113,6 +113,9 @@ django-upgrade-report [PROJECT] [options]
 | `-f`, `--format` | `text` (default), `markdown`, `json` or `html`. |
 | `-o`, `--output` | Write the report to a file instead of stdout. Missing directories are created. |
 | `--fail-on` | Exit with status 1 when a package is `blocked`, needs an `upgrade` (or is blocked), or needs a `check` (or anything worse). |
+| `--baseline REPORT.json` | An earlier `--format json` report: the report starts with what changed since, such as a blocked package that now has a release for the target. |
+| `--only-changes` | With `--baseline`: show only what changed, and nothing at all when nothing did. |
+| `--fail-on-change` | With `--baseline`: exit with status 1 when `any`thing changed, or when something is `worse` (a status that needs more work, a new package to look at, a new warning). |
 | `--python-target` | `auto` (default): also check every dependency on the Python the target Django needs, when your project uses an older one. `none`: never. `3.12` and so on: on that Python, whatever Django needs. See [Upgrading Python too](#upgrading-python-too). |
 | `--fail-on-python` | Like `--fail-on`, for the dependencies on that Python. |
 | `--explain PACKAGE` | Show step by step how the verdict on a package came about instead of the report: the requirement lines that apply, the classifiers, whether an upper bound counts, every release looked at, and whether it goes before or with Django. Can be given more than once. Paste it into an issue when you think a verdict is wrong. |

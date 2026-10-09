@@ -46,6 +46,13 @@ Top level (schema_version 1):
   Django-related metadata could be read locally), as objects with
   ``name`` and ``source`` (e.g. ``"git https://github.com/org/repo"``).
 - ``skipped_non_django`` (int): dependencies without a Django requirement.
+- ``changes`` (object or null): with ``--baseline``, what changed since that report:
+  ``since`` (its ``generated``), ``target`` (its target), ``compared`` (false when that target
+  is not this report's: then nothing is compared) and ``items``, most important first,
+  each with ``name`` (null for a warning), ``kind`` (``"status"``, ``"upgrade"``, ``"new"``,
+  ``"gone"`` or ``"warning"``), ``from`` and ``to`` (e.g. ``"blocked"``, ``"upgrade first"``,
+  a version, a warning, or null), ``direction`` (``"better"``, ``"worse"``, ``"same"``,
+  ``"new"`` or ``"gone"``) and ``text``.
 - ``python`` (object or null): when the target Django needs a newer Python than the project
   uses, or ``--python-target`` names one, what every pinned dependency from PyPI needs on it:
   ``target`` and ``current`` (X.Y), ``packages`` (objects like those under ``packages``, with
@@ -94,6 +101,7 @@ def as_dict(report: Report) -> dict:
         "not_checked": report.failed,
         "external": [{"name": name, "source": where} for name, where in report.external],
         "skipped_non_django": report.skipped,
+        "changes": _changes(report),
         "python": _python(report),
         "explain": {
             name: [{"section": line.section, "text": line.text} for line in lines]
@@ -132,6 +140,28 @@ def _package(p: PackageReport) -> dict:
         "majors_crossed": p.majors_crossed,
         "changelog_url": p.changelog_url,
         "repository_url": p.repository_url,
+    }
+
+
+def _changes(report: Report) -> dict | None:
+    changes = report.changes
+    if changes is None:
+        return None
+    return {
+        "since": changes.since,
+        "target": changes.target,
+        "compared": changes.compared,
+        "items": [
+            {
+                "name": c.name or None,
+                "kind": c.kind,
+                "from": c.before,
+                "to": c.after,
+                "direction": c.direction,
+                "text": c.text,
+            }
+            for c in changes.items
+        ],
     }
 
 

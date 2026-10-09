@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from django_upgrade_report.analysis import PackageReport, Report, Status
 from django_upgrade_report.render import (
+    change_rows,
+    changes_title,
     headline,
     packages_line,
     private_index_hint,
@@ -33,7 +35,16 @@ _COUNTS = (
 )
 
 
-def render(report: Report, color: bool = False, verbose: bool = False, quiet: bool = False) -> str:
+_CHANGE_CODE = {"better": "32", "worse": "31", "new": "33", "gone": "2", "same": "36"}
+
+
+def render(
+    report: Report,
+    color: bool = False,
+    verbose: bool = False,
+    quiet: bool = False,
+    only_changes: bool = False,
+) -> str:
     """The report for a terminal. ``quiet`` keeps the headline, warnings, blockers and counts."""
 
     def paint(text: str, code: str) -> str:
@@ -76,6 +87,10 @@ def render(report: Report, color: bool = False, verbose: bool = False, quiet: bo
         lines.append(paint(" · ".join(about), "2"))
     lines += [paint(f"! {warning}", "1;33") for warning in report.warnings]
     lines.append("")
+    if report.changes is not None:
+        lines += _changes(report, paint)
+        if only_changes:
+            return "\n".join(lines).rstrip()
     plan = report.python
     shown = [p for p in plan.packages if p.status is Status.BLOCKED or not quiet] if plan else []
     if plan is not None and (shown or not quiet):
@@ -128,6 +143,26 @@ def render(report: Report, color: bool = False, verbose: bool = False, quiet: bo
         lines.append(paint(python, "2"))
     lines.append(_counts(report, paint))
     return "\n".join(lines)
+
+
+def _changes(report: Report, paint) -> list[str]:
+    rows = change_rows(report)
+    if not rows:
+        return [paint(changes_title(report), "2"), ""]
+    lines = [paint(changes_title(report), "1")]
+    named = [r for r in rows if r[2]]
+    name_width = max((len(r[2]) for r in named), default=0)
+    step_width = max((len(r[3]) for r in named), default=0)
+    for direction, mark, name, step, why in rows:
+        code = _CHANGE_CODE[direction]
+        if not name:
+            lines.append(f"  {paint(mark, code)} {paint(why, '2')}")
+            continue
+        lines.append(
+            f"  {paint(mark, code)} {name.ljust(name_width)}  {step.ljust(step_width)}  "
+            f"{paint(why, '2')}".rstrip()
+        )
+    return [*lines, ""]
 
 
 def _counts(report: Report, paint) -> str:

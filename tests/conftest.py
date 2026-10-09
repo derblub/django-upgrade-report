@@ -135,6 +135,19 @@ DJANGO = [
 
 
 @pytest.fixture
+def project(tmp_path, index, monkeypatch):
+    """A requirements.txt with a ready, an upgrade-first and a blocked package, run by the CLI
+    against the in-memory index."""
+    from django_upgrade_report import cli
+
+    (tmp_path / "requirements.txt").write_text(
+        "Django==4.2.7\ndjango-ready==1.0\ndjango-before==1.0\ndjango-blocked==1.0\n"
+    )
+    monkeypatch.setattr(cli, "PyPI", lambda *args, **kwargs: index)
+    return tmp_path
+
+
+@pytest.fixture
 def index():
     return FakePyPI(
         {

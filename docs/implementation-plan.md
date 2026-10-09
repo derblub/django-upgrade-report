@@ -46,7 +46,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 2.1a | 0.7 | Regel: läuft ein Release auf Python X.Y (`python.py`) | erledigt |
 | 2.1b | 0.7 | Python-Plan in der Analyse, `--python-target`, Text | erledigt |
 | 2.1c | 0.7 | Markdown/HTML/JSON, `--fail-on-python`, Action, Doku | erledigt |
-| 4.1 | 0.8 | Baseline-Diff | offen |
+| 4.1 | 0.8 | Baseline-Diff | in Arbeit |
+| 4.1a | 0.8 | `diff.py`, `--baseline`, `--only-changes`, `--fail-on-change`, Text, JSON | erledigt |
+| 4.1b | 0.8 | Markdown/HTML, Action-Input `baseline`, Rezept im README | offen |
 | 4.2 | 0.8 | Sticky PR-Kommentar | offen |
 | 3.3 | 0.8 | Checkliste im HTML-Report und Tracking-Issue | offen |
 | 7.1 | 0.8 | Interaktiver HTML-Report | offen |
@@ -1047,6 +1049,21 @@ Changes since 2026-10-02 (2)
   - `--fail-on-change {any,worse}`: Exit 1 bei Änderung.
 - Ausgabe in allen Formaten als erster Abschnitt. JSON `"changes": [{"name", "kind",
   "from", "to", "direction", "text"}]` oder `null` ohne Baseline.
+
+**4.1a umgesetzt:** `diff.load_baseline()` nimmt JSON mit `schema_version` 1 an; fehlt `kind`
+(Reports vor 0.5), gilt es als Report. `diff.compare()` liefert `Changes(since, target, items)`,
+sortiert worse, new, better, same, gone. Ein Statuswechsel zählt auch, wenn nur die Phase von
+„first“ zu „with Django“ wechselt (das gilt als schlechter). Abweichung: JSON `changes` ist ein
+Objekt mit `since`, `target` und `items` statt einer bloßen Liste, damit das Datum der Baseline
+mitkommt. `--fail-on-change worse` zählt auch neue Pakete, die nicht „ready“ sind.
+Aus dem Review: Eine Baseline für ein anderes Ziel wird **nicht** verglichen (statt „comparing
+anyway“): Jedes Urteil hängt vom Ziel ab, ein Vergleich wäre nur Rauschen; der Report sagt
+„nothing compared“, `compared` im JSON ist false. Pakete, die der Index diesmal nicht
+beantwortet, gelten nicht als entfernt, und „Could not check“-Warnungen zählen nicht als
+Änderung. Ein größerer Schritt (höhere `upgrade_to`) zählt als schlechter, ein kleinerer als
+besser. Pakete werden über den angezeigten Namen verglichen, den einzigen, den das JSON hat.
+`--only-changes` ohne Änderungen schreibt auch mit `-o` keine Datei; mit Markdown, HTML oder
+`--explain` ist es (bis 4.1b) ein Fehler.
 
 **Action-Rezept (README und `examples/weekly.yml`):**
 

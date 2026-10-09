@@ -16,15 +16,6 @@ from django_upgrade_report import cli
 from django_upgrade_report.pypi import PyPIError
 
 
-@pytest.fixture
-def project(tmp_path, index, monkeypatch):
-    (tmp_path / "requirements.txt").write_text(
-        "Django==4.2.7\ndjango-ready==1.0\ndjango-before==1.0\ndjango-blocked==1.0\n"
-    )
-    monkeypatch.setattr(cli, "PyPI", lambda *args, **kwargs: index)
-    return tmp_path
-
-
 def test_text(project, capsys):
     assert cli.main([str(project)]) == 0
     out = capsys.readouterr().out

@@ -15,6 +15,7 @@ from packaging.utils import canonicalize_name
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, sources
 from django_upgrade_report.analysis import SEVERITY, Status, analyse, from_other_index
+from django_upgrade_report.diff import BaselineError, compare, load_baseline
 from django_upgrade_report.prompts import ask_missing, terminal_ask
 from django_upgrade_report.pypi import (
     OFFLINE,
@@ -89,6 +90,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="like --fail-on, for the dependencies on the newer Python (see --python-target)",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="list ready packages too")
+    parser.add_argument(
+        "--baseline",
+        type=Path,
+        metavar="REPORT.json",
+        help="an earlier --format json report: start with what changed since",
+    )
+    parser.add_argument(
+        "--only-changes",
+        action="store_true",
+        help="with --baseline: show only what changed, and nothing when nothing did",
+    )
+    parser.add_argument(
+        "--fail-on-change",
+        choices=["any", "worse"],
+        help="with --baseline: exit with status 1 when anything changed, or when something "
+        "needs more attention than before",
+    )
     parser.add_argument(
         "--python-target",
         default="auto",
@@ -190,6 +208,17 @@ def _run(args: argparse.Namespace) -> int:
     except (sources.NoDependenciesFound, sources.SourceError, OSError, ValueError) as exc:
         raise Error(exc) from None
 
+    baseline = None
+    if args.baseline is not None:
+        try:
+            baseline = load_baseline(args.baseline)
+        except BaselineError as exc:
+            raise Error(exc) from None
+    elif args.only_changes or args.fail_on_change:
+        flag = "--only-changes" if args.only_changes else "--fail-on-change"
+        raise Error(f"{flag} needs --baseline, an earlier --format json report")
+    if args.only_changes and (args.format in ("markdown", "html") or args.explain):
+        raise Error("--only-changes works with the text and JSON reports")
     if args.python_target not in ("auto", "none"):
         try:
             check_python_target(args.python_target)
@@ -254,11 +283,21 @@ def _run(args: argparse.Namespace) -> int:
         day = datetime.fromtimestamp(oldest, timezone.utc).date()
         report.notices.append(f"Answers from the cache, the oldest from {day}")
 
-    if explained and args.format == "text":
+    if baseline is not None:
+        report.changes = compare(baseline, report)
+    if args.only_changes and not report.changes.items:
+        return 0  # nothing to say, not even an empty file
+    elif explained and args.format == "text":
         output = explain.render(report)
     elif args.format == "text":
         use_color = args.output is None and sys.stdout.isatty() and "NO_COLOR" not in os.environ
-        output = text.render(report, color=use_color, verbose=args.verbose, quiet=args.quiet)
+        output = text.render(
+            report,
+            color=use_color,
+            verbose=args.verbose,
+            quiet=args.quiet,
+            only_changes=args.only_changes,
+        )
         output += "\n"
     else:
         output = {"markdown": markdown, "json": json, "html": html}[args.format].render(report)
@@ -293,6 +332,9 @@ def _run(args: argparse.Namespace) -> int:
             "If it mirrors PyPI, pass --check-private-on-pypi; else pass its JSON API with "
             "--index-url"
         )
+    changed = report.changes is not None and bool(report.changes.items)
+    if changed and (args.fail_on_change == "any" or (args.fail_on_change and report.changes.worse)):
+        return 1
     return 0
 
 

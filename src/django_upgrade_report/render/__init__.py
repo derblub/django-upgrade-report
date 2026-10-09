@@ -95,6 +95,40 @@ def row_links(package: PackageReport) -> list[tuple[str, str]]:
     return [("changelog", safe_url(package.changelog_url))] if package.changelog_url else []
 
 
+_CHANGE_MARK = {"better": "✓", "worse": "✗", "new": "+", "gone": "−", "same": "~"}
+
+
+def since_label(report: Report) -> str:
+    """The day of the baseline, e.g. ``2026-10-02``, or what stands in for it."""
+    since = report.changes.since
+    return since[:10] if since[:4].isdigit() else since
+
+
+def changes_title(report: Report) -> str:
+    changes = report.changes
+    if not changes.compared:
+        return (
+            f"The baseline was for Django {changes.target}, this report for {report.target}: "
+            "nothing compared"
+        )
+    if not changes.items:
+        return f"No changes since {since_label(report)}"
+    return f"Changes since {since_label(report)} ({len(changes.items)})"
+
+
+def change_rows(report: Report) -> list[tuple[str, str, str, str, str]]:
+    """(direction, mark, name, before → after, why) per change; a warning has no name."""
+    rows = []
+    for c in report.changes.items:
+        mark = _CHANGE_MARK[c.direction]
+        if c.kind == "warning":
+            rows.append((c.direction, mark, "", "", c.text))
+            continue
+        step = " → ".join(s for s in (c.before, c.after) if s)
+        rows.append((c.direction, mark, c.name, step, c.text))
+    return rows
+
+
 def python_hint(report: Report) -> str:
     plan = report.python
     return f"These dependencies need something before they run on Python {plan.target}."

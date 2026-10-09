@@ -25,6 +25,7 @@ from django_upgrade_report.sources import Dependency, DependencySet
 from django_upgrade_report.successors import Successor, successor
 
 if TYPE_CHECKING:
+    from django_upgrade_report.diff import Changes
     from django_upgrade_report.python import PythonPlan
 
 _CLASSIFIER = re.compile(r"^Framework :: Django :: (\d+\.\d+)$")
@@ -176,6 +177,8 @@ class Report:
     generated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     kind: str = "report"
     """What the JSON document holds: one report. Other kinds will wrap several reports."""
+    changes: Changes | None = None
+    """What changed since the ``--baseline`` report, when one was given."""
     python: PythonPlan | None = None
     """What the dependencies need on a newer Python, when the target Django needs one."""
     explanations: dict[str, list[ExplainLine]] = field(default_factory=dict)
