@@ -90,3 +90,5 @@ def test_page_escapes_and_links(build):
     assert "&lt;x&gt;" in html and "<x>" not in html
     assert 'title="ready since 2025-04-10"' in html
     assert "100% after 30 days" in html
+    assert 'class="brand" href="https://pushingpixels.at"' in html
+    assert '<link rel="icon" href="data:image/svg+xml,' in html

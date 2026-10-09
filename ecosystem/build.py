@@ -25,7 +25,7 @@ from pathlib import Path
 from packaging.utils import canonicalize_name
 from packaging.version import Version
 
-from django_upgrade_report import REPO_URL, __version__
+from django_upgrade_report import AUTHOR, REPO_URL, __version__
 from django_upgrade_report.analysis import (
     Status,
     Verdict,
@@ -37,7 +37,7 @@ from django_upgrade_report.analysis import (
 )
 from django_upgrade_report.frameworks import DJANGO
 from django_upgrade_report.pypi import USER_AGENT, PyPI, PyPIError, default_cache_dir
-from django_upgrade_report.render.html import _CSS
+from django_upgrade_report.render.html import _CSS, FAVICON, brand
 from django_upgrade_report.sources import Dependency, DependencySet
 
 HERE = Path(__file__).parent
@@ -263,13 +263,14 @@ PyPI, judged against every Django version by what its maintainers declare: the
 <a href="{REPO_URL}">{escape(data["tool"])}</a> with the rules of the report:
 <a href="{REPO_URL}#how-it-decides">how it decides</a>. To check is not blocked: the
 metadata does not say either way. Your own project:
-<code>uvx django-upgrade-report</code>.</p>"""
+<code>uvx django-upgrade-report</code>. By {escape(AUTHOR)}, {brand()}.</p>"""
     return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Django ecosystem readiness</title>
+{FAVICON}
 <style>{_CSS}{_PAGE_CSS}</style>
 </head>
 <body>

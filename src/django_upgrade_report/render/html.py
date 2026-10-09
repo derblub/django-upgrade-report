@@ -6,6 +6,7 @@ import hashlib
 import re
 from html import escape
 from importlib import resources
+from urllib.parse import quote
 
 from django_upgrade_report import (
     AUTHOR,
@@ -56,12 +57,14 @@ _CSS = """
   --bg: #f7f7f5; --panel: #ffffff; --text: #1b1d1c; --muted: #6a706d; --line: #e4e4e0;
   --python: #6b46c1; --ready: #1f7a4d; --upgrade: #a15c00; --check: #22639e; --blocked: #b3261e;
   --ready-bg: #e5f3ec; --upgrade-bg: #fbefdc; --check-bg: #e3eef8; --blocked-bg: #fbe4e2;
+  --brand-a: #0d9488; --brand-b: #0891b2;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #111312; --panel: #1a1d1c; --text: #e9ebea; --muted: #9aa19d; --line: #2c302e;
     --python: #b794f4; --ready: #5fd49a; --upgrade: #f0b35a; --check: #7db6ec; --blocked: #f28b82;
     --ready-bg: #173325; --upgrade-bg: #3a2a12; --check-bg: #16283a; --blocked-bg: #3d1a18;
+    --brand-a: #2dd4bf; --brand-b: #22d3ee;
   }
 }
 * { box-sizing: border-box; }
@@ -129,6 +132,9 @@ a.link { color: var(--muted); font-size: 13px; }
 .meta { color: var(--muted); font-size: 13px; margin-top: 48px; border-top: 1px solid var(--line);
   padding-top: 16px; }
 .meta a { color: inherit; }
+.brand { white-space: nowrap; }
+.mark { width: 1.15em; height: 1.15em; vertical-align: -0.22em; margin-right: 0.3em; }
+.mark .a { stop-color: var(--brand-a); } .mark .b { stop-color: var(--brand-b); }
 td.tick, th.tick { width: 28px; padding-right: 0; }
 td.tick input { width: 16px; height: 16px; margin: 3px 0 0; accent-color: var(--ready); }
 tr.done td:not(.tick) { opacity: 0.45; text-decoration: line-through; }
@@ -485,6 +491,36 @@ def _body(report: Report, static: bool, prefix: str = "") -> list[str]:
     return body
 
 
+# The Pushing Pixels mark: the pixels take the text colour, the pushed one the brand gradient,
+# so one drawing fits light and dark pages.
+_MARK = (
+    '<svg class="mark" viewBox="4.5 4.5 56 56" aria-hidden="true" focusable="false"><defs>'
+    '<linearGradient id="pp-mark" x1="0" y1="0" x2="1" y2="1"><stop class="a" offset="0"/>'
+    '<stop class="b" offset="1"/></linearGradient></defs><g fill="currentColor">'
+    '<rect x="7" y="16" width="15" height="15" rx="3"/><rect x="7" y="34" width="15" height="15" '
+    'rx="3"/><rect x="25" y="34" width="15" height="15" rx="3"/></g><rect x="26" y="17" '
+    'width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2" '
+    'stroke-dasharray="3 3" stroke-opacity=".45"/><rect x="43" y="16" width="15" height="15" '
+    'rx="3" fill="url(#pp-mark)"/></svg>'
+)
+_LOGO = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="p" '
+    'x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" '
+    'stop-color="#22d3ee"/></linearGradient></defs><rect width="64" height="64" rx="14" '
+    'fill="#1d1d20"/><g fill="#f4f4f5"><rect x="7" y="16" width="15" height="15" rx="3"/>'
+    '<rect x="7" y="34" width="15" height="15" rx="3"/><rect x="25" y="34" width="15" '
+    'height="15" rx="3"/></g><rect x="43" y="16" width="15" height="15" rx="3" fill="url(#p)"/>'
+    "</svg>"
+)
+FAVICON = f'<link rel="icon" href="data:image/svg+xml,{quote(_LOGO, safe=":/=")}">'
+"""The Pushing Pixels tile as the page's icon, inside the page: it stays one file."""
+
+
+def brand() -> str:
+    """``Pushing Pixels`` with its mark, linked: the signature of every page."""
+    return f'<a class="brand" href="{COMPANY_URL}">{_MARK}{COMPANY}</a>'
+
+
 def _meta(report: Report, path: bool = False) -> list[str]:
     meta = [f"Dependencies from <code>{escape(report.source)}</code>."]
     if report.skipped:
@@ -495,7 +531,7 @@ def _meta(report: Report, path: bool = False) -> list[str]:
     meta.append(
         f"Generated {report.generated:%Y-%m-%d %H:%M} UTC by "
         f'<a href="{REPO_URL}">django-upgrade-report</a> {__version__} '
-        f'by {AUTHOR}, <a href="{COMPANY_URL}">{COMPANY}</a>, '
+        f"by {AUTHOR}, {brand()}, "
         "from the metadata packages publish on PyPI. "
         "A green row means the maintainers declare support, not that your tests pass. "
         f'<a href="{ECOSYSTEM_URL}">How ready the Django ecosystem is</a>.'
@@ -543,6 +579,7 @@ def _page(title: str, key: str, inner: str, data: str, static: bool) -> str:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{escape(title)} · upgrade report</title>
+{FAVICON}
 <style>{_CSS}</style>
 </head>
 <body>

@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Added
 
 - The footer of the Markdown and HTML reports and the README link the weekly page on how ready the Django ecosystem is.
+- The HTML report and the ecosystem page carry a quiet Pushing Pixels signature: the pixel mark next to the name in the footer, in the text colour with the brand gradient on the pushed pixel, and the logo as the page icon. Both stay single files.
 
 ### Fixed
 

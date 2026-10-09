@@ -947,6 +947,17 @@ def test_html_static_has_no_script(project, capsys):
     assert "--static goes with --format html" in capsys.readouterr().err
 
 
+def test_html_carries_the_pushing_pixels_signature(project, capsys):
+    from urllib.parse import unquote
+
+    assert cli.main([str(project), "-f", "html", "--static"]) == 0
+    page = capsys.readouterr().out
+    assert page.count('<a class="brand" href="https://pushingpixels.at"><svg class="mark"') == 1
+    icon = page.split('<link rel="icon" href="data:image/svg+xml,', 1)[1].split('"', 1)[0]
+    assert "#" not in icon and " " not in icon  # a raw "#" would end the data URL
+    assert unquote(icon).startswith("<svg ") and 'fill="url(#p)"' in unquote(icon)
+
+
 def test_html_script_is_small_and_shipped_in_the_package():
     from importlib import resources
 
