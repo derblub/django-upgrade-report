@@ -66,6 +66,9 @@ class GitHub(JsonClient):
 
 def fingerprint(report: dict) -> str:
     """What a reader of the comment would see change: every package's status and step."""
+    if report.get("kind") == "path":  # --via: every step
+        steps = "\n".join(fingerprint(step) for step in report.get("steps") or [])
+        return hashlib.sha256(steps.encode()).hexdigest()[:16]
     python = report.get("python") or {"packages": []}
     rows = sorted(
         f"{p.get('name')}:{p.get('status')}:{p.get('phase')}:{p.get('upgrade_to')}"
@@ -147,7 +150,14 @@ def issue_title(report: dict, key: str) -> str:
 
 
 def tasks(report: dict) -> list[tuple[str, str]]:
-    """(id, text) for every row with something to do, in the report's order."""
+    """(id, text) for every row with something to do, in the report's order; for a path
+    (``--via``), step by step."""
+    if report.get("kind") == "path":
+        return [
+            (f"step{n}:{task_id}", f"Step {n}: {text}")
+            for n, step in enumerate(report.get("steps") or [], 1)
+            for task_id, text in tasks(step)
+        ]
     found = []
     python = report.get("python") or {}
     rows = [("python", p) for p in python.get("packages") or [] if p.get("status") != "ready"]
@@ -174,7 +184,7 @@ def issue_body(report: dict, key: str, old: str = "", today: str = "") -> str:
     lines = [
         f"<!-- django-upgrade-report-issue:{key} -->",
         f"What your dependencies need for Django {report.get('target')}, from "
-        f"`{report.get('source')}`, kept up to date by django-upgrade-report. Tick what is "
+        f"`{_source(report)}`, kept up to date by django-upgrade-report. Tick what is "
         "done; the ticks stay when the list is updated.",
         "",
     ]
@@ -193,6 +203,11 @@ def issue_body(report: dict, key: str, old: str = "", today: str = "") -> str:
     if not current:
         lines += ["", f"Everything is ready for Django {report.get('target')}."]
     return "\n".join(lines) + "\n"
+
+
+def _source(report: dict) -> object:
+    steps = report.get("steps") or [{}]
+    return report.get("source") or steps[0].get("source")
 
 
 def track(github: GitHub, repository: str, key: str, report: dict, today: str) -> str:

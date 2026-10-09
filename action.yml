@@ -12,6 +12,9 @@ inputs:
   target:
     description: "Django version to upgrade to: 'auto' (the newest LTS above your Django, or the newest release when no LTS is above it), 'lts', 'latest' or e.g. '5.2'."
     default: auto
+  via:
+    description: "'lts' plans the way to the target in steps, one report per LTS on the way; 'each' one per feature version. Empty: one report. The counts are summed over the steps. Does not go with baseline."
+    default: ""
   from:
     description: "The Django version you run today, e.g. '4.2', when your requirements only give a range. Empty reads it from the project."
     default: ""
@@ -106,6 +109,7 @@ runs:
         DUR_TARGET: ${{ inputs.target }}
         DUR_FAIL_ON: ${{ inputs.fail-on }}
         DUR_FROM: ${{ inputs.from }}
+        DUR_VIA: ${{ inputs.via }}
         DUR_CHECK_PRIVATE: ${{ inputs.check-private-on-pypi }}
         DUR_PYTHON_TARGET: ${{ inputs.python-target }}
         DUR_BASELINE: ${{ inputs.baseline }}
@@ -122,6 +126,13 @@ runs:
         common=("$DUR_PATH" --target "$DUR_TARGET" --python-target "$DUR_PYTHON_TARGET")
         if [ -n "$DUR_FROM" ]; then common+=(--from "$DUR_FROM"); fi
         if [ "$DUR_CHECK_PRIVATE" = true ]; then common+=(--check-private-on-pypi); fi
+        if [ -n "$DUR_VIA" ]; then
+          common+=(--via "$DUR_VIA")
+          if [ -n "$DUR_BASELINE" ]; then
+            echo "::warning::django-upgrade-report: baseline does not go with via, it is left out"
+            DUR_BASELINE=""
+          fi
+        fi
         if [ -n "$DUR_BASELINE" ] && [ -f "$DUR_BASELINE" ]; then common+=(--baseline "$DUR_BASELINE"); fi
         # The first run fills the cache, the others read from it.
         dur "${common[@]}" --format json -o "$report"
@@ -131,10 +142,11 @@ runs:
         sys.stdout.reconfigure(newline="\n")  # no \r in the outputs on Windows
         with open(sys.argv[1], encoding="utf-8") as f:
             data = json.load(f)
-        for status, n in data["counts"].items():
-            print(f"{status}={n}")
-        python = data.get("python") or {"packages": []}
-        print(f"python-blocked={sum(p['status'] == 'blocked' for p in python['packages'])}")
+        steps = data["steps"] if data.get("kind") == "path" else [data]  # --via: summed
+        for status in data.get("counts") or steps[0]["counts"]:
+            print(f"{status}={sum(step['counts'][status] for step in steps)}")
+        python = [p for step in steps for p in (step.get("python") or {}).get("packages", [])]
+        print(f"python-blocked={sum(p['status'] == 'blocked' for p in python)}")
         changes = data.get("changes")
         print(f"changes={len(changes['items']) if changes else ''}")
         PY

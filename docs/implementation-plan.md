@@ -62,9 +62,9 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 3.1a | 0.9 | `commands.py`, uv/poetry/pdm/pipenv/pip (ohne Datei und Zeile), `auto`, JSON `commands`, Befehl in den HTML-Details | erledigt |
 | 3.1b | 0.9 | pip mit Datei und Zeile (`Dependency.origin`), Python-Schritt vorne | erledigt |
 | 3.2 | 0.9 | Renovate- und Dependabot-Konfiguration | erledigt |
-| 2.2 | 0.9 | Mehrstufiger Pfad (`--via`) | in Arbeit |
+| 2.2 | 0.9 | Mehrstufiger Pfad (`--via`) | erledigt |
 | 2.2a | 0.9 | `analyse_path`, `--via`, Text, JSON `"kind": "path"`, `--fail-on` über alle Schritte | erledigt |
-| 2.2b | 0.9 | Markdown und HTML, Action-Input `via` | offen |
+| 2.2b | 0.9 | Markdown und HTML, Action-Input `via` | erledigt |
 | 1.2 | 0.10 | Schwächere Belege | offen |
 | 1.3 | 0.10 | Upstream-Issues und -PRs | offen |
 | 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | offen |
@@ -743,6 +743,16 @@ Kopf im Text heißt „Step 1 of 2“, darunter die normale Überschrift des Sch
 blockiertes Paket führt oben zur Zeile „The path stops at step 1: …“. Bis 2.2b geht `--via`
 nicht mit Markdown, HTML, `--baseline`, `--emit` und `--explain`. Die Warnung zum
 übersprungenen LTS nennt `--via lts` (Text der Golden-Tests entsprechend angepasst).
+
+**Umsetzung 2.2b:** Markdown: Kopf, Warnung, Übersichtstabelle, dann pro Schritt
+`<details>` (der erste offen), Fußzeile einmal. HTML: eine Seite mit Übersicht (Schritt ×
+Zählungen, Anker `#step-n`), einer Fortschrittskachel und einer Werkzeugleiste für alle
+Schritte; jeder Schritt mit eigenen Kacheln (ohne Filterfunktion) und seinen Abschnitten,
+deren Ids und Häkchen das Präfix `n-` tragen. Dafür ist `html.render` in Teile zerlegt
+(`_tiles`, `_body`, `_toolbar`, `_page`), die Einzelseite bleibt Byte für Byte gleich. Action:
+Input `via`, `baseline` wird dann mit Warnung weggelassen; die Zähl-Outputs summieren die
+Schritte. `ci.py` versteht Pfade: Kommentar-Fingerabdruck über alle Schritte, Tracking-Issue
+mit Aufgaben pro Schritt („Step 2: …“).
 
 ### 2.3 Risiko pro Schritt und Changelog-Links
 

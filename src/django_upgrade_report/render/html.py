@@ -7,13 +7,15 @@ from html import escape
 from importlib import resources
 
 from django_upgrade_report import AUTHOR, COMPANY, COMPANY_URL, REPO_URL, __version__, commands
-from django_upgrade_report.analysis import PackageReport, Report, Status
+from django_upgrade_report.analysis import PackageReport, PathReport, Report, Status
 from django_upgrade_report.projects import safe_url
 from django_upgrade_report.render import (
     change_rows,
     changes_title,
     headline,
     packages_line,
+    path_blocked,
+    path_headline,
     private_index_hint,
     python_hint,
     python_line,
@@ -23,6 +25,7 @@ from django_upgrade_report.render import (
     sections,
     skipped_line,
     split_noted,
+    step_title,
     version_cell,
 )
 from django_upgrade_report.render import json as json_report
@@ -132,6 +135,11 @@ th button.sort { font: inherit; color: inherit; text-transform: inherit; letter-
 th[aria-sort=ascending] button.sort::after { content: " ↑"; }
 th[aria-sort=descending] button.sort::after { content: " ↓"; }
 tr.current { box-shadow: inset 3px 0 0 var(--check); }
+.overview { margin: 0 0 40px; }
+.overview td.name a { color: inherit; }
+.tiles.single { grid-template-columns: minmax(140px, 220px); }
+h2.step { font-size: 22px; margin: 56px 0 0; }
+section.step > .tiles { margin: 16px 0 8px; }
 @media screen { .filtered { display: none !important; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 @media print {
@@ -169,17 +177,7 @@ _FILTERS = {
 
 def render(report: Report, static: bool = False) -> str:
     """``static`` leaves out every script, for places that block scripts in attachments."""
-    counts = report.counts
     title = headline(report)
-    try:  # each row shows its command when the tool is clear from the source
-        tool = commands.tool_for(report, "auto")
-    except commands.EmitError:
-        tool = None
-    command = {
-        p.name: line
-        for p in report.packages
-        if tool and (line := commands.command(report, p, tool)) and not line.startswith("#")
-    }
     start, arrow, end = title.partition(" → ")
     heading = (
         f'{escape(start)} <span class="arrow">→</span> {escape(end)}' if arrow else escape(title)
@@ -187,20 +185,77 @@ def render(report: Report, static: bool = False) -> str:
     kind = "Health check" if report.health_check else "Upgrade report"
     intro = " ".join(f"{escape(n)}." for n in report.notices)
     intro = f"{intro} {kind} for {packages_line(report)}".strip()
+    todos = _todos(report)
+    progress = _progress(todos) if todos and not static else ""
+    inner = (
+        f"<header>\n<h1>{heading}</h1>\n<p>{intro}</p>\n</header>\n"
+        f'{_warnings(report)}<div class="tiles">{_tiles(report)}{progress}</div>\n'
+        f"{'' if static else _toolbar([report])}{''.join(_body(report, static))}\n"
+        f'<p class="meta">{" ".join(_meta(report))}</p>'
+    )
+    return _page(title, checklist_key(report), inner, json_report.render(report), static)
 
+
+def render_path(path: PathReport, static: bool = False) -> str:
+    """``--via``: an overview of the steps, then each step as the single report shows it."""
+    title = path_headline(path)
+    todos = sum(_todos(step) for step in path.steps)
+    rows = "".join(
+        f'<tr><td class="name"><a href="#step-{n}">{escape(step_title(path, n))}</a></td>'
+        f"<td>{escape(headline(step))}</td>"
+        + "".join(f"<td>{step.counts[status]}</td>" for status in _COUNTED)
+        + "</tr>"
+        for n, step in enumerate(path.steps, 1)
+    )
+    heads = "".join(f"<th>{label}</th>" for label in ("ready", "to upgrade", "to check", "blocked"))
+    stops = path_blocked(path)
+    inner = [
+        f"<header>\n<h1>{escape(title)}</h1>\n<p>An upgrade in {len(path.steps)} steps, each "
+        "starting where the one before ends.</p>\n</header>\n",
+        f'<div class="warnings" role="note"><p>{escape(stops)}.</p></div>' if stops else "",
+        f'<div class="tiles single">{_progress(todos)}</div>\n' if todos and not static else "",
+        f'<div class="table overview"><table><thead><tr><th>Step</th><th>From → to</th>{heads}</tr>'
+        f"</thead><tbody>{rows}</tbody></table></div>\n",
+        "" if static else _toolbar(path.steps),
+    ]
+    for n, step in enumerate(path.steps, 1):
+        inner.append(
+            f'<section class="step" id="step-{n}"><h2 class="step">{escape(step_title(path, n))}: '
+            f"{escape(headline(step))}</h2>{_warnings(step)}"
+            f'<div class="tiles">{_tiles(step, filters=False)}</div>'
+            f"{''.join(_body(step, static, prefix=f'{n}-'))}</section>\n"
+        )
+    inner.append(f'<p class="meta">{" ".join(_meta(path.steps[0], path=True))}</p>')
+    key = (
+        "django-upgrade-report:"
+        + hashlib.sha256(" ".join(checklist_key(step) for step in path.steps).encode()).hexdigest()[
+            :16
+        ]
+    )
+    return _page(title, key, "".join(inner), json_report.render_path(path), static)
+
+
+_COUNTED = (Status.READY, Status.UPGRADE, Status.CHECK, Status.BLOCKED)
+
+
+def _todos(report: Report) -> int:
     todos = sum(1 for p in report.packages if p.status is not Status.READY)
-    todos += len(report.python.packages) if report.python else 0
-    django = [_filter(p) for p in report.packages]  # what the tiles count
-    keys = django + [_filter(p) for p in report.python.packages] if report.python else django
-    present = [k for k in _FILTERS if k in keys]
-    progress = (
+    return todos + (len(report.python.packages) if report.python else 0)
+
+
+def _progress(todos: int) -> str:
+    return (
         f'<div class="tile progress"><b><span id="done">0</span> / {todos}</b>'
         "<span>done</span></div>"
-        if todos and not static
-        else ""
     )
-    tiles = "".join(
-        f'<div class="tile {css}{" zero" if not counts[status] else ""}"{_tile(css, django)}>'
+
+
+def _tiles(report: Report, filters: bool = True) -> str:
+    """The counts; ``filters`` makes them filter by their status (the script does that)."""
+    counted = [_filter(p) for p in report.packages] if filters else []
+    counts = report.counts
+    return "".join(
+        f'<div class="tile {css}{" zero" if not counts[status] else ""}"{_tile(css, counted)}>'
         f"<b>{counts[status]}</b><span>{label}</span></div>"
         for status, css, label in (
             (Status.READY, "ready", "ready"),
@@ -210,6 +265,25 @@ def render(report: Report, static: bool = False) -> str:
         )
     )
 
+
+def _warnings(report: Report) -> str:
+    if not report.warnings:
+        return ""
+    paragraphs = "".join(f"<p>{escape(w)}</p>" for w in report.warnings)
+    return f'<div class="warnings" role="note">{paragraphs}</div>'
+
+
+def _body(report: Report, static: bool, prefix: str = "") -> list[str]:
+    """The sections of one report. ``prefix`` keeps ids and ticks of several reports apart."""
+    try:  # each row shows its command when the tool is clear from the source
+        tool = commands.tool_for(report, "auto")
+    except commands.EmitError:
+        tool = None
+    command = {
+        p.name: line
+        for p in report.packages
+        if tool and (line := commands.command(report, p, tool)) and not line.startswith("#")
+    }
     body = []
     if report.changes is not None:
         rows = change_rows(report)
@@ -220,26 +294,28 @@ def render(report: Report, static: bool = False) -> str:
         )
         listing = f'<ul class="changes">{items}</ul>' if rows else ""
         body.append(
-            f'<section id="changes"><h2>{escape(changes_title(report))}</h2>{listing}</section>'
+            f'<section id="{prefix}changes"><h2>{escape(changes_title(report))}</h2>'
+            f"{listing}</section>"
         )
     plan = report.python
     if plan is not None:
         python_title = f"Python {plan.target} first" if plan.packages else f"Python {plan.target}"
         count = f' <span class="count">{len(plan.packages)}</span>' if plan.packages else ""
         body.append(
-            f'<section id="python"{" data-rows" if plan.packages else ""}><h2>'
+            f'<section id="{prefix}python"{" data-rows" if plan.packages else ""}><h2>'
             f'<span class="dot python"></span>{escape(python_title)}{count}</h2>'
         )
         if plan.packages:
             body.append(f'<p class="hint">{escape(python_hint(report))}</p>')
-            body.append(_table(plan.packages, "python", static))
+            body.append(_table(plan.packages, f"{prefix}python", static))
         summary = "".join(f"<p>{escape(line)}.</p>" for line in python_summary(report))
         body.append(f'<div class="hint">{summary}</div></section>')
     for section in sections(report):
         color = _SECTION_COLOR[section.key]
         body.append(
-            f'<section id="{section.key}" data-rows><h2><span class="dot {color}"></span>'
-            f'{escape(section.title)} <span class="count">{len(section.packages)}</span></h2>'
+            f'<section id="{prefix}{section.key}" data-rows><h2>'
+            f'<span class="dot {color}"></span>{escape(section.title)} '
+            f'<span class="count">{len(section.packages)}</span></h2>'
             f'<p class="hint">{escape(section.hint)}</p>'
         )
         packages = section.packages
@@ -253,15 +329,14 @@ def render(report: Report, static: bool = False) -> str:
                 )
                 body.append(f'<div class="chips">{chips}</div>')
         if packages:
-            body.append(
-                _table(packages, None if section.key == "ready" else "django", static, command)
-            )
+            todo = None if section.key == "ready" else f"{prefix}django"
+            body.append(_table(packages, todo, static, command))
         body.append("</section>")
 
     if report.missing:
         items = "".join(f"<li>{escape(name)}</li>" for name in report.missing)
         body.append(
-            '<section class="aside" id="missing"><h3>Not on the package index</h3>'
+            f'<section class="aside" id="{prefix}missing"><h3>Not on the package index</h3>'
             f"<ul>{items}</ul></section>"
         )
     if report.external:
@@ -272,15 +347,18 @@ def render(report: Report, static: bool = False) -> str:
         hint = private_index_hint(report)
         hint_html = f'<p class="hint">{escape(hint)}.</p>' if hint else ""
         body.append(
-            '<section class="aside" id="external"><h3>Not from PyPI, not checked</h3>'
+            f'<section class="aside" id="{prefix}external"><h3>Not from PyPI, not checked</h3>'
             f"<ul>{items}</ul>{hint_html}</section>"
         )
+    return body
 
+
+def _meta(report: Report, path: bool = False) -> list[str]:
     meta = [f"Dependencies from <code>{escape(report.source)}</code>."]
     if report.skipped:
         meta.append(f"{escape(skipped_line(report))}.")
     python = python_line(report)
-    if python:
+    if python and not path:
         meta.append(f"{escape(python)}.")
     meta.append(
         f"Generated {report.generated:%Y-%m-%d %H:%M} UTC by "
@@ -289,42 +367,42 @@ def render(report: Report, static: bool = False) -> str:
         "from the metadata packages publish on PyPI. "
         "A green row means the maintainers declare support, not that your tests pass."
     )
+    return meta
 
-    warnings = ""
-    if report.warnings:
-        paragraphs = "".join(f"<p>{escape(w)}</p>" for w in report.warnings)
-        warnings = f'<div class="warnings" role="note">{paragraphs}</div>'
 
-    toolbar = ""
+def _toolbar(reports: list[Report]) -> str:
+    rows = [p for r in reports for p in [*r.packages, *(r.python.packages if r.python else ())]]
+    present = [k for k in _FILTERS if k in {_filter(p) for p in rows}]
+    chips = "".join(
+        f'<button type="button" data-chip="{key}" aria-pressed="false">{_FILTERS[key]}</button>'
+        for key in present
+    )
+    direct = (
+        '<label><input type="checkbox" id="direct"> only direct dependencies</label>'
+        if any(p.direct is False for p in rows)
+        else ""
+    )
+    return (
+        '<div class="toolbar" id="toolbar" role="search" hidden>'
+        '<input type="search" id="q" placeholder="Search packages, reasons, notes  ( / )" '
+        'aria-label="Search packages, reasons and notes">'
+        f"{chips if len(present) > 1 else ''}"
+        '<label><input type="checkbox" id="notes"> only with notes</label>'
+        f"{direct}"
+        '<button type="button" id="reset">Reset (Esc)</button>'
+        '<span id="shown" aria-live="polite"></span></div>\n'
+    )
+
+
+def _page(title: str, key: str, inner: str, data: str, static: bool) -> str:
     script = ""
     if not static:
-        chips = "".join(
-            f'<button type="button" data-chip="{key}" aria-pressed="false">{_FILTERS[key]}</button>'
-            for key in present
-        )
-        rows = [*report.packages, *(report.python.packages if report.python else ())]
-        direct = (
-            '<label><input type="checkbox" id="direct"> only direct dependencies</label>'
-            if any(p.direct is False for p in rows)
-            else ""
-        )
-        toolbar = (
-            '<div class="toolbar" id="toolbar" role="search" hidden>'
-            '<input type="search" id="q" placeholder="Search packages, reasons, notes  ( / )" '
-            'aria-label="Search packages, reasons and notes">'
-            f"{chips if len(present) > 1 else ''}"
-            '<label><input type="checkbox" id="notes"> only with notes</label>'
-            f"{direct}"
-            '<button type="button" id="reset">Reset (Esc)</button>'
-            '<span id="shown" aria-live="polite"></span></div>\n'
-        )
         # "<" escaped, so nothing in the data can end the script element.
-        data = json_report.render(report).replace("<", "\\u003c")
+        safe = data.replace("<", "\\u003c")
         script = (
-            f'<script type="application/json" id="report-data">{data}</script>\n'
+            f'<script type="application/json" id="report-data">{safe}</script>\n'
             f"<script>{script_source()}</script>\n"
         )
-
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -334,14 +412,8 @@ def render(report: Report, static: bool = False) -> str:
 <style>{_CSS}</style>
 </head>
 <body>
-<main data-checklist="{checklist_key(report)}">
-<header>
-<h1>{heading}</h1>
-<p>{intro}</p>
-</header>
-{warnings}<div class="tiles">{tiles}{progress}</div>
-{toolbar}{"".join(body)}
-<p class="meta">{" ".join(meta)}</p>
+<main data-checklist="{key}">
+{inner}
 </main>
 {script}</body>
 </html>

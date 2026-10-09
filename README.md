@@ -171,7 +171,7 @@ Django 4.2.30 → 5.2
   ↑ django-filter  23.1 → 25.1  …
 ```
 
-Each step starts where the one before ends: its upgrades done, Django on the newest patch of that release. A package blocked in one step says so in the later ones, since the plan stops there. `--fail-on` looks at every step. The JSON report of a path has `"kind": "path"` and one report per step. Markdown and HTML come in a later release.
+Each step starts where the one before ends: its upgrades done, Django on the newest patch of that release. A package blocked in one step says so in the later ones, since the plan stops there. `--fail-on` looks at every step. The JSON report of a path has `"kind": "path"` and one report per step; Markdown folds each step, and the HTML report shows them on one page under an overview, with one checklist for the whole way. It does not go with `--baseline`, `--emit` or `--explain`.
 
 ### Where versions come from
 
@@ -249,6 +249,7 @@ The action writes the Markdown report to the job summary, exposes the counts as 
 | --- | --- | --- |
 | `path` | `.` | Project directory with a lockfile, `requirements*.txt` or `pyproject.toml`. |
 | `target` | `auto` | `auto`, `lts`, `latest` or a version such as `6.1`. |
+| `via` | | `lts` or `each`: plan the way to the target in steps, one report per step. The counts are summed over the steps. Does not go with `baseline`. |
 | `from` | | The Django version you run today, when your requirements only give a range. Empty reads it from the project. |
 | `fail-on` | | `blocked`, `upgrade` or `check`. Empty never fails the step because of a package. |
 | `python-target` | `auto` | `auto`, `none` or a version such as `3.12`. |

@@ -268,12 +268,10 @@ def _run(args: argparse.Namespace) -> int:
             "--baseline": args.baseline,
             "--emit": args.emit,
             "--explain": args.explain,
-            "--format markdown": args.format == "markdown",
-            "--format html": args.format == "html",
         }
         clash = next((flag for flag, given in flags.items() if given), None)
         if clash:
-            raise Error(f"--via shows one report per step, it cannot go with {clash} yet")
+            raise Error(f"--via shows one report per step, it cannot go with {clash}")
     if args.static and args.format != "html":
         raise Error("--static goes with --format html")
     if args.only_changes and (args.format == "html" or args.explain):
@@ -451,6 +449,10 @@ def _run_path(
         progress.clear()
     if args.format == "json":
         output = json.render_path(path)
+    elif args.format == "markdown":
+        output = markdown.render_path(path)
+    elif args.format == "html":
+        output = html.render_path(path, static=args.static)
     else:
         use_color = args.output is None and sys.stdout.isatty() and "NO_COLOR" not in os.environ
         output = text.render_path(path, color=use_color, verbose=args.verbose, quiet=args.quiet)

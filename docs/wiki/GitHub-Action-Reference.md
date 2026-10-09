@@ -17,6 +17,7 @@ Every input and output of the action, as `action.yml` describes them. [Continuou
 | --- | --- | --- |
 | `path` | `.` | Project directory with a lockfile, requirements*.txt or pyproject.toml. |
 | `target` | `auto` | Django version to upgrade to: 'auto' (the newest LTS above your Django, or the newest release when no LTS is above it), 'lts', 'latest' or e.g. '5.2'. |
+| `via` |  | 'lts' plans the way to the target in steps, one report per LTS on the way; 'each' one per feature version. Empty: one report. The counts are summed over the steps. Does not go with baseline. |
 | `from` |  | The Django version you run today, e.g. '4.2', when your requirements only give a range. Empty reads it from the project. |
 | `fail-on` |  | Fail the step when a package is 'blocked', needs an 'upgrade' or a 'check'. Empty never fails. |
 | `comment` | `false` | 'true' puts the report on the pull request as one comment, updated on every push; 'on-change' updates it only when a status or step changed. Needs permissions: pull-requests: write. Default 'false'. |
