@@ -112,6 +112,18 @@ class PreRelease:
     uploaded: datetime | None
 
 
+@dataclass(frozen=True)
+class Evidence:
+    """A sign of support that metadata does not give: for a package to check, never a status."""
+
+    kind: str
+    """``"readme"``, ``"test-matrix"`` or ``"changelog"``."""
+    text: str
+    """``"README of 2.1 mentions Django 5.2"``."""
+    url: str | None = None
+    """Where to read it."""
+
+
 @dataclass
 class PackageReport:
     name: str
@@ -140,6 +152,8 @@ class PackageReport:
     """Whether the project names the package itself; ``None`` when its source does not say."""
     origin: str | None = None
     """The requirement file line that pins or names it, as ``path:line``."""
+    evidence: list[Evidence] = field(default_factory=list)
+    """Signs of support for a package to check, shown as notes; they never change the status."""
 
     @property
     def stale(self) -> bool:
@@ -868,7 +882,16 @@ def analyse(
     skipped = sum(1 for r in results if r is None)
 
     rank = _upgrade_rank(packages, checker.links)
-    packages.sort(key=lambda p: (-SEVERITY[p.status], p.phase is Phase.WITH, rank[p.name], p.name))
+    # Packages to check without any sign of support first: that is where the work is.
+    packages.sort(
+        key=lambda p: (
+            -SEVERITY[p.status],
+            p.phase is Phase.WITH,
+            bool(p.evidence),
+            rank[p.name],
+            p.name,
+        )
+    )
     _explain_results(traces, packages, missing, failed)
 
     django_dep = deps.dependencies.get("django")
@@ -1558,8 +1581,27 @@ class _Package:
             self._prerelease()
         report.changelog_url = changelog_url(self.project.latest)
         report.repository_url = repository_url(self.project.latest)
+        if report.status is Status.CHECK:
+            self._readme()
         self._size()
         return report
+
+    def _readme(self) -> None:
+        """The description on PyPI of the release the report names, or the newest one, names
+        the target: a sign, not a declaration."""
+        report = self.report
+        info = self.project.latest
+        if report.target_version and report.target_version != info.version:
+            info = self.checker.pypi.release(self.dep.name, report.target_version) or info
+        target = f"{self.target.version.major}.{self.target.version.minor}"
+        if target in info.django_mentions:
+            report.evidence.append(
+                Evidence(
+                    "readme",
+                    f"README of {info.version} mentions Django {target}",
+                    f"https://pypi.org/project/{self.dep.name}/{info.version}/",
+                )
+            )
 
     # --- the three kinds of dependency
 

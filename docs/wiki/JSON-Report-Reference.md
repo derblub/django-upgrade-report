@@ -44,6 +44,10 @@
   when the source does not say (a lockfile without its `pyproject.toml` or `Pipfile`).
   `origin` (str or null): the requirement file line that pins or names it, as
   `"requirements/base.txt:12"`, relative to the project; null for other sources.
+  `evidence` (list): for a package to check, signs of support the metadata does not give,
+  each with `kind` (`"readme"`, `"test-matrix"` or `"changelog"`), `text` (also in
+  `notes`-like form, e.g. `"README of 2.1 mentions Django 5.2"`) and `url` (or null).
+  They never change the status.
 - `not_on_index` (list of str): dependencies the package index does not know.
 - `not_checked` (list of str): dependencies the index could not answer for, even after
   retries. When not empty, the report is incomplete; `warnings` says why.

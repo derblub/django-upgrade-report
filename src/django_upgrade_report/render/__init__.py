@@ -59,7 +59,8 @@ def sections(report: Report) -> list[Section]:
             f"You already run these on Django {report.target}, but their metadata does not say "
             "so. If your test suite passes, there is nothing to do."
             if report.health_check
-            else "The metadata does not say either way. Read the changelog or run the test suite.",
+            else "The metadata does not say either way. Read the changelog or run the test suite."
+            + _signs(report.by_status(Status.CHECK)),
             report.by_status(Status.CHECK),
         ),
         Section(
@@ -71,6 +72,17 @@ def sections(report: Report) -> list[Section]:
         ),
     ]
     return [s for s in result if s.packages]
+
+
+def _signs(packages: list[PackageReport]) -> str:
+    signed = sum(1 for p in packages if p.evidence)
+    if not signed:
+        return ""
+    if signed == len(packages) == 1:
+        return " It has signs of support, see its notes."
+    if signed == 1:
+        return " 1 of them has signs of support, see its notes."
+    return f" {signed} of them have signs of support, see their notes."
 
 
 def source_label(where: str) -> str:
@@ -87,7 +99,7 @@ def source_label(where: str) -> str:
 def row_notes(package: PackageReport) -> list[str]:
     """The notes to show on a package's row: where it comes from first, if not from PyPI."""
     source = [f"from {source_label(package.source)}"] if package.source else []
-    return source + package.notes
+    return source + package.notes + [e.text for e in package.evidence]
 
 
 def row_links(package: PackageReport) -> list[tuple[str, str]]:

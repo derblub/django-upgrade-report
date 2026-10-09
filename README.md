@@ -327,6 +327,8 @@ From these verdicts, per package:
 - **Check manually** when no release says yes, but yours or a newer one is not excluded.
 - **Blocked** when your release and every newer one exclude the target.
 
+A package to check can still show **signs of support**: its README on PyPI naming the target ("README of 2.1 mentions Django 5.2"), for the release the report names or else the newest. Signs are notes, linked to where they come from, and never change a status or `--fail-on`. Packages to check without any sign come first, since that is where the work is.
+
 A package counts as Django-related when it depends on Django or has a `Framework :: Django` classifier. Packages that only depend on Wagtail or django CMS are included too, with a note to check them against that framework. Everything else is skipped.
 
 > [!NOTE]

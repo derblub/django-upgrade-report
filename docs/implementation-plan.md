@@ -65,7 +65,10 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 2.2 | 0.9 | Mehrstufiger Pfad (`--via`) | erledigt |
 | 2.2a | 0.9 | `analyse_path`, `--via`, Text, JSON `"kind": "path"`, `--fail-on` über alle Schritte | erledigt |
 | 2.2b | 0.9 | Markdown und HTML, Action-Input `via` | erledigt |
-| 1.2 | 0.10 | Schwächere Belege | offen |
+| 1.2 | 0.10 | Schwächere Belege | in Arbeit |
+| 1.2a | 0.10 | `Evidence`, README auf PyPI, Sortierung, Hinweis, alle Formate, JSON `evidence` | erledigt |
+| 1.2b | 0.10 | `--evidence`: Testmatrix im Repository (tox, Workflows, nox), Action-Input, FAQ | offen |
+| 1.2c | 0.10 | `--evidence`: Changelog im Repository | offen |
 | 1.3 | 0.10 | Upstream-Issues und -PRs | offen |
 | 7.2 | 0.10 | Terminal-Oberfläche (`--interactive`) | offen |
 | 2.4 | 0.11 | Ungenutzte Pakete | offen |
@@ -479,6 +482,13 @@ Repo-URL-Normalisierung (zehn Varianten).
 
 **Aufwand:** M–L. **Abhängigkeiten:** 0.1, 0.2, 0.3, 0.6. Dieser Schritt bringt auch
 `FakeGitHub` in `tests/conftest.py` mit (aus 0.6 verschoben).
+
+**Umsetzung 1.2a:** `Evidence` liegt in `analysis.py` (neben `PackageReport.evidence`), weil
+die Analyse sie erzeugt; `evidence.py` kommt mit 1.2b für die Parser. Belege erscheinen über
+`row_notes()` in Text und Markdown als Notizen, im HTML als verlinkte Chips (`note sign`),
+im JSON zusätzlich unter `evidence`. Die README-Erkennung nutzt `django_mentions` aus 0.2 und
+ist bewusst streng (nur eine Version direkt nach „Django“); bei den 18 Paketen des Beispiels
+findet sie heute nichts, was stimmt. Sortierschlüssel: `bool(p.evidence)` nach der Phase.
 
 ### 1.3 Upstream-Issues und -PRs
 

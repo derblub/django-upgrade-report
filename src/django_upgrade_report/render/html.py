@@ -83,6 +83,8 @@ td.version { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
 .note { display: inline-block; margin: 4px 6px 0 0; padding: 1px 8px; border-radius: 10px;
   font-size: 12px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
 a.link { color: var(--muted); font-size: 13px; }
+.note.sign { background: var(--check-bg); color: var(--check); border-color: transparent;
+  text-decoration: none; }
 .note.warn { background: var(--blocked-bg); color: var(--blocked); border-color: transparent; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { background: var(--ready-bg); color: var(--ready); border-radius: 99px;
@@ -514,9 +516,17 @@ def _table(
             if todo
             else ""
         )
+        signs = {e.text for e in p.evidence}
         notes = "".join(
             f'<span class="note{" warn" if n.startswith("no release") else ""}">{escape(n)}</span>'
             for n in row_notes(p)
+            if n not in signs
+        )
+        notes += "".join(
+            f'<a class="note sign" href="{escape(safe_url(e.url))}">{escape(e.text)}</a>'
+            if e.url
+            else f'<span class="note sign">{escape(e.text)}</span>'
+            for e in p.evidence
         )
         links = "".join(
             f' <a class="link" href="{escape(url)}">{escape(label)}</a>'

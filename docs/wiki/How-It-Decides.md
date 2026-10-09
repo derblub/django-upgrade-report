@@ -30,6 +30,12 @@ A package counts as Django-related when it depends on Django or has a `Framework
 
 Pre-releases never decide a status: you cannot pin an `rc` in production. For a package to check or a blocked one, the newest pre-release is looked at when it is newer than every stable release and than yours. When it declares the target, the row says so; for a blocked package also when it no longer excludes the target. That is one more request at most per such package.
 
+## Signs of support
+
+A package to check may still show that it works on the target, in places metadata does not cover. The report shows these signs as notes, each linked to its source, and they never change a status or what `--fail-on` does. Within "Check manually", packages without a sign come first, and the section says how many have one.
+
+- **README on PyPI:** the description of the release the report names, or else of the newest release, names the target: "README of 2.1 mentions Django 5.2". It is part of the answer the report already reads, so it costs nothing. Only a version written right after "Django" counts ("Django 5.2", "Django>=5.2"), not one further down a list.
+
 ## Packages Django took over
 
 Some packages did a job Django now does itself, and no metadata says so: South, django-jsonfield, django-secure and a few more. Their rows say what Django has instead. Every entry in [`successors.py`](https://github.com/derblub/django-upgrade-report/blob/main/src/django_upgrade_report/successors.py) needs a source: the package's maintainers pointing to Django, or Django's release notes.
