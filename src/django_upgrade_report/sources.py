@@ -1295,6 +1295,17 @@ try:  # Python 3.10+: which distribution installs which top-level module
     for module, names in m.packages_distributions().items():
         for name in names:
             modules.setdefault(name, []).append(module)
+    # 3.10 reads top_level.txt only, which newer wheels leave out: infer from the files, as
+    # 3.11 does.
+    for d in m.distributions():
+        name = d.metadata.get("Name")
+        if name and name not in modules:
+            found = set()
+            for f in d.files or ():
+                if f.suffix == ".py" and not f.parts[0].startswith("."):  # not ../bin
+                    found.add(f.parts[0] if len(f.parts) > 1 else f.name[:-3])
+            if found:
+                modules[name] = sorted(found)
 except Exception:
     modules = {}
 sys.stdout.write("\\n" + MARKER + json.dumps(

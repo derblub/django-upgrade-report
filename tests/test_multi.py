@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -157,12 +158,12 @@ def test_html_links_the_projects(monorepo, capsys):
 
 
 def test_html_escapes_project_paths(monorepo, capsys):
-    odd = monorepo / "<b>x"
+    odd = monorepo / "R&D"  # < and > are not allowed in Windows file names
     odd.mkdir()
     (odd / "requirements.txt").write_text("Django==4.2.7\ndjango-blocked==1.0\n")
-    code, out, _ = run(capsys, "services/worker", "<b>x", "-f", "html", "--static")
+    code, out, _ = run(capsys, "services/worker", "R&D", "-f", "html", "--static")
     assert code == 0
-    assert "&lt;b&gt;x" in out and "<b>x" not in out
+    assert '<a href="#project-2">R&amp;D</a>' in out and ">R&D<" not in out
 
 
 def test_tracking_issue_goes_project_by_project(monorepo, capsys):
@@ -204,13 +205,19 @@ def test_action_reads_one_path_per_line():
     script = textwrap.dedent("        " + block) + '\nprintf "<%s>" "${paths[@]}"; echo " key=$key"'
     run_ = subprocess.run(
         ["bash", "-c", script],
-        env={"DUR_PATH": "  services/api\n\nservices/my worker  \n"},
+        env=_env(DUR_PATH="  services/api\n\nservices/my worker  \n"),
         capture_output=True,
         text=True,
         check=True,
     )
     assert run_.stdout == "<services/api><services/my worker> key=services/api services/my worker\n"
     empty = subprocess.run(
-        ["bash", "-c", script], env={"DUR_PATH": ""}, capture_output=True, text=True, check=True
+        ["bash", "-c", script], env=_env(DUR_PATH=""), capture_output=True, text=True, check=True
     )
     assert empty.stdout == "<.> key=.\n"
+
+
+def _env(**values: str) -> dict[str, str]:
+    """The environment with ``values``: Windows needs its own variables to start bash."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith("DUR_")}
+    return env | values
