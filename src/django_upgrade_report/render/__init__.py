@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 
 from django_upgrade_report.analysis import PackageReport, Phase, Report, Status
+from django_upgrade_report.projects import safe_url
 
 
 @dataclass
@@ -87,6 +88,11 @@ def row_notes(package: PackageReport) -> list[str]:
     """The notes to show on a package's row: where it comes from first, if not from PyPI."""
     source = [f"from {source_label(package.source)}"] if package.source else []
     return source + package.notes
+
+
+def row_links(package: PackageReport) -> list[tuple[str, str]]:
+    """Links to show on a package's row, as (label, URL) with the URL safe to embed."""
+    return [("changelog", safe_url(package.changelog_url))] if package.changelog_url else []
 
 
 def packages_line(report: Report) -> str:

@@ -6,6 +6,7 @@ from django_upgrade_report.render import (
     packages_line,
     private_index_hint,
     python_line,
+    row_links,
     row_notes,
     sections,
     skipped_line,
@@ -49,6 +50,8 @@ def render(report: Report, color: bool = False, verbose: bool = False) -> str:
             if p.reason != f"{p.target_version} declares Django {report.target}":
                 details.insert(0, terse(p.reason))
             first, *rest = details or [""]
+            if verbose:  # URLs make a row long: only on request, and on their own lines
+                rest += [f"{label} {url}" for label, url in row_links(p)]
             lines.append(
                 f"  {paint(mark, code)} {p.display_name.ljust(name_width)}  "
                 f"{version_cell(p).ljust(version_width)}  {paint(first, '2')}".rstrip()

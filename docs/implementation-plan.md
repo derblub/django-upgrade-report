@@ -34,7 +34,7 @@ von oben nach unten ab und pflegt die Spalte „Status“: `offen`, `in Arbeit`,
 | 0.3 | 0.5 | Erweiterungen am Report-Modell | erledigt |
 | 0.6 | 0.5 | Testinfrastruktur | erledigt |
 | 1.1 | 0.5 | Pre-Releases | erledigt |
-| 2.3 | 0.5 | Risiko pro Schritt und Changelog-Links | offen |
+| 2.3 | 0.5 | Risiko pro Schritt und Changelog-Links | erledigt |
 | 4.3 | 0.5 | pre-commit-Hook und `--offline` | offen |
 | 0.5 | 0.6 | Verallgemeinerte Release-Suche | offen |
 | 5.1 | 0.6 | `--explain` | offen |
@@ -670,28 +670,31 @@ bekommt und in Schritt 2 READY ist; ein BLOCKED-Paket über zwei Schritte; JSON-
 
 ```
 Upgrade first (4)
-  ↑ django-allauth   0.54.0 → 65.0.0   crosses 2 major versions · changelog
+  ↑ django-allauth   0.54.0 → 65.7.0   crosses 11 major versions · changelog
 ```
 
-**Design**
+**Design** (umgesetzt)
 
-- `majors_crossed(current, target) -> int | None` in `analysis.py`:
-  - Calendar Versioning erkennen (Major ≥ 2000 oder Major ≥ 20 bei Jahreszahl-Mustern wie
-    `24.1`): `None` und Notiz `"calendar versions, read the changelog"` nur, wenn sich das Jahr
-    ändert.
-  - `0.x`: Minor-Sprünge zählen als Major (SemVer-Regel für 0.x).
-  - Sonst `target.major - current.major`.
-- Notiz ab ≥ 1: `"crosses N major versions"` (bzw. `"a major version"`).
-- `changelog_url(info)` in `projects.py`: `project_urls`-Schlüssel normalisiert
-  `changelog`, `changes`, `releasenotes`, `history`, `whatsnew`, `news`; sonst
-  `https://github.com/{o}/{r}/releases` bei GitHub-Repo; sonst `None`.
-- Daten kommen aus dem Projekt-JSON (0.2), also keine zusätzlichen Anfragen.
+- `_Package._size()` zählt die Major-Versionen **anhand der Release-Historie**: die
+  verschiedenen Major-Schlüssel der stabilen Releases zwischen installiertem Release
+  (exklusive) und `target_version` (inklusive); Schlüssel ist die Major-Nummer, bei `0.x` die
+  Minor-Nummer. Damit zählt django-allauth 0.54 → 65.7 als „crosses 11 major versions“ (0.55
+  bis 0.63, 64, 65) statt der rein rechnerischen 65.
+- Calendar Versioning nur bei vierstelligem Jahr (`2024.1`): kein Zählwert, bei Jahreswechsel
+  die Notiz `"calendar versions, read the changelog"`. Zweistellige Jahre (`24.1`) lassen
+  sich nicht von großen Major-Nummern unterscheiden und werden wie SemVer gezählt.
+- Die Notiz `"crosses N major versions"` (bzw. `"a major version"`) steht als **erste** Notiz
+  der Zeile, weil sie den Schritt selbst beschreibt.
+- `projects.py`: `repository_url(info)` (nur GitHub, aus `project_urls` mit den Labels
+  source, source code, repository, code, github, homepage, dann `home_page`; Sponsoren-Links
+  zählen nicht) und `changelog_url(info)` (Labels normalisiert: changelog, changes,
+  releasenotes, history, whatsnew, news; sonst die GitHub-Releases-Seite). Beide lesen das
+  neueste Release (`project.latest`), es gibt keine zusätzlichen Anfragen.
+- `render.row_links()` liefert die Links mit `projects.safe_url` maskiert, damit `(`, `)`,
+  `<`, `>` und Leerzeichen weder einen Markdown-Link noch ein HTML-Attribut beenden.
 
-**Ausgabe:** Text: Notiz, der Link nur mit `-v` (URLs machen die Zeile zu lang). Markdown und
-HTML: `changelog` als Link. JSON: `majors_crossed`, `changelog_url`, `repository_url`.
-
-**Tests:** Tabelle mit 15 Versionspaaren (SemVer, 0.x, CalVer, Post-Releases, Epochs),
-URL-Auswahl.
+**Tests:** Tabelle mit zehn Versionsfolgen (SemVer, 0.x, der Sprung von 0.63 auf 64.0,
+CalVer, Post-Releases), Link-Auswahl, Maskierung, alle vier Formate.
 
 **Aufwand:** S. **Abhängigkeiten:** 0.2, 0.3.
 

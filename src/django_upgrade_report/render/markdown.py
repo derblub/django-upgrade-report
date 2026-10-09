@@ -10,6 +10,7 @@ from django_upgrade_report.render import (
     headline,
     private_index_hint,
     python_line,
+    row_links,
     row_notes,
     sections,
     skipped_line,
@@ -52,8 +53,9 @@ def _code(text: str) -> str:
 def _table(packages: list[PackageReport]) -> list[str]:
     lines = ["| Package | Version | Why |", "| --- | --- | --- |"]
     for p in packages:
-        why = "; ".join([p.reason, *row_notes(p)])
-        lines.append(f"| {_code(p.display_name)} | {_cell(version_cell(p))} | {_cell(why)} |")
+        why = _cell("; ".join([p.reason, *row_notes(p)]))
+        why += "".join(f" · [{label}]({url})" for label, url in row_links(p))
+        lines.append(f"| {_code(p.display_name)} | {_cell(version_cell(p))} | {why} |")
     return lines
 
 

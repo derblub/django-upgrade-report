@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- An upgrade says how big the step is: "crosses 2 major versions", counted by the releases in between, each 0.x minor release as one. Calendar versions (2024.1) say "read the changelog" instead.
+- The rows of the Markdown and HTML reports link the package's changelog, the link its maintainers label as such or else its GitHub releases page; the text report shows it with `-v`. The JSON report has `majors_crossed`, `changelog_url` and `repository_url`.
 - Packages to check and blocked packages say when their newest pre-release declares the target, or no longer excludes it: "2.6.0.dev22 declares Django 6.1 (pre-release)". The status stays the same. The JSON report has it under `prerelease`.
 - The JSON report says what kind of document it is: `"kind": "report"`. Scripts can check it before reading the rest, so later kinds that hold several reports do not break them.
 

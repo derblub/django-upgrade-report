@@ -520,7 +520,8 @@ def test_text_leaves_out_what_the_columns_and_sections_already_say(project, caps
     )
     cli.main([str(project)])
     out = capsys.readouterr().out
-    assert re.search(r"↑ django-before\s+1\.0 → 2\.0\n", out)  # not "2.0 declares Django 5.2"
+    # Not "2.0 declares Django 5.2": the version column says so.
+    assert re.search(r"↑ django-before\s+1\.0 → 2\.0  crosses a major version\n", out)
     assert "? django-lagging  1.0  declares Django up to 4.2\n" in out  # no ", not 5.2"
 
 
@@ -581,3 +582,27 @@ def test_prerelease_in_every_format(project, index, capsys, fmt):
             "uploaded": "2026-01-01T00:00:00+00:00",
         }
         assert all("prerelease" in p for p in json.loads(out)["packages"])
+
+
+def test_changelog_link_and_step_size(project, index, capsys):
+    index.packages["django-before"][-1]["project_urls"] = {
+        "Changelog": "https://x.test/CHANGES (2).md"
+    }
+    cli.main([str(project), "--format", "markdown"])
+    assert "crosses a major version · [changelog](https://x.test/CHANGES%20%282%29.md) |" in (
+        capsys.readouterr().out
+    )
+    cli.main([str(project), "--format", "html"])
+    assert '<a class="link" href="https://x.test/CHANGES%20%282%29.md">changelog</a>' in (
+        capsys.readouterr().out
+    )
+    cli.main([str(project), "--format", "json"])
+    p = next(
+        p for p in json.loads(capsys.readouterr().out)["packages"] if p["name"] == "django-before"
+    )
+    assert (p["majors_crossed"], p["changelog_url"]) == (1, "https://x.test/CHANGES (2).md")
+    assert p["repository_url"] is None
+    cli.main([str(project)])
+    assert "x.test" not in capsys.readouterr().out  # only with -v
+    cli.main([str(project), "-v"])
+    assert "changelog https://x.test/CHANGES%20%282%29.md" in capsys.readouterr().out

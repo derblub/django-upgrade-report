@@ -1307,3 +1307,63 @@ def test_project_with_only_prereleases_is_judged_by_them():
     )
     _, p = check_one(index, pinned("pkg", "1.0a1"))
     assert (p.status, p.target_version, p.prerelease) == (Status.UPGRADE, "1.0b2", None)
+
+
+# --- the size of a step -----------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("versions", "installed", "crossed", "note"),
+    [
+        (["1.0", "2.0", "3.0"], "1.0", 2, "crosses 2 major versions"),
+        (["1.0", "1.4", "2.0"], "1.4", 1, "crosses a major version"),
+        (["1.0", "1.2"], "1.0", 0, None),
+        (["0.5", "0.6", "0.7", "0.8"], "0.5", 3, "crosses 3 major versions"),
+        (["0.9", "1.0"], "0.9", 1, "crosses a major version"),
+        (["0.63", "64.0", "65.0"], "0.63", 2, "crosses 2 major versions"),  # allauth's jump
+        (["1.0", "1.0.post1"], "1.0", 0, None),
+        (["2.0", "2.0.1", "2.1"], "2.0", 0, None),
+        (["2023.1", "2024.2"], "2023.1", None, "calendar versions, read the changelog"),
+        (["2024.1", "2024.3"], "2024.1", None, None),
+        (["2.0", "1!1.0"], "2.0", None, "new version numbering, read the changelog"),
+    ],
+)
+def test_majors_crossed(versions, installed, crossed, note):
+    """The newest release declares 5.2, every one before it 4.2 only."""
+    releases = [release("pkg", v, ">=4.2", ["4.2"]) for v in versions[:-1]]
+    releases.append(release("pkg", versions[-1], ">=4.2", ["4.2", "5.2"]))
+    _, p = check_one(status_index(pkg=releases), pinned("pkg", installed))
+    assert p.target_version == versions[-1]
+    assert p.majors_crossed == crossed
+    size_notes = [n for n in p.notes if "major" in n or "read the changelog" in n]
+    assert size_notes == ([note] if note else [])
+
+
+def test_ready_package_has_no_size_but_links():
+    index = status_index(
+        pkg=[
+            release(
+                "pkg",
+                "1.0",
+                ">=4.2",
+                ["4.2", "5.2"],
+                project_urls={"Source": "https://github.com/org/pkg"},
+            )
+        ]
+    )
+    _, p = check_one(index, pinned("pkg", "1.0"))
+    assert (p.status, p.majors_crossed) == (Status.READY, None)
+    assert p.changelog_url == "https://github.com/org/pkg/releases"
+    assert p.repository_url == "https://github.com/org/pkg"
+
+
+def test_no_step_size_for_a_package_django_took_over():
+    index = status_index(
+        jsonfield=[
+            release("jsonfield", "2.0", ">=2.2", ["3.2"]),
+            release("jsonfield", "3.0", ">=4.2", ["5.2"]),
+        ]
+    )
+    _, p = check_one(index, pinned("jsonfield", "2.0"))
+    assert p.successor is not None
+    assert not any("major" in n for n in p.notes)

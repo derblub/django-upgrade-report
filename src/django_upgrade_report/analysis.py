@@ -18,6 +18,7 @@ from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.utils import canonicalize_name
 from packaging.version import InvalidVersion, Version
 
+from django_upgrade_report.projects import changelog_url, repository_url
 from django_upgrade_report.pypi import Project, PyPI, PyPIError, ReleaseInfo
 from django_upgrade_report.sources import Dependency, DependencySet
 from django_upgrade_report.successors import Successor, successor
@@ -126,6 +127,10 @@ class PackageReport:
     """What Django itself has instead, when Django took over the package's job by the target."""
     prerelease: PreRelease | None = None
     """A pre-release that declares the target, or no longer excludes it for a blocked package."""
+    majors_crossed: int | None = None
+    """Major versions between the current release and :attr:`target_version` (0.x minors count)."""
+    changelog_url: str | None = None
+    repository_url: str | None = None
 
     @property
     def stale(self) -> bool:
@@ -948,6 +953,11 @@ def _warnings(
     return warnings
 
 
+def _major(version: Version) -> tuple[int, int]:
+    """The part of a version that changes on a breaking release: 0.x counts each minor."""
+    return (version.major, 0) if version.major else (0, version.minor)
+
+
 def _minor(version: str | None) -> Version | None:
     if not version:
         return None
@@ -1193,6 +1203,9 @@ class _Package:
             self._unpinned()
         if report.status in (Status.CHECK, Status.BLOCKED):
             self._prerelease()
+        report.changelog_url = changelog_url(self.project.latest)
+        report.repository_url = repository_url(self.project.latest)
+        self._size()
         return report
 
     # --- the three kinds of dependency
@@ -1320,6 +1333,34 @@ class _Package:
             return
         self.report.prerelease = PreRelease(str(release.version), reason, release.uploaded)
         self.report.notes.append(f"{release.version} {reason} (pre-release)")
+
+    def _size(self) -> None:
+        """How many major versions the proposed step crosses, by the releases in between."""
+        report = self.report
+        if not report.target_version or not report.current or not _is_version(report.current):
+            return
+        if successor(self.dep.name, self.target.version) is not None:
+            return  # the advice is to remove it, not to take the step
+        current, target = Version(report.current), Version(report.target_version)
+        if current.epoch != target.epoch:  # a new numbering: the numbers do not compare
+            report.notes.insert(0, "new version numbering, read the changelog")
+            return
+        if current.major >= 1000 or target.major >= 1000:  # 2024.1: calendar versions
+            if target.major != current.major:
+                report.notes.insert(0, "calendar versions, read the changelog")
+            return
+        crossed = {
+            _major(v) for v in self.stable if current < v <= target and _major(v) != _major(current)
+        }
+        if _major(target) != _major(current):
+            crossed.add(_major(target))
+        report.majors_crossed = len(crossed)
+        if crossed:
+            n = len(crossed)
+            # First: it is about the step itself, the notes after it about its conditions.
+            report.notes.insert(
+                0, "crosses a major version" if n == 1 else f"crosses {n} major versions"
+            )
 
     # --- helpers
 

@@ -34,6 +34,11 @@ Top level (schema_version 1):
   ``prerelease`` is null, or, for a package to check or blocked, the newest pre-release when
   it declares the target, or no longer excludes it for a blocked package: an object with
   ``version`` (e.g. ``"2.0rc1"``), ``reason`` and ``uploaded`` (ISO 8601 or null).
+  ``majors_crossed`` (int or null): major versions between ``current`` and ``upgrade_to``,
+  counted by the releases in between, each 0.x minor as one; null without both versions or
+  for calendar versions. ``changelog_url`` (the link the project labels as its changelog, else
+  its GitHub releases page) and ``repository_url`` (its GitHub repository), or null; both
+  come from the project's own metadata on the index.
 - ``not_on_index`` (list of str): dependencies the package index does not know.
 - ``not_checked`` (list of str): dependencies the index could not answer for, even after
   retries. When not empty, the report is incomplete; ``warnings`` says why.
@@ -101,6 +106,9 @@ def as_dict(report: Report) -> dict:
                 }
                 if p.prerelease
                 else None,
+                "majors_crossed": p.majors_crossed,
+                "changelog_url": p.changelog_url,
+                "repository_url": p.repository_url,
             }
             for p in report.packages
         ],

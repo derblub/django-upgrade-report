@@ -94,6 +94,8 @@ django-upgrade-report --target 6.1
 
 The notes on a row tell you more, for example "update Django 4.2 first" when a release needs a newer patch of your current Django, "upgrade django-crispy-forms first" when it needs a newer version of another package you pin, or "newer releases exclude Django 6.1".
 
+An upgrade also says how big the step is, "crosses 2 major versions", counted by the releases in between, where each 0.x minor release counts as a major one. The rows of the Markdown and HTML reports link the package's changelog: the link its maintainers label as such, or its GitHub releases page. The text report shows the links with `-v`.
+
 Some packages did a job Django now does itself, and no metadata says so. For a short list of them the row says what Django has instead, for example "built into Django 1.7: its own migrations, remove South" or "built into Django 3.1: models.JSONField" for django-jsonfield. An entry needs a source, the package's maintainers pointing to Django or Django's release notes; quiet packages, or opinions about a better third-party package, stay out. The list is in [`successors.py`](src/django_upgrade_report/successors.py), and additions with a source are welcome.
 
 ## Usage

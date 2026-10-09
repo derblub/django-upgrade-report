@@ -11,6 +11,7 @@ from django_upgrade_report.render import (
     packages_line,
     private_index_hint,
     python_line,
+    row_links,
     row_notes,
     sections,
     skipped_line,
@@ -67,6 +68,7 @@ td.version { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-s
   white-space: nowrap; }
 .note { display: inline-block; margin: 4px 6px 0 0; padding: 1px 8px; border-radius: 99px;
   font-size: 12px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+a.link { color: var(--muted); font-size: 13px; }
 .note.warn { background: var(--blocked-bg); color: var(--blocked); border-color: transparent; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { background: var(--ready-bg); color: var(--ready); border-radius: 99px;
@@ -208,10 +210,14 @@ def _table(packages: list[PackageReport]) -> str:
             f'<span class="note{" warn" if n.startswith("no release") else ""}">{escape(n)}</span>'
             for n in row_notes(p)
         )
+        links = "".join(
+            f' <a class="link" href="{escape(url)}">{escape(label)}</a>'
+            for label, url in row_links(p)
+        )
         rows.append(
             f'<tr><td class="name">{escape(p.display_name)}</td>'
             f'<td class="version">{escape(version_cell(p))}</td>'
-            f"<td>{escape(p.reason)}{'<br>' + notes if notes else ''}</td></tr>"
+            f"<td>{escape(p.reason)}{links}{'<br>' + notes if notes else ''}</td></tr>"
         )
     return (
         '<div class="table"><table><thead><tr><th>Package</th><th>Version</th>'
