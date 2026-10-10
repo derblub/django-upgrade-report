@@ -643,7 +643,11 @@ details.version .table { margin: 0 0 16px; }
   background: var(--surface); color: var(--text); }
 .toolbar input { flex: 1 1 240px; }
 #shown { color: var(--muted); font-size: 13px; }
-.legend-row .s { font-weight: 650; margin-left: 10px; }
+.legend-row { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0 0 12px; padding: 0;
+  list-style: none; color: var(--muted); font-size: 13px; }
+.legend-row li { display: flex; align-items: baseline; gap: 6px; }
+.legend-row b { color: var(--muted-hi); font-weight: 550; }
+.legend-row .s { font-weight: 650; width: 1.1em; text-align: center; }
 .legend-row .s.ready { color: var(--ready); } .legend-row .s.check { color: var(--check); }
 .legend-row .s.blocked { color: var(--blocked); }
 .legend-row .s.signed { color: var(--signed); box-shadow: inset 0 -2px 0 var(--signed); }
@@ -662,9 +666,22 @@ details.version .table { margin: 0 0 16px; }
 .matrix th.s, .matrix td.s { padding-left: 4px; padding-right: 4px; text-align: center;
   min-width: 36px; }
 @media (min-width: 641px) { .matrix table { width: 100%; } }
-.meta { margin-top: 80px; padding-top: 16px; border-top: 1px solid var(--raised);
-  color: var(--muted); font-size: 13px; }
-.meta a { color: inherit; }
+.table-note { margin: 10px 0 0; max-width: 80ch; color: var(--muted); font-size: 13px;
+  line-height: 20px; }
+sup { font-size: 0.7em; line-height: 0; margin-left: 2px; color: var(--accent); }
+ol.table-note { padding-left: 18px; }
+.table-note li::marker { color: var(--accent); font-size: 0.85em; }
+.site-footer { margin-top: 96px; border-top: 1px solid var(--raised); color: var(--muted);
+  font-size: 14px; line-height: 22px; }
+.footer-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px 40px; padding: 32px 0; }
+.footer-columns p { margin: 0; }
+.footer-columns .label { margin-bottom: 8px; }
+.site-footer a { color: var(--muted-hi); }
+.site-footer a:hover { color: var(--accent); }
+.footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px;
+  padding: 16px 0 0; border-top: 1px solid var(--raised); }
+.footer-links { display: flex; gap: 20px; }
 .brand { white-space: nowrap; }
 .pp-mark { width: 1.15em; height: 1.15em; vertical-align: -0.22em; margin-right: 0.3em; }
 @media (max-width: 640px) {
@@ -699,18 +716,17 @@ every week.</p>
 {_charts(data)}
 <h2>Every Django version</h2>
 {_overview(data)}
-<p class="hint">Declared after release: the share of packages with a release that declared the
-version by then, counting packages whose newest release has dropped it since.</p>
+<ol class="table-note">
+<li>The share of the downloads of the last 30 days that goes to packages that are ready.</li>
+<li>The share of packages with a release that declared the version by then, counting packages
+whose newest release has dropped it since.</li>
+</ol>
 {_blockers(data)}
 <h2 id="packages">Every package</h2>
 {_matrix(data)}
 {_for_maintainers(data)}
 </div>
-<p class="meta">Generated {escape(data["generated"])} by
-<a href="{REPO_URL}">{escape(data["tool"])}</a> with the rules of the report:
-<a href="{REPO_URL}#how-it-decides">how it decides</a>. Downloads of the last 30 days from
-<a href="https://github.com/hugovk/top-pypi-packages">top-pypi-packages</a>. To check is not
-blocked: the metadata does not say either way. By {escape(AUTHOR)}, {brand()}.</p>"""
+{_footer(data)}"""
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -766,8 +782,8 @@ def _overview(data: dict) -> str:
         )
     return (
         '<div class="table overview"><table><thead><tr><th>Version</th><th></th><th>Share</th>'
-        "<th>ready</th><th>to check</th><th>blocked</th><th>Ready by downloads</th>"
-        "<th>Declared after release</th></tr>"
+        "<th>ready</th><th>to check</th><th>blocked</th><th>Ready by downloads<sup>1</sup></th>"
+        "<th>Declared after release<sup>2</sup></th></tr>"
         f"</thead><tbody>{''.join(rows)}</tbody></table></div>"
     )
 
@@ -867,11 +883,12 @@ def _matrix(data: dict) -> str:
         '</select><span id="shown" aria-live="polite"></span></div>'
     )
     legend = (
-        '<p class="hint legend-row"><span class="s ready">✓</span> ready: the newest release '
-        'declares it <span class="s check">?</span> to check: it does not say '
-        '<span class="s blocked">✗</span> blocked: it excludes it '
-        '<span class="s check signed">?</span> to check, with a sign of support (its README '
-        "names the version, or the test matrix on its main branch runs it)</p>"
+        '<ul class="legend-row" aria-label="What the marks mean">'
+        '<li><span class="s ready">✓</span><b>Ready</b> the newest release declares it</li>'
+        '<li><span class="s check">?</span><b>To check</b> it does not say</li>'
+        '<li><span class="s check signed">?</span><b>With a sign</b> its README names the '
+        "version, or its main branch tests it</li>"
+        '<li><span class="s blocked">✗</span><b>Blocked</b> it excludes the version</li></ul>'
     )
     return (
         f"{toolbar}{legend}"
@@ -906,6 +923,41 @@ def _for_maintainers(data: dict) -> str:
         f'<p class="label">It says one of</p><div class="badge-states">{states}</div></div>'
         f'<div class="command"><code>{escape(snippet)}</code><button type="button" '
         f'class="copy" data-copy="{escape(snippet)}" hidden>Copy</button></div>'
+    )
+
+
+def _footer(data: dict) -> str:
+    """How the page is made, where its numbers come from and how to read them: three short
+    columns, then the signature."""
+    columns = (
+        (
+            "The data",
+            f"Generated {escape(data['generated'])} by "
+            f'<a href="{REPO_URL}">{escape(data["tool"])}</a>, every Monday, from what '
+            f"the {data['packages_count']} most downloaded Django-related packages declare on "
+            "PyPI.",
+        ),
+        (
+            "Sources",
+            "Package metadata from PyPI. Downloads of the last 30 days from "
+            '<a href="https://github.com/hugovk/top-pypi-packages">top-pypi-packages</a>. '
+            "Signs of support from READMEs and test matrices on GitHub.",
+        ),
+        (
+            "Reading it",
+            "To check is not blocked: the metadata does not say either way. The rules are "
+            f'the report\'s: <a href="{REPO_URL}#how-it-decides">how it decides</a>.',
+        ),
+    )
+    cells = "".join(
+        f'<div><p class="label">{title}</p><p>{text}</p></div>' for title, text in columns
+    )
+    return (
+        f'<footer class="site-footer"><div class="footer-columns">{cells}</div>'
+        f'<div class="footer-bottom"><span>By {escape(AUTHOR)}, {brand()}</span>'
+        '<span class="footer-links"><a href="feed.xml">Weekly feed</a>'
+        '<a href="data.json">data.json</a>'
+        f'<a href="{REPO_URL}">GitHub</a></span></div></footer>'
     )
 
 
