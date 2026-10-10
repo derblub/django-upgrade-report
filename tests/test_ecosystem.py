@@ -92,3 +92,28 @@ def test_page_escapes_and_links(build):
     assert "100% after 30 days" in html
     assert 'class="brand" href="https://pushingpixels.at"' in html
     assert '<link rel="icon" href="data:image/svg+xml,' in html
+
+
+def test_highlights_lead_with_the_newest_lts_and_release(build, index):
+    data = build.build(index, PACKAGES, today=date(2026, 1, 15))
+    h = build.highlights(data)
+    assert h["lts"] == {"version": "5.2", "ready": 3}
+    assert h["newest"] == {"version": "6.0", "ready": 2, "blocked": 1, "days": 43}
+    assert build.description(data) == (
+        "3 of the 5 most downloaded Django packages declare Django 5.2 LTS; 2 declare "
+        "Django 6.0, 43 days after its release. Updated every week."
+    )
+
+
+def test_page_has_a_preview_for_shared_links(build, index):
+    data = build.build(index, PACKAGES, today=date(2026, 1, 15))
+    html = build.page(data)
+    assert '<meta name="description" content="3 of the 5 most' in html
+    assert (
+        '<meta property="og:image" content="https://derblub.github.io/django-upgrade-report/og.png">'
+        in html
+    )
+    assert '<meta name="twitter:card" content="summary_large_image">' in html
+    card = build.card(data)
+    assert "<b>3</b><span>of 5 declare Django 5.2 LTS</span>" in card
+    assert "<b>1</b><span>packages block Django 6.0</span>" in card

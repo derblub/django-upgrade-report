@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Ecosystem page
+
+- Shared links show a preview card with this week's numbers (built each week as `og.png`), and the page has a description for search results.
+
 ## [1.1.0] - 2026-10-09
 
 ### Added

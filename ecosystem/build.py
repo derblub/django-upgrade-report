@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import urllib.request
@@ -25,7 +26,7 @@ from pathlib import Path
 from packaging.utils import canonicalize_name
 from packaging.version import Version
 
-from django_upgrade_report import AUTHOR, REPO_URL, __version__
+from django_upgrade_report import AUTHOR, ECOSYSTEM_URL, REPO_URL, __version__
 from django_upgrade_report.analysis import (
     Status,
     Verdict,
@@ -191,6 +192,113 @@ def _curve(since: list[date], ga: date | None, today: date, total: int) -> list[
     return points
 
 
+# --- what the page says first ---------------------------------------------------------------
+
+
+def highlights(data: dict) -> dict:
+    """The numbers the page, its preview and its description lead with: the newest LTS, the
+    newest release and how long it has been out, and what blocks the newest release."""
+    released = [v for v in data["versions"] if v["released"] and v["ga"]]
+    newest = released[-1]
+    lts = [v for v in released[:-1] if DJANGO.is_lts(Version(v["version"]))]
+    days = (date.fromisoformat(data["generated"]) - date.fromisoformat(newest["ga"])).days
+    return {
+        "total": data["packages_count"],
+        "lts": {"version": lts[-1]["version"], "ready": lts[-1]["counts"]["ready"]}
+        if lts
+        else None,
+        "newest": {
+            "version": newest["version"],
+            "ready": newest["counts"]["ready"],
+            "blocked": newest["counts"]["blocked"],
+            "days": days,
+        },
+    }
+
+
+def description(data: dict) -> str:
+    """One sentence for search results and link previews."""
+    h = highlights(data)
+    new = h["newest"]
+    parts = []
+    if h["lts"]:
+        parts.append(
+            f"{h['lts']['ready']} of the {h['total']} most downloaded Django packages "
+            f"declare Django {h['lts']['version']} LTS"
+        )
+    parts.append(
+        f"{new['ready']} declare Django {new['version']}, {new['days']} days after its release"
+    )
+    return "; ".join(parts) + ". Updated every week."
+
+
+def card(data: dict) -> str:
+    """The preview image as a page, 1200 by 630: what a shared link shows."""
+    h = highlights(data)
+    new = h["newest"]
+    figures = []
+    if h["lts"]:
+        figures.append(
+            (f"{h['lts']['ready']}", f"of {h['total']} declare Django {h['lts']['version']} LTS")
+        )
+    figures.append(
+        (
+            f"{new['ready']}",
+            f"declare Django {new['version']}, {new['days']} days after its release",
+        )
+    )
+    figures.append((f"{new['blocked']}", f"packages block Django {new['version']}"))
+    tiles = "".join(
+        f'<div class="figure"><b>{escape(value)}</b><span>{escape(label)}</span></div>'
+        for value, label in figures
+    )
+    return f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><style>{_CSS}{_CARD_CSS}</style></head>
+<body><div class="card">
+<p class="kicker">Django ecosystem readiness · {escape(data["generated"])}</p>
+<h1>How ready is the Django ecosystem?</h1>
+<div class="figures">{tiles}</div>
+<p class="foot"><span>derblub.github.io/django-upgrade-report · updated every week</span>
+<span>{brand()}</span></p>
+</div></body></html>
+"""
+
+
+_CARD_CSS = """
+:root { color-scheme: light; }
+body { margin: 0; width: 1200px; height: 630px; background: var(--bg); }
+.card { box-sizing: border-box; width: 1200px; height: 630px; padding: 64px 72px;
+  display: flex; flex-direction: column; }
+.kicker { color: var(--muted); font-size: 24px; margin: 0 0 12px; }
+.card h1 { font-size: 60px; margin: 0; }
+.figures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 40px; }
+.figure { background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+  padding: 28px; }
+.figure b { display: block; font-size: 84px; line-height: 1; color: var(--ready);
+  font-variant-numeric: tabular-nums; }
+.figure:last-child b { color: var(--blocked); }
+.figure span { display: block; margin-top: 12px; font-size: 24px; color: var(--text); }
+.foot { margin-top: auto; color: var(--muted); font-size: 22px; display: flex;
+  justify-content: space-between; }
+.foot a { color: var(--text); text-decoration: none; }
+"""
+
+
+def render_card(html: str, out: Path) -> bool:
+    """The preview as a PNG, with Playwright's Chromium; False when it is not installed."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return False
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(executable_path=os.environ.get("CHROMIUM") or None)
+        page_ = browser.new_page(viewport={"width": 1200, "height": 630})
+        page_.set_content(html)
+        page_.screenshot(path=str(out))
+        browser.close()
+    return True
+
+
 # --- the page -------------------------------------------------------------------------------
 
 _PAGE_CSS = """
@@ -270,6 +378,7 @@ metadata does not say either way. Your own project:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Django ecosystem readiness</title>
+{_meta_tags(data)}
 {FAVICON}
 <style>{_CSS}{_PAGE_CSS}</style>
 </head>
@@ -280,6 +389,28 @@ metadata does not say either way. Your own project:
 </body>
 </html>
 """
+
+
+def _meta_tags(data: dict) -> str:
+    """What search engines and link previews show: the numbers, and the weekly image."""
+    text = escape(description(data))
+    title = "How ready is the Django ecosystem?"
+    image = f"{ECOSYSTEM_URL}og.png"
+    return "\n".join(
+        [
+            f'<meta name="description" content="{text}">',
+            f'<link rel="canonical" href="{ECOSYSTEM_URL}">',
+            '<meta property="og:type" content="website">',
+            f'<meta property="og:url" content="{ECOSYSTEM_URL}">',
+            f'<meta property="og:title" content="{title}">',
+            f'<meta property="og:description" content="{text}">',
+            f'<meta property="og:image" content="{image}">',
+            '<meta property="og:image:width" content="1200">',
+            '<meta property="og:image:height" content="630">',
+            f'<meta property="og:image:alt" content="{text}">',
+            '<meta name="twitter:card" content="summary_large_image">',
+        ]
+    )
 
 
 def _title(package: dict, version: str) -> str:
@@ -337,6 +468,10 @@ def main(argv: list[str] | None = None, pypi: PyPI | None = None) -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "data.json").write_text(json.dumps(data, indent=1) + "\n")
     (args.out / "index.html").write_text(page(data))
+    if render_card(card(data), args.out / "og.png"):
+        print(f"wrote {args.out}/og.png", file=sys.stderr)
+    else:
+        print("og.png left out: pip install playwright to render it", file=sys.stderr)
     print(f"wrote {args.out}/index.html and data.json", file=sys.stderr)
     return 0
 

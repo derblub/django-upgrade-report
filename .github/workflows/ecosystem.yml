@@ -30,7 +30,12 @@ jobs:
           key: ecosystem-${{ github.run_id }}
           restore-keys: ecosystem-
       - name: Build
-        run: PYTHONPATH=src uv run --no-project --with packaging python ecosystem/build.py build
+        # Playwright's Chromium renders the preview image (og.png) for shared links.
+        run: |
+          uvx --from playwright playwright install --with-deps chromium
+          PYTHONPATH=src uv run --no-project --with packaging --with playwright \
+            python ecosystem/build.py build
+          test -f ecosystem/site/og.png
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ecosystem/site
