@@ -1,0 +1,5524 @@
+{
+ "generated": "2026-10-10",
+ "tool": "django-upgrade-report 1.1.0",
+ "packages_count": 300,
+ "versions": [
+  {
+   "version": "4.2",
+   "released": true,
+   "ga": "2023-04-03",
+   "counts": {
+    "ready": 148,
+    "check": 109,
+    "blocked": 43
+   },
+   "curve": [
+    [
+     0,
+     0.053
+    ],
+    [
+     30,
+     0.127
+    ],
+    [
+     60,
+     0.167
+    ],
+    [
+     90,
+     0.247
+    ],
+    [
+     180,
+     0.333
+    ],
+    [
+     270,
+     0.423
+    ],
+    [
+     365,
+     0.493
+    ],
+    [
+     540,
+     0.533
+    ],
+    [
+     730,
+     0.557
+    ]
+   ]
+  },
+  {
+   "version": "5.0",
+   "released": true,
+   "ga": "2023-12-04",
+   "counts": {
+    "ready": 104,
+    "check": 153,
+    "blocked": 43
+   },
+   "curve": [
+    [
+     0,
+     0.093
+    ],
+    [
+     30,
+     0.173
+    ],
+    [
+     60,
+     0.213
+    ],
+    [
+     90,
+     0.253
+    ],
+    [
+     180,
+     0.363
+    ],
+    [
+     270,
+     0.407
+    ],
+    [
+     365,
+     0.44
+    ],
+    [
+     540,
+     0.477
+    ],
+    [
+     730,
+     0.503
+    ]
+   ]
+  },
+  {
+   "version": "5.1",
+   "released": true,
+   "ga": "2024-08-07",
+   "counts": {
+    "ready": 111,
+    "check": 153,
+    "blocked": 36
+   },
+   "curve": [
+    [
+     0,
+     0.05
+    ],
+    [
+     30,
+     0.143
+    ],
+    [
+     60,
+     0.173
+    ],
+    [
+     90,
+     0.217
+    ],
+    [
+     180,
+     0.277
+    ],
+    [
+     270,
+     0.383
+    ],
+    [
+     365,
+     0.44
+    ],
+    [
+     540,
+     0.49
+    ],
+    [
+     730,
+     0.53
+    ]
+   ]
+  },
+  {
+   "version": "5.2",
+   "released": true,
+   "ga": "2025-04-02",
+   "counts": {
+    "ready": 168,
+    "check": 131,
+    "blocked": 1
+   },
+   "curve": [
+    [
+     0,
+     0.083
+    ],
+    [
+     30,
+     0.207
+    ],
+    [
+     60,
+     0.233
+    ],
+    [
+     90,
+     0.287
+    ],
+    [
+     180,
+     0.363
+    ],
+    [
+     270,
+     0.44
+    ],
+    [
+     365,
+     0.507
+    ],
+    [
+     540,
+     0.567
+    ]
+   ]
+  },
+  {
+   "version": "6.0",
+   "released": true,
+   "ga": "2025-12-03",
+   "counts": {
+    "ready": 116,
+    "check": 180,
+    "blocked": 4
+   },
+   "curve": [
+    [
+     0,
+     0.11
+    ],
+    [
+     30,
+     0.173
+    ],
+    [
+     60,
+     0.21
+    ],
+    [
+     90,
+     0.247
+    ],
+    [
+     180,
+     0.32
+    ],
+    [
+     270,
+     0.37
+    ]
+   ]
+  },
+  {
+   "version": "6.1",
+   "released": true,
+   "ga": "2026-08-05",
+   "counts": {
+    "ready": 42,
+    "check": 251,
+    "blocked": 7
+   },
+   "curve": [
+    [
+     0,
+     0.043
+    ],
+    [
+     30,
+     0.113
+    ],
+    [
+     60,
+     0.133
+    ]
+   ]
+  },
+  {
+   "version": "6.2",
+   "released": false,
+   "ga": null,
+   "counts": {
+    "ready": 0,
+    "check": 285,
+    "blocked": 15
+   },
+   "curve": []
+  }
+ ],
+ "packages": [
+  {
+   "name": "algoliasearch-django",
+   "version": "4.0.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "channels",
+   "version": "4.3.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-04-03",
+    "5.0": "2024-04-03",
+    "5.1": "2024-11-15",
+    "5.2": "2025-03-29",
+    "6.0": "2025-11-20"
+   }
+  },
+  {
+   "name": "dj-database-url",
+   "version": "3.1.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-05-28",
+    "5.0": "2024-05-28",
+    "5.1": "2024-10-23",
+    "5.2": "2025-06-02"
+   }
+  },
+  {
+   "name": "dj-inmemorystorage",
+   "version": "2.1.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "dj-rest-auth",
+   "version": "7.2.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-01-09",
+    "5.0": "2026-01-09",
+    "5.1": "2026-01-09",
+    "5.2": "2026-01-09"
+   }
+  },
+  {
+   "name": "dj-stripe",
+   "version": "2.11.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-28",
+    "5.0": "2024-04-16",
+    "5.1": "2025-01-03",
+    "5.2": "2026-06-26",
+    "6.0": "2026-06-26"
+   }
+  },
+  {
+   "name": "django-ace",
+   "version": "1.44.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-activity-stream",
+   "version": "2.0.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-add-default-value",
+   "version": "0.10.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-admin-autocomplete-filter",
+   "version": "0.7.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-admin-data-views",
+   "version": "0.4.4",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "5.2": "2026-10-09",
+    "6.0": "2026-10-09",
+    "6.1": "2026-10-09"
+   }
+  },
+  {
+   "name": "django-admin-extra-buttons",
+   "version": "2.2.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-10-10",
+    "5.0": "2024-10-10",
+    "5.1": "2024-10-10",
+    "5.2": "2025-04-04",
+    "6.0": "2026-04-27"
+   }
+  },
+  {
+   "name": "django-admin-inline-paginator",
+   "version": "0.4.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-admin-interface",
+   "version": "0.32.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-18",
+    "5.0": "2023-12-05",
+    "5.1": "2024-10-23",
+    "5.2": "2025-04-03",
+    "6.0": "2025-12-19"
+   }
+  },
+  {
+   "name": "django-admin-list-filter-dropdown",
+   "version": "1.0.3",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-admin-logs",
+   "version": "1.5.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-admin-rangefilter",
+   "version": "0.15.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-admin-sortable2",
+   "version": "2.3.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-24",
+    "5.0": "2024-05-15",
+    "5.1": "2024-09-09",
+    "5.2": "2025-05-14"
+   }
+  },
+  {
+   "name": "django-admin-tools",
+   "version": "0.9.3",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-adminplus",
+   "version": "0.6",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-allauth",
+   "version": "65.19.7",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-08-22",
+    "5.0": "2023-10-26",
+    "5.1": "2024-08-15",
+    "5.2": "2025-04-03",
+    "6.0": "2025-11-20",
+    "6.1": "2026-08-06"
+   }
+  },
+  {
+   "name": "django-allow-cidr",
+   "version": "0.8.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-04-08",
+    "5.1": "2025-04-08",
+    "5.2": "2025-04-08"
+   }
+  },
+  {
+   "name": "django-annoying",
+   "version": "0.10.8",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-anymail",
+   "version": "15.2",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-02",
+    "5.0": "2023-10-25",
+    "5.1": "2024-09-09",
+    "5.2": "2025-04-03",
+    "6.0": "2025-12-18"
+   }
+  },
+  {
+   "name": "django-appconf",
+   "version": "1.2.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-11-20",
+    "5.0": "2023-11-20",
+    "5.1": "2025-02-13",
+    "5.2": "2025-02-13",
+    "6.0": "2025-11-08"
+   }
+  },
+  {
+   "name": "django-apscheduler",
+   "version": "0.7.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-09-28",
+    "5.0": "2024-09-28",
+    "5.1": "2024-09-28"
+   }
+  },
+  {
+   "name": "django-auditlog",
+   "version": "3.4.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-26",
+    "5.0": "2024-04-12",
+    "5.1": "2025-04-26",
+    "5.2": "2025-07-03"
+   }
+  },
+  {
+   "name": "django-auth-ldap",
+   "version": "5.3.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-26",
+    "5.0": "2024-03-23",
+    "5.1": "2024-10-08",
+    "5.2": "2025-05-07",
+    "6.0": "2025-12-26"
+   }
+  },
+  {
+   "name": "django-autocomplete-light",
+   "version": "5.0.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-10",
+    "5.0": "2025-01-28",
+    "5.1": "2025-02-26",
+    "5.2": "2026-04-23",
+    "6.0": "2026-04-23"
+   }
+  },
+  {
+   "name": "django-autoslug",
+   "version": "1.9.9",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-axes",
+   "version": "8.3.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-17",
+    "5.0": "2024-03-04",
+    "5.1": "2024-09-21",
+    "5.2": "2025-04-29",
+    "6.0": "2025-12-19"
+   }
+  },
+  {
+   "name": "django-better-admin-arrayfield",
+   "version": "1.4.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-bitfield",
+   "version": "2.4.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-bootstrap-form",
+   "version": "3.4",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-bootstrap3",
+   "version": "26.2",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-02",
+    "5.0": "2023-12-24",
+    "5.1": "2024-09-18",
+    "5.2": "2025-07-31",
+    "6.0": "2025-11-14",
+    "6.1": "2026-07-30"
+   }
+  },
+  {
+   "name": "django-bootstrap4",
+   "version": "26.2",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-05",
+    "5.0": "2023-12-24",
+    "5.1": "2024-09-19",
+    "5.2": "2025-07-31",
+    "6.0": "2025-11-14",
+    "6.1": "2026-08-28"
+   }
+  },
+  {
+   "name": "django-bootstrap5",
+   "version": "26.3",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-03",
+    "5.0": "2023-12-28",
+    "5.1": "2024-09-17",
+    "5.2": "2025-07-30",
+    "6.0": "2025-11-14",
+    "6.1": "2026-08-28"
+   }
+  },
+  {
+   "name": "django-braces",
+   "version": "1.17.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-10-09"
+   }
+  },
+  {
+   "name": "django-browser-reload",
+   "version": "1.21.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-02-25",
+    "5.0": "2023-10-11",
+    "5.1": "2024-06-19",
+    "5.2": "2025-02-06",
+    "6.0": "2025-09-18"
+   }
+  },
+  {
+   "name": "django-bulk-update",
+   "version": "2.2.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-cachalot",
+   "version": "2.9.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2023-07-21",
+    "5.0": "2024-01-11",
+    "5.1": "2024-08-12",
+    "5.2": "2025-04-17",
+    "6.0": "2026-01-28",
+    "6.1": "2026-08-10"
+   }
+  },
+  {
+   "name": "django-cache-memoize",
+   "version": "0.2.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-cache-url",
+   "version": "3.4.6",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-12-04",
+    "5.2": "2026-01-24",
+    "6.0": "2026-01-24"
+   }
+  },
+  {
+   "name": "django-cacheops",
+   "version": "7.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-03-15",
+    "5.0": "2024-11-01",
+    "5.1": "2025-04-20",
+    "5.2": "2025-04-20"
+   }
+  },
+  {
+   "name": "django-celery-beat",
+   "version": "2.9.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "blocked",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2023-03-14",
+    "5.0": "2024-03-03",
+    "5.1": "2024-08-22",
+    "5.2": "2025-04-16",
+    "6.0": "2026-02-28"
+   }
+  },
+  {
+   "name": "django-celery-email",
+   "version": "3.0.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-celery-results",
+   "version": "2.6.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-03-13",
+    "5.0": "2025-04-10",
+    "5.1": "2025-04-10",
+    "5.2": "2025-04-10"
+   }
+  },
+  {
+   "name": "django-choices-field",
+   "version": "4.0.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-21",
+    "5.0": "2024-03-08",
+    "5.1": "2025-08-10",
+    "5.2": "2025-08-10",
+    "6.0": "2025-12-27"
+   }
+  },
+  {
+   "name": "django-chunkator",
+   "version": "2.0.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-ckeditor",
+   "version": "6.7.3",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-02-08",
+    "5.0": "2024-02-08",
+    "5.1": "2025-06-06",
+    "5.2": "2025-06-06"
+   }
+  },
+  {
+   "name": "django-ckeditor-5",
+   "version": "0.2.20",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-02-21",
+    "5.2": "2026-02-21",
+    "6.0": "2026-02-21"
+   }
+  },
+  {
+   "name": "django-classy-tags",
+   "version": "4.1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-07-29"
+   }
+  },
+  {
+   "name": "django-cleanup",
+   "version": "9.0.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-14",
+    "5.0": "2024-01-29"
+   }
+  },
+  {
+   "name": "django-click",
+   "version": "2.5.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-01-10",
+    "5.2": "2026-01-10",
+    "6.0": "2026-01-10"
+   }
+  },
+  {
+   "name": "django-clickhouse-backend",
+   "version": "2.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-29",
+    "5.0": "2024-08-06",
+    "5.1": "2024-10-13",
+    "5.2": "2025-06-05",
+    "6.0": "2026-01-12",
+    "6.1": "2026-08-09"
+   }
+  },
+  {
+   "name": "django-clone",
+   "version": "5.5.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-12"
+   }
+  },
+  {
+   "name": "django-cloudinary-storage",
+   "version": "0.3.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-colorfield",
+   "version": "0.14.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-13",
+    "5.0": "2023-12-05",
+    "5.1": "2025-01-27",
+    "5.2": "2025-04-03"
+   }
+  },
+  {
+   "name": "django-compressor",
+   "version": "4.6.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-27",
+    "5.0": "2024-06-16",
+    "5.1": "2024-06-16",
+    "5.2": "2025-11-10",
+    "6.0": "2025-11-10"
+   }
+  },
+  {
+   "name": "django-concurrency",
+   "version": "2.8.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-04-03",
+    "5.1": "2025-04-03",
+    "5.2": "2026-04-04",
+    "6.0": "2026-04-04"
+   }
+  },
+  {
+   "name": "django-configurations",
+   "version": "2.5.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-04",
+    "5.0": "2024-03-27"
+   }
+  },
+  {
+   "name": "django-constance",
+   "version": "4.3.5",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-08-21",
+    "5.0": "2024-08-23",
+    "5.1": "2025-11-04",
+    "5.2": "2025-11-04"
+   }
+  },
+  {
+   "name": "django-contrib-comments",
+   "version": "2.2.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-cors-headers",
+   "version": "4.9.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-02-25",
+    "5.0": "2023-10-11",
+    "5.1": "2024-06-19",
+    "5.2": "2025-02-06",
+    "6.0": "2025-09-18"
+   }
+  },
+  {
+   "name": "django-cotton",
+   "version": "2.7.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-09-11",
+    "5.0": "2024-09-11",
+    "5.1": "2024-09-11",
+    "5.2": "2025-04-29",
+    "6.0": "2025-12-08"
+   }
+  },
+  {
+   "name": "django-countries",
+   "version": "9.1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-03-27",
+    "5.0": "2024-03-27",
+    "5.1": "2025-11-04",
+    "5.2": "2025-11-04",
+    "6.0": "2026-06-10",
+    "6.1": "2026-09-10"
+   }
+  },
+  {
+   "name": "django-coverage-plugin",
+   "version": "3.2.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-07-10",
+    "5.2": "2025-06-15",
+    "6.0": "2026-04-04"
+   }
+  },
+  {
+   "name": "django-crispy-forms",
+   "version": "2.7",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-15",
+    "5.0": "2023-10-15",
+    "5.1": "2024-06-15",
+    "5.2": "2025-04-13",
+    "6.0": "2025-11-06",
+    "6.1": "2026-07-29"
+   }
+  },
+  {
+   "name": "django-crontab",
+   "version": "0.7.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-crum",
+   "version": "0.7.9",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-cryptography-django5",
+   "version": "2.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "5.0": "2024-06-04"
+   }
+  },
+  {
+   "name": "django-csp",
+   "version": "4.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-03-01",
+    "5.0": "2024-03-01",
+    "5.1": "2025-04-02",
+    "5.2": "2025-04-02"
+   }
+  },
+  {
+   "name": "django-cte",
+   "version": "4.0.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-11-21",
+    "5.1": "2025-06-16",
+    "5.2": "2025-06-16",
+    "6.0": "2026-08-31",
+    "6.1": "2026-08-31"
+   }
+  },
+  {
+   "name": "django-currentuser",
+   "version": "0.10.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "blocked",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2023-08-22",
+    "5.0": "2024-02-21",
+    "5.1": "2024-08-26",
+    "5.2": "2025-04-08",
+    "6.0": "2026-01-21"
+   }
+  },
+  {
+   "name": "django-custom-commands",
+   "version": "0.1.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "ready",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "5.1": "2024-10-30"
+   }
+  },
+  {
+   "name": "django-datadog-logger",
+   "version": "0.9.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-03-17",
+    "5.2": "2026-03-17",
+    "6.0": "2026-03-17"
+   }
+  },
+  {
+   "name": "django-db-connection-pool",
+   "version": "1.2.6",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-dbbackup",
+   "version": "5.3.1",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-01-15",
+    "5.0": "2024-01-15",
+    "5.1": "2025-05-09",
+    "5.2": "2025-05-09",
+    "6.0": "2026-04-10"
+   }
+  },
+  {
+   "name": "django-debug-toolbar",
+   "version": "8.0.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-03",
+    "5.0": "2024-02-01",
+    "5.1": "2025-01-14",
+    "5.2": "2025-03-20",
+    "6.0": "2026-01-20",
+    "6.1": "2026-08-10"
+   }
+  },
+  {
+   "name": "django-deprecate-fields",
+   "version": "0.2.3",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-dirtyfields",
+   "version": "1.9.9",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-12",
+    "5.0": "2024-05-24",
+    "5.1": "2024-11-13",
+    "5.2": "2025-11-17",
+    "6.0": "2026-01-22"
+   }
+  },
+  {
+   "name": "django-dotenv",
+   "version": "1.4.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-dramatiq",
+   "version": "0.15.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-07-05",
+    "5.0": "2024-12-29",
+    "5.1": "2024-12-29"
+   }
+  },
+  {
+   "name": "django-dynamic-fixture",
+   "version": "4.0.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-dynamic-preferences",
+   "version": "1.17.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-eagle",
+   "version": "0.1.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "5.2": "2026-06-17"
+   }
+  },
+  {
+   "name": "django-elasticsearch-dsl",
+   "version": "9.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-01",
+    "5.0": "2025-07-23",
+    "5.1": "2025-07-23",
+    "5.2": "2025-07-23"
+   }
+  },
+  {
+   "name": "django-encrypted-model-fields",
+   "version": "0.6.5",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-enum",
+   "version": "2.5.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2023-04-09",
+    "5.0": "2023-12-13",
+    "5.1": "2024-07-16",
+    "5.2": "2025-03-30",
+    "6.0": "2025-09-27",
+    "6.1": "2026-07-31"
+   }
+  },
+  {
+   "name": "django-environ",
+   "version": "0.14.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-09-01",
+    "5.0": "2025-01-13",
+    "5.1": "2025-01-13",
+    "5.2": "2026-02-18",
+    "6.0": "2026-02-18"
+   }
+  },
+  {
+   "name": "django-esi",
+   "version": "10.0.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-07",
+    "5.0": "2024-03-16",
+    "5.1": "2024-08-24",
+    "5.2": "2025-07-05",
+    "6.0": "2026-03-24",
+    "6.1": "2026-08-18"
+   }
+  },
+  {
+   "name": "django-etc",
+   "version": "1.4.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-eveonline-sde",
+   "version": "0.2.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-07-31"
+   }
+  },
+  {
+   "name": "django-extensions",
+   "version": "4.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-05",
+    "5.1": "2025-04-08",
+    "5.2": "2025-04-08"
+   }
+  },
+  {
+   "name": "django-extra-views",
+   "version": "0.16.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-fast-update",
+   "version": "0.3.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-13",
+    "5.2": "2025-08-04"
+   }
+  },
+  {
+   "name": "django-fernet-encrypted-fields",
+   "version": "0.4.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-fernet-fields-v2",
+   "version": "0.9",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-filter",
+   "version": "26.2",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-03-26",
+    "5.0": "2023-11-20",
+    "5.1": "2024-08-02",
+    "5.2": "2025-02-14",
+    "6.0": "2025-10-05",
+    "6.1": "2026-07-11"
+   }
+  },
+  {
+   "name": "django-fixture-magic",
+   "version": "0.1.5",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-flags",
+   "version": "5.2.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-08",
+    "5.1": "2025-05-01",
+    "5.2": "2025-05-01",
+    "6.0": "2026-02-10"
+   }
+  },
+  {
+   "name": "django-formtools",
+   "version": "2.7",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-13",
+    "5.0": "2023-12-19",
+    "5.1": "2026-05-16",
+    "5.2": "2026-05-16",
+    "6.0": "2026-05-16"
+   }
+  },
+  {
+   "name": "django-fsm",
+   "version": "3.0.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-10-07",
+    "5.0": "2024-04-09",
+    "5.1": "2025-10-07",
+    "5.2": "2025-10-07"
+   }
+  },
+  {
+   "name": "django-fsm-2",
+   "version": "4.2.4",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-03-26",
+    "5.0": "2024-03-26",
+    "5.1": "2024-09-02",
+    "5.2": "2025-11-03",
+    "6.0": "2025-11-03"
+   }
+  },
+  {
+   "name": "django-fsm-log",
+   "version": "5.0.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-01-27",
+    "5.0": "2026-01-27",
+    "5.1": "2026-01-27",
+    "5.2": "2026-01-27",
+    "6.0": "2026-01-27"
+   }
+  },
+  {
+   "name": "django-google-sso",
+   "version": "10.0.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-19",
+    "5.0": "2023-12-20",
+    "5.1": "2024-08-29",
+    "5.2": "2025-09-09",
+    "6.0": "2026-06-17"
+   }
+  },
+  {
+   "name": "django-graphql-jwt",
+   "version": "0.4.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-08-04"
+   }
+  },
+  {
+   "name": "django-grappelli",
+   "version": "5.0.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-guardian",
+   "version": "3.5.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-05-07",
+    "5.0": "2025-05-07",
+    "5.1": "2025-05-07",
+    "5.2": "2025-06-25",
+    "6.0": "2026-08-28"
+   }
+  },
+  {
+   "name": "django-guid",
+   "version": "3.6.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "blocked",
+    "6.1": "blocked",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2023-06-16",
+    "5.0": "2024-01-03",
+    "5.1": "2025-02-07",
+    "5.2": "2025-07-22"
+   }
+  },
+  {
+   "name": "django-hashid-field",
+   "version": "3.4.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-01-09",
+    "5.0": "2024-01-09"
+   }
+  },
+  {
+   "name": "django-haystack",
+   "version": "3.4.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-06-04",
+    "5.0": "2024-06-04",
+    "5.1": "2026-06-04",
+    "5.2": "2026-06-04"
+   }
+  },
+  {
+   "name": "django-health-check",
+   "version": "4.8.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-01-27",
+    "5.0": "2024-01-27",
+    "5.2": "2025-06-03",
+    "6.0": "2025-12-19",
+    "6.1": "2026-08-07"
+   }
+  },
+  {
+   "name": "django-hijack",
+   "version": "3.7.9",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-23",
+    "5.0": "2023-12-13",
+    "5.2": "2025-07-07",
+    "6.0": "2026-01-06"
+   }
+  },
+  {
+   "name": "django-hosts",
+   "version": "7.0.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-06-19",
+    "5.1": "2025-06-19",
+    "5.2": "2025-06-19"
+   }
+  },
+  {
+   "name": "django-htmlmin",
+   "version": "0.11.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-htmx",
+   "version": "1.29.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-02-25",
+    "5.0": "2023-10-11",
+    "5.1": "2024-06-19",
+    "5.2": "2025-02-06",
+    "6.0": "2025-09-18",
+    "6.1": "2026-07-12"
+   }
+  },
+  {
+   "name": "django-ical",
+   "version": "1.9.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-imagekit",
+   "version": "6.1.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-impersonate",
+   "version": "1.9.5",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-11-23",
+    "5.0": "2023-11-23"
+   }
+  },
+  {
+   "name": "django-import-export",
+   "version": "4.4.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-09-14",
+    "5.0": "2023-12-09",
+    "5.1": "2024-10-23",
+    "5.2": "2025-02-21"
+   }
+  },
+  {
+   "name": "django-ipware",
+   "version": "8.0.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "5.2": "2026-09-22",
+    "6.0": "2026-09-22",
+    "6.1": "2026-09-22"
+   }
+  },
+  {
+   "name": "django-jazzmin",
+   "version": "3.0.5",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-04-18",
+    "5.0": "2024-04-18",
+    "5.1": "2026-02-08",
+    "5.2": "2026-02-08",
+    "6.0": "2026-02-08"
+   }
+  },
+  {
+   "name": "django-jinja",
+   "version": "2.11.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-09-03"
+   }
+  },
+  {
+   "name": "django-js-asset",
+   "version": "4.2.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-json-widget",
+   "version": "2.1.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-03-25",
+    "5.0": "2024-03-25",
+    "5.2": "2025-10-11"
+   }
+  },
+  {
+   "name": "django-jsonform",
+   "version": "2.23.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-libsass",
+   "version": "0.9",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-lifecycle",
+   "version": "1.3.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-09-05",
+    "5.0": "2023-11-01",
+    "5.2": "2026-01-25",
+    "6.0": "2026-06-14"
+   }
+  },
+  {
+   "name": "django-linear-migrations",
+   "version": "2.19.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-02-25",
+    "5.0": "2023-10-11",
+    "5.1": "2024-06-19",
+    "5.2": "2025-02-06",
+    "6.0": "2025-09-18"
+   }
+  },
+  {
+   "name": "django-localflavor",
+   "version": "5.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-22",
+    "5.0": "2025-05-21",
+    "5.1": "2025-05-21",
+    "5.2": "2025-05-21"
+   }
+  },
+  {
+   "name": "django-log-request-id",
+   "version": "2.1.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-loginas",
+   "version": "0.3.14",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-10-14",
+    "5.0": "2025-10-14",
+    "5.1": "2025-10-14",
+    "5.2": "2025-10-14",
+    "6.0": "2025-10-14"
+   }
+  },
+  {
+   "name": "django-maintenance-mode",
+   "version": "0.23.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-03",
+    "5.0": "2023-12-05",
+    "5.1": "2025-04-03",
+    "5.2": "2025-04-03",
+    "6.0": "2026-07-14"
+   }
+  },
+  {
+   "name": "django-markdownx",
+   "version": "4.0.11",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-17",
+    "5.1": "2026-05-21",
+    "5.2": "2026-05-21",
+    "6.0": "2026-05-23"
+   }
+  },
+  {
+   "name": "django-mathfilters",
+   "version": "1.0.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-mcp-server",
+   "version": "0.5.7",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-memoize",
+   "version": "2.3.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-memoized-prefetch",
+   "version": "0.1.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-migration-linter",
+   "version": "6.0.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-07-09",
+    "5.0": "2024-03-30",
+    "5.1": "2025-03-30",
+    "5.2": "2026-01-04",
+    "6.0": "2026-01-04"
+   }
+  },
+  {
+   "name": "django-migrations-git-conflicts",
+   "version": "1.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-mock-queries",
+   "version": "2.4.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-model-utils",
+   "version": "5.0.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-02-11",
+    "5.0": "2024-02-11",
+    "5.1": "2024-09-04"
+   }
+  },
+  {
+   "name": "django-modelcluster",
+   "version": "6.5",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-modeltranslation",
+   "version": "0.20.6",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-money",
+   "version": "3.6.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-08-01",
+    "5.0": "2024-08-01",
+    "5.1": "2024-08-01",
+    "5.2": "2025-04-17"
+   }
+  },
+  {
+   "name": "django-mptt",
+   "version": "0.18.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-09-27",
+    "5.0": "2025-04-04",
+    "5.1": "2025-04-04",
+    "5.2": "2025-04-04"
+   }
+  },
+  {
+   "name": "django-multiselectfield",
+   "version": "1.0.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-06-12",
+    "5.0": "2025-06-12",
+    "5.1": "2025-06-12"
+   }
+  },
+  {
+   "name": "django-mysql",
+   "version": "4.19.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-02-25",
+    "5.0": "2023-10-11",
+    "5.1": "2024-06-19",
+    "5.2": "2025-02-06",
+    "6.0": "2025-09-18"
+   }
+  },
+  {
+   "name": "django-nested-admin",
+   "version": "4.1.6",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-netfields",
+   "version": "1.5.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-ninja",
+   "version": "1.7.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-27",
+    "5.0": "2023-12-07",
+    "5.1": "2024-08-15",
+    "5.2": "2025-11-13",
+    "6.0": "2025-12-04",
+    "6.1": "2026-08-17"
+   }
+  },
+  {
+   "name": "django-ninja-extra",
+   "version": "0.31.7",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-12-10",
+    "5.0": "2023-12-10",
+    "6.0": "2026-06-14"
+   }
+  },
+  {
+   "name": "django-ninja-jwt",
+   "version": "5.4.5",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-nonrelated-inlines",
+   "version": "0.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-nose",
+   "version": "1.4.7",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-oauth-toolkit",
+   "version": "3.4.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-31",
+    "5.0": "2024-05-20",
+    "5.1": "2024-09-06",
+    "5.2": "2026-01-08",
+    "6.0": "2026-05-29"
+   }
+  },
+  {
+   "name": "django-object-actions",
+   "version": "5.1.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-opensearch-dsl",
+   "version": "0.8.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-03-22",
+    "5.0": "2024-03-22",
+    "5.1": "2025-04-11",
+    "5.2": "2025-04-11"
+   }
+  },
+  {
+   "name": "django-ordered-model",
+   "version": "3.7.4",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-otp",
+   "version": "1.7.4",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-04-02",
+    "5.1": "2025-04-02",
+    "5.2": "2025-04-02"
+   }
+  },
+  {
+   "name": "django-pandas",
+   "version": "0.6.7",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-parler",
+   "version": "2.4",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "5.1": "2026-05-14",
+    "5.2": "2026-05-14",
+    "6.0": "2026-05-14"
+   }
+  },
+  {
+   "name": "django-permissionedforms",
+   "version": "0.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-permissions-policy",
+   "version": "4.34.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-02-25",
+    "5.0": "2023-10-09",
+    "5.1": "2024-06-19",
+    "5.2": "2025-02-06",
+    "6.0": "2025-09-18",
+    "6.1": "2026-06-26"
+   }
+  },
+  {
+   "name": "django-pg-zero-downtime-migrations",
+   "version": "0.20",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-24",
+    "5.0": "2024-02-21",
+    "5.1": "2025-02-16",
+    "5.2": "2025-06-06",
+    "6.0": "2026-08-26",
+    "6.1": "2026-08-26"
+   }
+  },
+  {
+   "name": "django-pgactivity",
+   "version": "1.8.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-08",
+    "5.0": "2023-11-26",
+    "5.1": "2024-08-25",
+    "5.2": "2025-11-30",
+    "6.0": "2025-11-30"
+   }
+  },
+  {
+   "name": "django-pghistory",
+   "version": "3.9.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-08",
+    "5.0": "2023-11-26",
+    "5.1": "2024-08-27",
+    "5.2": "2025-04-21",
+    "6.0": "2025-11-30"
+   }
+  },
+  {
+   "name": "django-pglock",
+   "version": "1.8.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-08",
+    "5.0": "2023-11-26",
+    "5.1": "2024-08-25",
+    "5.2": "2025-11-30",
+    "6.0": "2025-11-30"
+   }
+  },
+  {
+   "name": "django-pglocks",
+   "version": "2.1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-06-21",
+    "5.0": "2026-06-21",
+    "5.1": "2026-06-21",
+    "5.2": "2026-06-21"
+   }
+  },
+  {
+   "name": "django-pgmigrate",
+   "version": "1.6.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-09",
+    "5.0": "2023-11-26",
+    "5.1": "2024-08-25",
+    "5.2": "2025-11-30",
+    "6.0": "2025-11-30"
+   }
+  },
+  {
+   "name": "django-pgtransaction",
+   "version": "2.1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-09",
+    "5.0": "2023-11-26",
+    "5.1": "2024-08-25",
+    "5.2": "2025-11-30",
+    "6.0": "2025-11-30"
+   }
+  },
+  {
+   "name": "django-pgtrigger",
+   "version": "4.17.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-08",
+    "5.0": "2023-11-26",
+    "5.1": "2024-08-26",
+    "5.2": "2025-04-18",
+    "6.0": "2025-11-30"
+   }
+  },
+  {
+   "name": "django-pgviews-redux",
+   "version": "1.2.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-02-27",
+    "5.0": "2024-05-30",
+    "5.1": "2024-11-27",
+    "5.2": "2025-11-10",
+    "6.0": "2025-12-23"
+   }
+  },
+  {
+   "name": "django-phonenumber-field",
+   "version": "8.5.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-26",
+    "5.0": "2023-12-29",
+    "5.1": "2025-04-10",
+    "5.2": "2025-04-10",
+    "6.0": "2025-11-24"
+   }
+  },
+  {
+   "name": "django-picklefield",
+   "version": "3.4.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-04-05",
+    "5.0": "2024-04-05",
+    "5.1": "2025-03-13",
+    "5.2": "2025-03-13",
+    "6.0": "2025-11-27"
+   }
+  },
+  {
+   "name": "django-pipeline",
+   "version": "4.1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-12-27",
+    "5.0": "2023-12-27",
+    "5.1": "2024-12-06",
+    "5.2": "2025-09-13"
+   }
+  },
+  {
+   "name": "django-polymorphic",
+   "version": "4.11.7",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-05-20",
+    "5.0": "2025-05-20",
+    "5.1": "2025-12-04",
+    "5.2": "2025-12-04",
+    "6.0": "2025-12-04",
+    "6.1": "2026-08-01"
+   }
+  },
+  {
+   "name": "django-postgres-copy",
+   "version": "2.8.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-12-30",
+    "5.1": "2025-06-22",
+    "5.2": "2025-06-22"
+   }
+  },
+  {
+   "name": "django-postgres-extra",
+   "version": "3.0.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "blocked",
+    "6.1": "blocked",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2025-07-11",
+    "5.0": "2025-07-11",
+    "5.1": "2025-07-11",
+    "5.2": "2025-07-11"
+   }
+  },
+  {
+   "name": "django-prettyjson",
+   "version": "0.4.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-prometheus",
+   "version": "2.5.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "blocked",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "blocked",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2023-05-02",
+    "5.0": "2025-06-18",
+    "5.1": "2025-06-18",
+    "5.2": "2025-06-18",
+    "6.0": "2026-05-26"
+   }
+  },
+  {
+   "name": "django-push-notifications",
+   "version": "3.3.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-pydantic-field",
+   "version": "0.5.4",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-03",
+    "5.0": "2023-12-04",
+    "5.1": "2024-12-20",
+    "5.2": "2025-07-06",
+    "6.0": "2025-12-13"
+   }
+  },
+  {
+   "name": "django-q2",
+   "version": "1.11.1",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-13",
+    "5.0": "2024-03-05",
+    "5.1": "2024-09-09",
+    "5.2": "2025-04-25"
+   }
+  },
+  {
+   "name": "django-querycount",
+   "version": "0.8.3",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-ratelimit",
+   "version": "4.1.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-recaptcha",
+   "version": "4.1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-11-16",
+    "5.0": "2025-03-28",
+    "5.1": "2025-03-28",
+    "5.2": "2025-03-28"
+   }
+  },
+  {
+   "name": "django-recurrence",
+   "version": "1.14",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-12-19",
+    "5.2": "2025-12-19",
+    "6.0": "2025-12-19"
+   }
+  },
+  {
+   "name": "django-redis",
+   "version": "7.0.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-16",
+    "5.0": "2025-06-17",
+    "5.1": "2025-06-17",
+    "5.2": "2025-06-17",
+    "6.0": "2026-06-02"
+   }
+  },
+  {
+   "name": "django-registration",
+   "version": "5.2.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "blocked",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-07-04",
+    "5.0": "2024-11-08",
+    "5.1": "2024-11-08",
+    "5.2": "2025-04-07"
+   }
+  },
+  {
+   "name": "django-render-block",
+   "version": "0.11",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-05-13",
+    "5.1": "2025-05-13",
+    "5.2": "2025-05-13"
+   }
+  },
+  {
+   "name": "django-request-logging",
+   "version": "0.7.5",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-rest-knox",
+   "version": "5.1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-07-12",
+    "5.0": "2026-07-12",
+    "5.2": "2026-07-12",
+    "6.0": "2026-07-12"
+   }
+  },
+  {
+   "name": "django-rest-passwordreset",
+   "version": "1.6.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-02-09",
+    "5.0": "2024-11-05",
+    "5.1": "2024-11-05",
+    "5.2": "2026-06-29",
+    "6.0": "2026-06-29"
+   }
+  },
+  {
+   "name": "django-rest-polymorphic",
+   "version": "0.1.10",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-rest-swagger",
+   "version": "2.2.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-reversion",
+   "version": "6.3.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-05-12",
+    "5.2": "2026-05-12",
+    "6.0": "2026-05-12"
+   }
+  },
+  {
+   "name": "django-revproxy",
+   "version": "0.13.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-20"
+   }
+  },
+  {
+   "name": "django-rich",
+   "version": "2.2.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-02-25",
+    "5.0": "2023-10-11",
+    "5.1": "2024-06-19",
+    "5.2": "2025-02-06",
+    "6.0": "2025-09-18"
+   }
+  },
+  {
+   "name": "django-rosetta",
+   "version": "0.10.3",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-12-04",
+    "5.0": "2023-12-04"
+   }
+  },
+  {
+   "name": "django-rq",
+   "version": "4.2.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-safedelete",
+   "version": "1.5.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-safemigrate",
+   "version": "6.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-09-13"
+   }
+  },
+  {
+   "name": "django-sass-processor",
+   "version": "1.4.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-11-06",
+    "5.0": "2023-12-12",
+    "5.1": "2025-06-26",
+    "5.2": "2025-06-26"
+   }
+  },
+  {
+   "name": "django-scim2",
+   "version": "0.23.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "blocked",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2026-07-01",
+    "5.0": "2026-08-06",
+    "5.1": "2026-08-06",
+    "5.2": "2026-08-06",
+    "6.0": "2026-08-12"
+   }
+  },
+  {
+   "name": "django-seal",
+   "version": "1.7.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-26",
+    "5.0": "2024-08-13",
+    "5.1": "2024-08-13",
+    "5.2": "2025-07-08"
+   }
+  },
+  {
+   "name": "django-sekizai",
+   "version": "4.1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-02"
+   }
+  },
+  {
+   "name": "django-select2",
+   "version": "8.4.8",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-23",
+    "5.1": "2025-02-09",
+    "5.2": "2025-12-18",
+    "6.0": "2025-12-18"
+   }
+  },
+  {
+   "name": "django-sendgrid-v5",
+   "version": "1.3.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-sequences",
+   "version": "3.1",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-07-30",
+    "5.0": "2023-12-16",
+    "5.2": "2026-10-02",
+    "6.0": "2026-10-02",
+    "6.1": "2026-10-02"
+   }
+  },
+  {
+   "name": "django-ses",
+   "version": "4.8.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-11-25",
+    "5.0": "2024-04-19",
+    "5.1": "2026-09-03",
+    "5.2": "2026-01-05",
+    "6.0": "2026-01-05",
+    "6.1": "2026-09-03"
+   }
+  },
+  {
+   "name": "django-sesame",
+   "version": "3.2.5",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "5.2": "2025-05-02",
+    "6.0": "2026-10-02",
+    "6.1": "2026-10-02"
+   }
+  },
+  {
+   "name": "django-settings-holder",
+   "version": "0.3.1",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-01-13",
+    "5.0": "2024-01-13",
+    "5.1": "2024-10-31",
+    "5.2": "2025-04-27",
+    "6.0": "2026-10-09",
+    "6.1": "2026-10-09"
+   }
+  },
+  {
+   "name": "django-signal-webhooks",
+   "version": "0.3.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-11-25",
+    "5.0": "2024-10-31",
+    "5.1": "2024-10-31"
+   }
+  },
+  {
+   "name": "django-silk",
+   "version": "5.6.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-01-22",
+    "5.0": "2024-01-22",
+    "5.1": "2024-08-20",
+    "5.2": "2025-06-01",
+    "6.0": "2026-03-08",
+    "6.1": "2026-09-12"
+   }
+  },
+  {
+   "name": "django-simple-captcha",
+   "version": "0.7.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-simple-history",
+   "version": "3.13.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-09-14",
+    "5.0": "2024-02-23",
+    "5.1": "2025-01-23",
+    "5.2": "2025-01-23",
+    "6.0": "2025-12-11"
+   }
+  },
+  {
+   "name": "django-slowtests",
+   "version": "1.1.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-snowflake",
+   "version": "6.1",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "blocked",
+    "6.0": "blocked",
+    "6.1": "ready",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2023-12-16",
+    "5.0": "2023-12-17",
+    "5.1": "2024-08-14",
+    "5.2": "2025-05-27",
+    "6.0": "2025-12-06",
+    "6.1": "2026-08-19"
+   }
+  },
+  {
+   "name": "django-softdelete",
+   "version": "0.11.5",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-solo",
+   "version": "2.5.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-25",
+    "5.0": "2024-01-13",
+    "5.1": "2024-10-19",
+    "5.2": "2026-01-01",
+    "6.0": "2026-01-01"
+   }
+  },
+  {
+   "name": "django-sortedm2m",
+   "version": "4.0.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-08-11",
+    "5.0": "2024-08-11",
+    "5.1": "2024-08-11"
+   }
+  },
+  {
+   "name": "django-split-settings",
+   "version": "1.3.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-03-09",
+    "5.0": "2024-03-09"
+   }
+  },
+  {
+   "name": "django-sql-explorer",
+   "version": "5.3.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-02-25",
+    "5.0": "2024-02-07"
+   }
+  },
+  {
+   "name": "django-sql-utils",
+   "version": "0.7.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-sslserver",
+   "version": "0.22",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-statici18n",
+   "version": "2.8.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2026-03-15",
+    "5.0": "2026-03-15",
+    "5.1": "2026-03-15",
+    "5.2": "2026-03-15",
+    "6.0": "2026-03-15",
+    "6.1": "2026-09-02"
+   }
+  },
+  {
+   "name": "django-storages",
+   "version": "1.14.6",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-09-04",
+    "5.0": "2024-05-04",
+    "5.1": "2025-02-15"
+   }
+  },
+  {
+   "name": "django-structlog",
+   "version": "10.1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-03-23",
+    "5.0": "2023-12-13",
+    "5.1": "2024-11-27",
+    "5.2": "2025-04-05"
+   }
+  },
+  {
+   "name": "django-stubs",
+   "version": "6.1.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-27",
+    "5.0": "2024-04-30",
+    "5.1": "2024-10-26",
+    "5.2": "2025-04-26",
+    "6.0": "2026-03-17",
+    "6.1": "2026-08-12"
+   }
+  },
+  {
+   "name": "django-stubs-ext",
+   "version": "6.1.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-27",
+    "5.0": "2024-04-30",
+    "5.1": "2025-04-26",
+    "5.2": "2025-04-26",
+    "6.0": "2026-03-17",
+    "6.1": "2026-08-12"
+   }
+  },
+  {
+   "name": "django-tables2",
+   "version": "3.0.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-27",
+    "5.0": "2023-12-05",
+    "5.1": "2024-12-21",
+    "5.2": "2025-11-21",
+    "6.0": "2026-04-13"
+   }
+  },
+  {
+   "name": "django-taggit",
+   "version": "6.1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-29",
+    "5.0": "2024-07-29"
+   }
+  },
+  {
+   "name": "django-tailwind",
+   "version": "4.5.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-07-08",
+    "5.0": "2025-07-08",
+    "5.1": "2025-07-08",
+    "5.2": "2025-07-08",
+    "6.0": "2026-06-12"
+   }
+  },
+  {
+   "name": "django-tasks",
+   "version": "0.12.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-05-30",
+    "5.0": "2024-05-30",
+    "5.1": "2024-08-12",
+    "5.2": "2025-04-27",
+    "6.0": "2025-10-17"
+   }
+  },
+  {
+   "name": "django-tasks-db",
+   "version": "0.13.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-02-06",
+    "5.0": "2026-02-06",
+    "5.1": "2026-02-06",
+    "5.2": "2026-02-06",
+    "6.0": "2026-02-06"
+   }
+  },
+  {
+   "name": "django-template-partials",
+   "version": "25.3",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-11-20",
+    "5.0": "2023-11-20",
+    "5.1": "2024-08-16",
+    "5.2": "2025-09-17",
+    "6.0": "2025-09-17"
+   }
+  },
+  {
+   "name": "django-templated-email",
+   "version": "3.1.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-templated-mail",
+   "version": "1.1.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-tenants",
+   "version": "4.0.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2023-05-11",
+    "5.0": "2023-12-04",
+    "5.1": "2024-08-27",
+    "5.2": "2025-05-23",
+    "6.0": "2026-02-04",
+    "6.1": "2026-08-05"
+   }
+  },
+  {
+   "name": "django-tenants-smart-executor",
+   "version": "0.3.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-test-migrations",
+   "version": "1.7.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-06-28",
+    "5.0": "2024-06-28",
+    "5.1": "2025-04-18",
+    "5.2": "2025-04-18",
+    "6.0": "2026-08-05",
+    "6.1": "2026-08-05"
+   }
+  },
+  {
+   "name": "django-test-plus",
+   "version": "2.6.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-27",
+    "5.0": "2024-06-24",
+    "5.1": "2025-07-02",
+    "5.2": "2025-07-02",
+    "6.0": "2025-12-19",
+    "6.1": "2026-07-29"
+   }
+  },
+  {
+   "name": "django-timezone-field",
+   "version": "7.2.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2023-06-18",
+    "5.0": "2023-11-25",
+    "5.1": "2024-07-07",
+    "5.2": "2025-12-06",
+    "6.0": "2025-12-06",
+    "6.1": "2026-06-06"
+   }
+  },
+  {
+   "name": "django-tinymce",
+   "version": "5.0.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-02-06",
+    "5.0": "2024-02-06",
+    "5.1": "2025-10-21",
+    "5.2": "2025-10-21"
+   }
+  },
+  {
+   "name": "django-tree-queries",
+   "version": "0.26.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-treebeard",
+   "version": "7.0.2",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-17",
+    "5.0": "2024-01-31",
+    "5.1": "2025-12-03",
+    "5.2": "2025-12-03",
+    "6.0": "2026-02-11",
+    "6.1": "2026-08-04"
+   }
+  },
+  {
+   "name": "django-two-factor-auth",
+   "version": "1.18.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-06",
+    "5.0": "2024-02-03",
+    "5.1": "2024-08-12",
+    "5.2": "2025-09-16"
+   }
+  },
+  {
+   "name": "django-typer",
+   "version": "4.1.1",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2024-02-26",
+    "5.0": "2024-02-26",
+    "5.1": "2024-07-15",
+    "5.2": "2025-04-02",
+    "6.0": "2025-09-27",
+    "6.1": "2026-07-31"
+   }
+  },
+  {
+   "name": "django-unfold",
+   "version": "0.108.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-01-02",
+    "5.0": "2026-01-02",
+    "5.1": "2026-01-02",
+    "5.2": "2026-01-02",
+    "6.0": "2026-01-02",
+    "6.1": "2026-08-10"
+   }
+  },
+  {
+   "name": "django-upgrade",
+   "version": "1.33.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-05-10",
+    "5.0": "2024-05-10",
+    "5.1": "2025-03-27",
+    "5.2": "2025-03-27",
+    "6.0": "2026-02-24"
+   }
+  },
+  {
+   "name": "django-user-agents",
+   "version": "0.4.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-user-sessions",
+   "version": "2.0.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "django-viewflow",
+   "version": "2.4.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-04-09",
+    "5.0": "2024-04-09",
+    "5.1": "2025-03-27",
+    "5.2": "2025-03-27",
+    "6.0": "2025-11-24"
+   }
+  },
+  {
+   "name": "django-vite",
+   "version": "3.2.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-11-14"
+   }
+  },
+  {
+   "name": "django-waffle",
+   "version": "5.0.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-11-15",
+    "5.0": "2024-11-15",
+    "5.1": "2024-11-15",
+    "5.2": "2025-06-12"
+   }
+  },
+  {
+   "name": "django-watchfiles",
+   "version": "1.4.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-11",
+    "5.0": "2023-10-11",
+    "5.1": "2024-06-19",
+    "5.2": "2025-02-06",
+    "6.0": "2025-09-18"
+   }
+  },
+  {
+   "name": "django-watchman",
+   "version": "1.5.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2026-02-21",
+    "5.1": "2026-02-21",
+    "5.2": "2026-02-21"
+   }
+  },
+  {
+   "name": "django-weasyprint",
+   "version": "2.6.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-08-17",
+    "5.0": "2023-12-06",
+    "5.1": "2025-01-07",
+    "5.2": "2026-04-10",
+    "6.0": "2026-04-10",
+    "6.1": "2026-10-01"
+   }
+  },
+  {
+   "name": "django-webpack-loader",
+   "version": "3.2.4",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-14",
+    "5.0": "2024-01-16",
+    "5.1": "2024-08-30",
+    "5.2": "2025-06-16"
+   }
+  },
+  {
+   "name": "django-webtest",
+   "version": "1.9.14",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-09-18",
+    "5.0": "2024-08-30",
+    "5.1": "2025-04-03",
+    "5.2": "2025-04-03"
+   }
+  },
+  {
+   "name": "django-widget-tweaks",
+   "version": "1.5.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-08-25",
+    "5.0": "2026-01-02",
+    "5.1": "2026-01-02",
+    "5.2": "2026-01-02"
+   }
+  },
+  {
+   "name": "django-zen-queries",
+   "version": "2.1.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "djangorestframework",
+   "version": "3.18.3",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-03-16",
+    "5.0": "2024-03-16",
+    "5.1": "2025-03-28",
+    "5.2": "2025-03-28",
+    "6.0": "2026-03-18",
+    "6.1": "2026-08-07"
+   }
+  },
+  {
+   "name": "djangorestframework-api-key",
+   "version": "3.1.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-19",
+    "5.2": "2025-04-04"
+   }
+  },
+  {
+   "name": "djangorestframework-csv",
+   "version": "3.0.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "djangorestframework-dataclasses",
+   "version": "1.4.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-08-21"
+   }
+  },
+  {
+   "name": "djangorestframework-datatables",
+   "version": "0.7.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-03-06",
+    "5.0": "2024-06-14"
+   }
+  },
+  {
+   "name": "djangorestframework-filters",
+   "version": "0.11.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "djangorestframework-gis",
+   "version": "1.3.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "djangorestframework-jsonapi",
+   "version": "8.1.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "djangorestframework-recursive",
+   "version": "0.1.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "djangorestframework-role-filters",
+   "version": "1.1.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "djangorestframework-simplejwt",
+   "version": "5.5.1",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-08-21",
+    "5.0": "2025-01-07",
+    "5.1": "2025-01-07",
+    "5.2": "2025-07-21"
+   }
+  },
+  {
+   "name": "djangorestframework-stubs",
+   "version": "3.18.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "djangorestframework-xml",
+   "version": "2.0.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "djangosaml2",
+   "version": "1.12.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-07-03",
+    "5.0": "2023-10-25",
+    "5.1": "2025-03-20",
+    "5.2": "2026-02-17"
+   }
+  },
+  {
+   "name": "drf-extensions",
+   "version": "0.8.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "blocked",
+    "6.1": "blocked",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2025-04-10",
+    "5.0": "2025-04-10",
+    "5.1": "2025-04-10",
+    "5.2": "2025-04-10"
+   }
+  },
+  {
+   "name": "drf-extra-fields",
+   "version": "3.7.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "drf-jwt",
+   "version": "1.19.2",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "drf-nested-routers",
+   "version": "0.95.3",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-12-19",
+    "5.0": "2024-05-10",
+    "5.1": "2026-07-31",
+    "5.2": "2026-07-31"
+   }
+  },
+  {
+   "name": "drf-orjson-renderer",
+   "version": "1.8.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "drf-spectacular",
+   "version": "0.30.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-04-15",
+    "5.0": "2024-04-01",
+    "5.1": "2024-11-30",
+    "5.2": "2025-11-02",
+    "6.0": "2026-07-06"
+   }
+  },
+  {
+   "name": "drf-spectacular-sidecar",
+   "version": "2026.10.1",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "drf-standardized-errors",
+   "version": "0.16.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "drf-writable-nested",
+   "version": "0.7.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-10-29",
+    "5.0": "2024-10-29",
+    "5.1": "2025-03-10",
+    "5.2": "2025-03-10"
+   }
+  },
+  {
+   "name": "drf-yasg",
+   "version": "1.21.18",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-10-17",
+    "5.0": "2025-09-26",
+    "5.1": "2025-09-26",
+    "5.2": "2025-09-26"
+   }
+  },
+  {
+   "name": "fcm-django",
+   "version": "3.2.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2025-07-23",
+    "5.1": "2025-07-23",
+    "5.2": "2025-07-23"
+   }
+  },
+  {
+   "name": "graphene-django",
+   "version": "3.2.3",
+   "status": {
+    "4.2": "ready",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-17"
+   }
+  },
+  {
+   "name": "graphene-django-optimizer",
+   "version": "0.10.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "check",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {}
+  },
+  {
+   "name": "inertia-django",
+   "version": "2.0.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-09-20",
+    "5.2": "2026-08-16",
+    "6.1": "2026-08-16"
+   }
+  },
+  {
+   "name": "mozilla-django-oidc",
+   "version": "5.0.2",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-01-11",
+    "5.0": "2025-12-18",
+    "5.1": "2025-12-18",
+    "5.2": "2025-12-18"
+   }
+  },
+  {
+   "name": "mssql-django",
+   "version": "2.0.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "blocked"
+   },
+   "declared_since": {
+    "4.2": "2023-06-01",
+    "5.0": "2024-01-15",
+    "5.1": "2025-08-08",
+    "5.2": "2025-08-08",
+    "6.0": "2026-03-06",
+    "6.1": "2026-08-07"
+   }
+  },
+  {
+   "name": "pwned-passwords-django",
+   "version": "5.2.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "blocked",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2024-02-27",
+    "5.0": "2024-02-27",
+    "5.1": "2024-08-12",
+    "5.2": "2025-04-06"
+   }
+  },
+  {
+   "name": "pylint-django",
+   "version": "2.8.0",
+   "status": {
+    "4.2": "ready",
+    "5.0": "ready",
+    "5.1": "ready",
+    "5.2": "ready",
+    "6.0": "check",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-23",
+    "5.0": "2024-10-10",
+    "5.1": "2024-10-10",
+    "5.2": "2026-01-01"
+   }
+  },
+  {
+   "name": "pytest-django",
+   "version": "4.14.0",
+   "status": {
+    "4.2": "check",
+    "5.0": "check",
+    "5.1": "check",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-10-30",
+    "5.0": "2023-11-08",
+    "5.1": "2024-09-02",
+    "5.2": "2025-04-01",
+    "6.0": "2026-02-14"
+   }
+  },
+  {
+   "name": "social-auth-app-django",
+   "version": "7.1.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "5.1": "2026-04-20",
+    "5.2": "2026-04-20",
+    "6.0": "2026-04-20"
+   }
+  },
+  {
+   "name": "strawberry-graphql-django",
+   "version": "0.92.3",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "check",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-06-15",
+    "5.0": "2023-12-06",
+    "5.1": "2025-04-04",
+    "5.2": "2025-04-04",
+    "6.0": "2025-12-03"
+   }
+  },
+  {
+   "name": "wagtail",
+   "version": "8.0",
+   "status": {
+    "4.2": "blocked",
+    "5.0": "blocked",
+    "5.1": "blocked",
+    "5.2": "ready",
+    "6.0": "ready",
+    "6.1": "ready",
+    "6.2": "check"
+   },
+   "declared_since": {
+    "4.2": "2023-05-02",
+    "5.0": "2023-12-06",
+    "5.1": "2024-08-20",
+    "5.2": "2025-06-12",
+    "6.0": "2026-02-03",
+    "6.1": "2026-08-25"
+   }
+  }
+ ],
+ "changes": {
+  "since": "2026-10-09",
+  "versions": {},
+  "added": [],
+  "removed": []
+ }
+}
