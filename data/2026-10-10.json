@@ -1649,6 +1649,7 @@
    "signs": {},
    "downloads": 1577756,
    "released": "2025-01-06",
+   "first_release": "2015-06-19",
    "stale": false,
    "inactive": false,
    "requires": ">=4.0"
@@ -1679,6 +1680,7 @@
    },
    "downloads": 5050375,
    "released": "2025-11-20",
+   "first_release": "2015-06-15",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -1704,6 +1706,7 @@
    "signs": {},
    "downloads": 7411459,
    "released": "2026-02-19",
+   "first_release": "2012-04-30",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -1724,6 +1727,7 @@
    "signs": {},
    "downloads": 195986,
    "released": "2020-03-30",
+   "first_release": "2013-12-09",
    "stale": true,
    "inactive": false,
    "requires": ">=1.11"
@@ -1749,6 +1753,7 @@
    "signs": {},
    "downloads": 918207,
    "released": "2026-03-15",
+   "first_release": "2020-03-01",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -1779,6 +1784,7 @@
    },
    "downloads": 554536,
    "released": "2026-06-26",
+   "first_release": "2013-08-05",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -1803,6 +1809,7 @@
    },
    "downloads": 143743,
    "released": "2026-05-14",
+   "first_release": "2012-05-28",
    "stale": false,
    "inactive": false,
    "requires": ">=2"
@@ -1823,6 +1830,7 @@
    "signs": {},
    "downloads": 123809,
    "released": "2023-10-04",
+   "first_release": "2010-04-07",
    "stale": true,
    "inactive": false,
    "requires": ">=3.2"
@@ -1843,6 +1851,7 @@
    "signs": {},
    "downloads": 426373,
    "released": "2022-02-02",
+   "first_release": "2018-01-15",
    "stale": true,
    "inactive": false,
    "requires": ">=1.11"
@@ -1863,6 +1872,7 @@
    "signs": {},
    "downloads": 587082,
    "released": "2021-09-11",
+   "first_release": "2018-11-16",
    "stale": true,
    "inactive": false,
    "requires": ">=2.0"
@@ -1887,6 +1897,7 @@
    "signs": {},
    "downloads": 182678,
    "released": "2026-10-09",
+   "first_release": "2022-01-09",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2.17"
@@ -1913,6 +1924,7 @@
    "signs": {},
    "downloads": 139384,
    "released": "2026-05-19",
+   "first_release": "2022-02-19",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -1933,6 +1945,7 @@
    "signs": {},
    "downloads": 1904903,
    "released": "2023-04-26",
+   "first_release": "2020-11-03",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -1959,6 +1972,7 @@
    "signs": {},
    "downloads": 229253,
    "released": "2025-12-19",
+   "first_release": "2015-11-13",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -1979,6 +1993,7 @@
    "signs": {},
    "downloads": 1969688,
    "released": "2019-10-14",
+   "first_release": "2017-04-14",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -2006,6 +2021,7 @@
    },
    "downloads": 247635,
    "released": "2025-12-03",
+   "first_release": "2020-03-03",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -2030,6 +2046,7 @@
    },
    "downloads": 1371009,
    "released": "2026-08-28",
+   "first_release": "2016-06-24",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -2055,6 +2072,7 @@
    "signs": {},
    "downloads": 2164085,
    "released": "2026-01-22",
+   "first_release": "2013-07-21",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -2075,6 +2093,7 @@
    "signs": {},
    "downloads": 255425,
    "released": "2023-08-10",
+   "first_release": "2010-12-13",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -2095,6 +2114,7 @@
    "signs": {},
    "downloads": 1566749,
    "released": "2023-12-05",
+   "first_release": "2011-03-04",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -2122,6 +2142,7 @@
    "signs": {},
    "downloads": 5034587,
    "released": "2026-10-01",
+   "first_release": "2011-02-12",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2.16"
@@ -2146,6 +2167,7 @@
    "signs": {},
    "downloads": 904199,
    "released": "2025-04-08",
+   "first_release": "2018-02-16",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -2166,6 +2188,7 @@
    "signs": {},
    "downloads": 541078,
    "released": "2025-04-03",
+   "first_release": "2009-01-06",
    "stale": false,
    "inactive": false,
    "requires": ">=1.11"
@@ -2196,6 +2219,7 @@
    },
    "downloads": 3113154,
    "released": "2026-09-05",
+   "first_release": "2016-03-10",
    "stale": false,
    "inactive": false,
    "requires": ">=5.0"
@@ -2222,6 +2246,7 @@
    "signs": {},
    "downloads": 4859409,
    "released": "2025-11-08",
+   "first_release": "2015-02-15",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -2246,6 +2271,7 @@
    "signs": {},
    "downloads": 168768,
    "released": "2024-09-28",
+   "first_release": "2017-05-19",
    "stale": true,
    "inactive": false,
    "requires": ">=4.2"
@@ -2271,6 +2297,7 @@
    "signs": {},
    "downloads": 1292777,
    "released": "2025-12-18",
+   "first_release": "2013-10-23",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -2301,6 +2328,7 @@
    },
    "downloads": 485285,
    "released": "2025-12-26",
+   "first_release": "2011-06-23",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -2327,6 +2355,7 @@
    "signs": {},
    "downloads": 690833,
    "released": "2026-09-09",
+   "first_release": "2012-05-10",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -2347,6 +2376,7 @@
    "signs": {},
    "downloads": 324695,
    "released": "2023-04-03",
+   "first_release": "2009-05-15",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -2380,6 +2410,7 @@
    },
    "downloads": 3718962,
    "released": "2026-02-11",
+   "first_release": "2008-11-05",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -2400,6 +2431,7 @@
    "signs": {},
    "downloads": 365892,
    "released": "2020-12-08",
+   "first_release": "2019-02-21",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -2420,6 +2452,7 @@
    "signs": {},
    "downloads": 302398,
    "released": "2026-08-02",
+   "first_release": "2010-12-28",
    "stale": false,
    "inactive": false,
    "requires": ">=1.11.29"
@@ -2440,6 +2473,7 @@
    "signs": {},
    "downloads": 177620,
    "released": "2018-03-15",
+   "first_release": "2012-02-14",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -2467,6 +2501,7 @@
    "signs": {},
    "downloads": 282537,
    "released": "2026-07-30",
+   "first_release": "2013-09-04",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -2494,6 +2529,7 @@
    "signs": {},
    "downloads": 227017,
    "released": "2026-08-28",
+   "first_release": "2017-06-04",
    "stale": false,
    "inactive": false,
    "requires": "<7.0,>=5.2"
@@ -2521,6 +2557,7 @@
    "signs": {},
    "downloads": 365293,
    "released": "2026-08-28",
+   "first_release": "2021-03-22",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -2543,6 +2580,7 @@
    "signs": {},
    "downloads": 275383,
    "released": "2025-03-18",
+   "first_release": "2012-03-02",
    "stale": false,
    "inactive": false,
    "requires": ">=2.2"
@@ -2573,6 +2611,7 @@
    },
    "downloads": 650878,
    "released": "2025-09-22",
+   "first_release": "2021-12-15",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -2593,6 +2632,7 @@
    "signs": {},
    "downloads": 438557,
    "released": "2017-08-12",
+   "first_release": "2014-04-27",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -2620,6 +2660,7 @@
    "signs": {},
    "downloads": 216741,
    "released": "2026-08-10",
+   "first_release": "2014-10-01",
    "stale": false,
    "inactive": false,
    "requires": "<6.2,>=4.2"
@@ -2640,6 +2681,7 @@
    "signs": {},
    "downloads": 256739,
    "released": "2024-12-18",
+   "first_release": "2017-10-27",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -2664,6 +2706,7 @@
    "signs": {},
    "downloads": 203004,
    "released": "2026-01-24",
+   "first_release": "2012-06-05",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -2689,6 +2732,7 @@
    "signs": {},
    "downloads": 2032919,
    "released": "2025-04-20",
+   "first_release": "2011-09-24",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -2715,6 +2759,7 @@
    "signs": {},
    "downloads": 6494675,
    "released": "2026-02-28",
+   "first_release": "2016-09-08",
    "stale": false,
    "inactive": false,
    "requires": "<6.1,>=2.2"
@@ -2735,6 +2780,7 @@
    "signs": {},
    "downloads": 352335,
    "released": "2019-12-11",
+   "first_release": "2010-07-31",
    "stale": true,
    "inactive": false,
    "requires": ">=2.2"
@@ -2760,6 +2806,7 @@
    "signs": {},
    "downloads": 3676706,
    "released": "2025-04-10",
+   "first_release": "2016-09-08",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2.25"
@@ -2786,6 +2833,7 @@
    "signs": {},
    "downloads": 313915,
    "released": "2025-12-27",
+   "first_release": "2021-07-17",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -2806,6 +2854,7 @@
    "signs": {},
    "downloads": 224816,
    "released": "2020-06-22",
+   "first_release": "2015-03-19",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -2831,6 +2880,7 @@
    "signs": {},
    "downloads": 643423,
    "released": "2025-06-06",
+   "first_release": "2010-05-29",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -2855,6 +2905,7 @@
    "signs": {},
    "downloads": 198456,
    "released": "2026-02-21",
+   "first_release": "2020-01-14",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -2877,6 +2928,7 @@
    "signs": {},
    "downloads": 268435,
    "released": "2023-07-29",
+   "first_release": "2010-08-10",
    "stale": true,
    "inactive": false,
    "requires": ">=3.2"
@@ -2900,6 +2952,7 @@
    "signs": {},
    "downloads": 496636,
    "released": "2024-09-18",
+   "first_release": "2012-08-16",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -2924,6 +2977,7 @@
    "signs": {},
    "downloads": 139299,
    "released": "2026-01-10",
+   "first_release": "2015-09-10",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -2951,6 +3005,7 @@
    "signs": {},
    "downloads": 130355,
    "released": "2026-08-09",
+   "first_release": "2022-10-30",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -2973,6 +3028,7 @@
    "signs": {},
    "downloads": 238126,
    "released": "2025-06-10",
+   "first_release": "2019-04-06",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -2993,6 +3049,7 @@
    "signs": {},
    "downloads": 128157,
    "released": "2020-08-23",
+   "first_release": "2016-08-17",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -3018,6 +3075,7 @@
    "signs": {},
    "downloads": 833315,
    "released": "2025-04-30",
+   "first_release": "2013-09-18",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -3044,6 +3102,7 @@
    "signs": {},
    "downloads": 2629687,
    "released": "2025-11-10",
+   "first_release": "2010-02-23",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -3069,6 +3128,7 @@
    "signs": {},
    "downloads": 158527,
    "released": "2026-04-08",
+   "first_release": "2012-09-21",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -3092,6 +3152,7 @@
    "signs": {},
    "downloads": 394227,
    "released": "2024-03-27",
+   "first_release": "2012-07-21",
    "stale": true,
    "inactive": false,
    "requires": ">=3.2"
@@ -3117,6 +3178,7 @@
    "signs": {},
    "downloads": 1067347,
    "released": "2026-03-15",
+   "first_release": "2011-01-24",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -3137,6 +3199,7 @@
    "signs": {},
    "downloads": 212225,
    "released": "2022-01-31",
+   "first_release": "2013-03-11",
    "stale": true,
    "inactive": false,
    "requires": ">=2.2"
@@ -3167,6 +3230,7 @@
    },
    "downloads": 19141380,
    "released": "2025-09-18",
+   "first_release": "2013-01-19",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -3193,6 +3257,7 @@
    "signs": {},
    "downloads": 270821,
    "released": "2026-06-01",
+   "first_release": "2024-01-30",
    "stale": false,
    "inactive": false,
    "requires": "<7.0,>=4.2"
@@ -3220,6 +3285,7 @@
    "signs": {},
    "downloads": 1856779,
    "released": "2026-09-10",
+   "first_release": "2014-12-28",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -3248,6 +3314,7 @@
    },
    "downloads": 709020,
    "released": "2026-04-04",
+   "first_release": "2015-01-16",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -3275,6 +3342,7 @@
    "signs": {},
    "downloads": 2260820,
    "released": "2026-07-29",
+   "first_release": "2011-11-02",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -3295,6 +3363,7 @@
    "signs": {},
    "downloads": 220939,
    "released": "2016-03-07",
+   "first_release": "2011-07-24",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -3315,6 +3384,7 @@
    "signs": {},
    "downloads": 328020,
    "released": "2020-11-10",
+   "first_release": "2013-07-06",
    "stale": true,
    "inactive": false,
    "requires": ">=1.8"
@@ -3337,6 +3407,7 @@
    "signs": {},
    "downloads": 335094,
    "released": "2024-06-04",
+   "first_release": "2024-06-04",
    "stale": true,
    "inactive": false,
    "requires": ">=3.2"
@@ -3362,6 +3433,7 @@
    "signs": {},
    "downloads": 4243950,
    "released": "2025-04-02",
+   "first_release": "2010-09-09",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -3388,6 +3460,7 @@
    "signs": {},
    "downloads": 740402,
    "released": "2026-10-08",
+   "first_release": "2018-02-21",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -3414,6 +3487,7 @@
    "signs": {},
    "downloads": 133566,
    "released": "2026-01-21",
+   "first_release": "2017-04-20",
    "stale": false,
    "inactive": false,
    "requires": "<6.1,>=4.2"
@@ -3436,6 +3510,7 @@
    "signs": {},
    "downloads": 188572,
    "released": "2024-10-30",
+   "first_release": "2024-10-30",
    "stale": false,
    "inactive": false,
    "requires": ">=5.1.0"
@@ -3460,6 +3535,7 @@
    "signs": {},
    "downloads": 231933,
    "released": "2026-07-08",
+   "first_release": "2020-02-17",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -3480,6 +3556,7 @@
    "signs": {},
    "downloads": 137906,
    "released": "2025-05-05",
+   "first_release": "2019-03-25",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -3506,6 +3583,7 @@
    "signs": {},
    "downloads": 207069,
    "released": "2026-09-10",
+   "first_release": "2012-03-14",
    "stale": false,
    "inactive": false,
    "requires": ">=5.0"
@@ -3533,6 +3611,7 @@
    "signs": {},
    "downloads": 8612233,
    "released": "2026-09-01",
+   "first_release": "2009-04-02",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -3553,6 +3632,7 @@
    "signs": {},
    "downloads": 1604182,
    "released": "2026-01-20",
+   "first_release": "2018-10-12",
    "stale": false,
    "inactive": false,
    "requires": ">=2.1"
@@ -3583,6 +3663,7 @@
    },
    "downloads": 636311,
    "released": "2026-01-22",
+   "first_release": "2011-01-21",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -3603,6 +3684,7 @@
    "signs": {},
    "downloads": 187095,
    "released": "2017-12-11",
+   "first_release": "2013-06-13",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -3627,6 +3709,7 @@
    "signs": {},
    "downloads": 245716,
    "released": "2025-11-13",
+   "first_release": "2017-11-01",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -3647,6 +3730,7 @@
    "signs": {},
    "downloads": 129538,
    "released": "2023-09-15",
+   "first_release": "2011-03-02",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -3667,6 +3751,7 @@
    "signs": {},
    "downloads": 147679,
    "released": "2025-01-10",
+   "first_release": "2014-07-08",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -3689,6 +3774,7 @@
    "signs": {},
    "downloads": 187298,
    "released": "2026-06-17",
+   "first_release": "2026-06-17",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -3714,6 +3800,7 @@
    "signs": {},
    "downloads": 337511,
    "released": "2025-07-23",
+   "first_release": "2017-05-26",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -3734,6 +3821,7 @@
    "signs": {},
    "downloads": 548696,
    "released": "2022-02-24",
+   "first_release": "2017-03-15",
    "stale": true,
    "inactive": false,
    "requires": ">=2.2"
@@ -3761,6 +3849,7 @@
    "signs": {},
    "downloads": 176458,
    "released": "2026-07-31",
+   "first_release": "2010-09-19",
    "stale": false,
    "inactive": false,
    "requires": "<6.2,>=4.2"
@@ -3787,6 +3876,7 @@
    "signs": {},
    "downloads": 6922655,
    "released": "2026-06-18",
+   "first_release": "2013-04-02",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -3814,6 +3904,7 @@
    "signs": {},
    "downloads": 154435,
    "released": "2026-10-02",
+   "first_release": "2020-01-08",
    "stale": false,
    "inactive": false,
    "requires": "<7,>=5.2"
@@ -3834,6 +3925,7 @@
    "signs": {},
    "downloads": 169811,
    "released": "2022-10-06",
+   "first_release": "2014-07-30",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -3856,6 +3948,7 @@
    "signs": {},
    "downloads": 131803,
    "released": "2026-08-18",
+   "first_release": "2026-01-07",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -3880,6 +3973,7 @@
    "signs": {},
    "downloads": 13107538,
    "released": "2025-04-11",
+   "first_release": "2009-04-03",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -3900,6 +3994,7 @@
    "signs": {},
    "downloads": 235084,
    "released": "2025-04-22",
+   "first_release": "2011-11-28",
    "stale": false,
    "inactive": false,
    "requires": ">=2.1"
@@ -3923,6 +4018,7 @@
    "signs": {},
    "downloads": 218545,
    "released": "2025-08-04",
+   "first_release": "2022-04-03",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -3943,6 +4039,7 @@
    "signs": {},
    "downloads": 410826,
    "released": "2026-04-14",
+   "first_release": "2021-09-30",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -3963,6 +4060,7 @@
    "signs": {},
    "downloads": 1633410,
    "released": "2023-08-15",
+   "first_release": "2023-03-23",
    "stale": true,
    "inactive": false,
    "requires": ">=3.2"
@@ -3990,6 +4088,7 @@
    "signs": {},
    "downloads": 14086521,
    "released": "2026-10-03",
+   "first_release": "2009-05-08",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -4010,6 +4109,7 @@
    "signs": {},
    "downloads": 245586,
    "released": "2020-07-15",
+   "first_release": "2010-05-18",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -4035,6 +4135,7 @@
    "signs": {},
    "downloads": 203438,
    "released": "2026-02-10",
+   "first_release": "2018-07-30",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -4061,6 +4162,7 @@
    "signs": {},
    "downloads": 3420752,
    "released": "2026-07-09",
+   "first_release": "2015-03-31",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -4086,6 +4188,7 @@
    "signs": {},
    "downloads": 509998,
    "released": "2025-10-07",
+   "first_release": "2010-10-12",
    "stale": false,
    "inactive": true,
    "requires": null
@@ -4116,6 +4219,7 @@
    },
    "downloads": 453193,
    "released": "2026-03-16",
+   "first_release": "2024-03-26",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2.29"
@@ -4142,6 +4246,7 @@
    "signs": {},
    "downloads": 125623,
    "released": "2026-01-27",
+   "first_release": "2013-11-11",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -4168,6 +4273,7 @@
    "signs": {},
    "downloads": 221288,
    "released": "2026-06-17",
+   "first_release": "2021-11-20",
    "stale": false,
    "inactive": false,
    "requires": ">=5.0"
@@ -4190,6 +4296,7 @@
    "signs": {},
    "downloads": 258590,
    "released": "2023-08-04",
+   "first_release": "2017-11-06",
    "stale": true,
    "inactive": false,
    "requires": ">=2.0"
@@ -4217,6 +4324,7 @@
    },
    "downloads": 280590,
    "released": "2026-04-29",
+   "first_release": "2010-12-23",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -4243,6 +4351,7 @@
    "signs": {},
    "downloads": 904021,
    "released": "2026-09-12",
+   "first_release": "2010-06-05",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -4268,6 +4377,7 @@
    "signs": {},
    "downloads": 208124,
    "released": "2026-05-05",
+   "first_release": "2019-12-20",
    "stale": false,
    "inactive": false,
    "requires": "<6.0,>=4.2"
@@ -4291,6 +4401,7 @@
    "signs": {},
    "downloads": 232053,
    "released": "2024-05-03",
+   "first_release": "2016-10-04",
    "stale": true,
    "inactive": false,
    "requires": ">=1.11"
@@ -4320,6 +4431,7 @@
    },
    "downloads": 213693,
    "released": "2026-06-04",
+   "first_release": "2009-11-23",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -4346,6 +4458,7 @@
    "signs": {},
    "downloads": 3466706,
    "released": "2026-10-02",
+   "first_release": "2011-08-25",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -4371,6 +4484,7 @@
    "signs": {},
    "downloads": 2761568,
    "released": "2026-10-01",
+   "first_release": "2013-10-14",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -4395,6 +4509,7 @@
    "signs": {},
    "downloads": 396235,
    "released": "2025-06-19",
+   "first_release": "2011-05-29",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -4415,6 +4530,7 @@
    "signs": {},
    "downloads": 981379,
    "released": "2019-03-18",
+   "first_release": "2011-05-17",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -4442,6 +4558,7 @@
    "signs": {},
    "downloads": 1319306,
    "released": "2026-08-05",
+   "first_release": "2020-06-30",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -4462,6 +4579,7 @@
    "signs": {},
    "downloads": 157789,
    "released": "2023-06-12",
+   "first_release": "2012-05-06",
    "stale": true,
    "inactive": false,
    "requires": ">=3.2"
@@ -4486,6 +4604,7 @@
    },
    "downloads": 358463,
    "released": "2026-09-15",
+   "first_release": "2009-02-02",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -4509,6 +4628,7 @@
    "signs": {},
    "downloads": 167447,
    "released": "2025-04-05",
+   "first_release": "2011-01-27",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -4538,6 +4658,7 @@
    },
    "downloads": 2412832,
    "released": "2026-05-05",
+   "first_release": "2012-12-17",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -4562,6 +4683,7 @@
    "signs": {},
    "downloads": 5284716,
    "released": "2026-09-22",
+   "first_release": "2013-04-24",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -4588,6 +4710,7 @@
    "signs": {},
    "downloads": 399104,
    "released": "2026-06-25",
+   "first_release": "2020-05-12",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -4610,6 +4733,7 @@
    "signs": {},
    "downloads": 308918,
    "released": "2023-09-03",
+   "first_release": "2012-01-23",
    "stale": true,
    "inactive": false,
    "requires": ">=3.2"
@@ -4643,6 +4767,7 @@
    },
    "downloads": 3244829,
    "released": "2026-09-28",
+   "first_release": "2017-04-19",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -4667,6 +4792,7 @@
    "signs": {},
    "downloads": 1110163,
    "released": "2025-12-12",
+   "first_release": "2017-05-16",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -4687,6 +4813,7 @@
    "signs": {},
    "downloads": 500524,
    "released": "2025-01-29",
+   "first_release": "2021-08-29",
    "stale": false,
    "inactive": false,
    "requires": ">=2.0"
@@ -4707,6 +4834,7 @@
    "signs": {},
    "downloads": 1724343,
    "released": "2021-07-08",
+   "first_release": "2014-03-05",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -4732,6 +4860,7 @@
    "signs": {},
    "downloads": 206780,
    "released": "2026-06-14",
+   "first_release": "2018-03-28",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -4762,6 +4891,7 @@
    },
    "downloads": 2743549,
    "released": "2025-09-18",
+   "first_release": "2020-12-10",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -4787,6 +4917,7 @@
    "signs": {},
    "downloads": 938496,
    "released": "2026-08-01",
+   "first_release": "2013-07-29",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -4807,6 +4938,7 @@
    "signs": {},
    "downloads": 703791,
    "released": "2026-03-12",
+   "first_release": "2013-04-14",
    "stale": false,
    "inactive": false,
    "requires": ">=1.8"
@@ -4833,6 +4965,7 @@
    "signs": {},
    "downloads": 1783965,
    "released": "2026-01-06",
+   "first_release": "2012-10-10",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -4859,6 +4992,7 @@
    "signs": {},
    "downloads": 198693,
    "released": "2026-07-14",
+   "first_release": "2015-09-15",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -4884,6 +5018,7 @@
    "signs": {},
    "downloads": 147454,
    "released": "2026-05-23",
+   "first_release": "2014-11-01",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -4904,6 +5039,7 @@
    "signs": {},
    "downloads": 488393,
    "released": "2020-02-10",
+   "first_release": "2012-10-09",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -4924,6 +5060,7 @@
    "signs": {},
    "downloads": 229283,
    "released": "2025-10-10",
+   "first_release": "2025-05-10",
    "stale": false,
    "inactive": false,
    "requires": ">=4.0"
@@ -4944,6 +5081,7 @@
    "signs": {},
    "downloads": 138770,
    "released": "2020-04-27",
+   "first_release": "2014-04-22",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -4968,6 +5106,7 @@
    },
    "downloads": 187364,
    "released": "2025-11-10",
+   "first_release": "2025-08-26",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -4998,6 +5137,7 @@
    },
    "downloads": 3422509,
    "released": "2026-01-04",
+   "first_release": "2017-11-20",
    "stale": false,
    "inactive": false,
    "requires": ">=2.2"
@@ -5018,6 +5158,7 @@
    "signs": {},
    "downloads": 249473,
    "released": "2020-06-23",
+   "first_release": "2020-06-23",
    "stale": true,
    "inactive": false,
    "requires": ">=1.7"
@@ -5042,6 +5183,7 @@
    },
    "downloads": 238857,
    "released": "2026-09-30",
+   "first_release": "2016-03-20",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -5066,6 +5208,7 @@
    "signs": {},
    "downloads": 4739634,
    "released": "2024-09-04",
+   "first_release": "2009-07-02",
    "stale": true,
    "inactive": false,
    "requires": ">=3.2"
@@ -5086,6 +5229,7 @@
    "signs": {},
    "downloads": 566802,
    "released": "2026-05-01",
+   "first_release": "2014-02-05",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5106,6 +5250,7 @@
    "signs": {},
    "downloads": 778351,
    "released": "2026-09-07",
+   "first_release": "2011-04-28",
    "stale": false,
    "inactive": false,
    "requires": ">=5.1"
@@ -5131,6 +5276,7 @@
    "signs": {},
    "downloads": 712764,
    "released": "2026-06-07",
+   "first_release": "2012-04-11",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5156,6 +5302,7 @@
    "signs": {},
    "downloads": 1083200,
    "released": "2026-06-02",
+   "first_release": "2008-01-04",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -5180,6 +5327,7 @@
    "signs": {},
    "downloads": 699652,
    "released": "2025-06-12",
+   "first_release": "2012-09-27",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -5210,6 +5358,7 @@
    },
    "downloads": 624659,
    "released": "2025-09-18",
+   "first_release": "2015-02-12",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5230,6 +5379,7 @@
    "signs": {},
    "downloads": 1151595,
    "released": "2025-10-23",
+   "first_release": "2014-07-01",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -5254,6 +5404,7 @@
    },
    "downloads": 175690,
    "released": "2026-10-08",
+   "first_release": "2012-10-07",
    "stale": false,
    "inactive": false,
    "requires": ">=1.11"
@@ -5281,6 +5432,7 @@
    "signs": {},
    "downloads": 3606272,
    "released": "2026-09-19",
+   "first_release": "2019-12-04",
    "stale": false,
    "inactive": false,
    "requires": ">=3.1"
@@ -5305,6 +5457,7 @@
    "signs": {},
    "downloads": 364804,
    "released": "2026-08-17",
+   "first_release": "2021-10-10",
    "stale": false,
    "inactive": false,
    "requires": ">=2.2"
@@ -5325,6 +5478,7 @@
    "signs": {},
    "downloads": 205620,
    "released": "2026-07-21",
+   "first_release": "2021-11-02",
    "stale": false,
    "inactive": false,
    "requires": ">=2.1"
@@ -5345,6 +5499,7 @@
    "signs": {},
    "downloads": 159612,
    "released": "2022-06-06",
+   "first_release": "2020-07-25",
    "stale": true,
    "inactive": false,
    "requires": ">=2.0"
@@ -5365,6 +5520,7 @@
    "signs": {},
    "downloads": 214855,
    "released": "2020-08-20",
+   "first_release": "2009-10-01",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -5391,6 +5547,7 @@
    "signs": {},
    "downloads": 4772111,
    "released": "2026-08-21",
+   "first_release": "2013-06-03",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5411,6 +5568,7 @@
    "signs": {},
    "downloads": 2228726,
    "released": "2026-05-28",
+   "first_release": "2013-02-26",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -5436,6 +5594,7 @@
    "signs": {},
    "downloads": 144414,
    "released": "2025-11-24",
+   "first_release": "2021-12-13",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -5456,6 +5615,7 @@
    "signs": {},
    "downloads": 447255,
    "released": "2024-11-01",
+   "first_release": "2011-06-10",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -5480,6 +5640,7 @@
    "signs": {},
    "downloads": 4514318,
    "released": "2026-10-08",
+   "first_release": "2012-08-20",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5500,6 +5661,7 @@
    "signs": {},
    "downloads": 139589,
    "released": "2024-04-03",
+   "first_release": "2013-08-06",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -5524,6 +5686,7 @@
    "signs": {},
    "downloads": 157350,
    "released": "2026-05-14",
+   "first_release": "2013-09-10",
    "stale": false,
    "inactive": false,
    "requires": ">=5.1"
@@ -5544,6 +5707,7 @@
    "signs": {},
    "downloads": 497167,
    "released": "2022-02-28",
+   "first_release": "2022-02-28",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -5571,6 +5735,7 @@
    "signs": {},
    "downloads": 394024,
    "released": "2026-09-16",
+   "first_release": "2021-03-24",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -5598,6 +5763,7 @@
    "signs": {},
    "downloads": 348122,
    "released": "2026-08-26",
+   "first_release": "2018-08-22",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5624,6 +5790,7 @@
    "signs": {},
    "downloads": 2046683,
    "released": "2025-11-30",
+   "first_release": "2022-10-18",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5650,6 +5817,7 @@
    "signs": {},
    "downloads": 619527,
    "released": "2026-02-17",
+   "first_release": "2020-06-27",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5676,6 +5844,7 @@
    "signs": {},
    "downloads": 2021743,
    "released": "2025-11-30",
+   "first_release": "2022-10-25",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5701,6 +5870,7 @@
    "signs": {},
    "downloads": 140201,
    "released": "2026-06-21",
+   "first_release": "2013-07-02",
    "stale": false,
    "inactive": true,
    "requires": ">=4.2"
@@ -5727,6 +5897,7 @@
    "signs": {},
    "downloads": 1626236,
    "released": "2025-11-30",
+   "first_release": "2022-10-25",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5753,6 +5924,7 @@
    "signs": {},
    "downloads": 200597,
    "released": "2025-11-30",
+   "first_release": "2022-09-20",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5779,6 +5951,7 @@
    "signs": {},
    "downloads": 1216954,
    "released": "2025-12-04",
+   "first_release": "2020-06-27",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5805,6 +5978,7 @@
    "signs": {},
    "downloads": 341971,
    "released": "2026-03-11",
+   "first_release": "2020-03-06",
    "stale": false,
    "inactive": false,
    "requires": ">=5.1"
@@ -5835,6 +6009,7 @@
    },
    "downloads": 6527880,
    "released": "2026-07-23",
+   "first_release": "2011-09-01",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5861,6 +6036,7 @@
    "signs": {},
    "downloads": 980753,
    "released": "2025-11-27",
+   "first_release": "2009-10-09",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5886,6 +6062,7 @@
    "signs": {},
    "downloads": 205823,
    "released": "2025-09-13",
+   "first_release": "2011-06-06",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -5913,6 +6090,7 @@
    "signs": {},
    "downloads": 2735638,
    "released": "2026-08-01",
+   "first_release": "2011-04-27",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -5937,6 +6115,7 @@
    "signs": {},
    "downloads": 1773914,
    "released": "2025-06-22",
+   "first_release": "2015-07-15",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -5962,6 +6141,7 @@
    "signs": {},
    "downloads": 400162,
    "released": "2026-10-05",
+   "first_release": "2017-02-21",
    "stale": false,
    "inactive": false,
    "requires": "<6.0,>=2.0"
@@ -5982,6 +6162,7 @@
    "signs": {},
    "downloads": 165533,
    "released": "2018-08-07",
+   "first_release": "2016-05-29",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -6008,6 +6189,7 @@
    "signs": {},
    "downloads": 3759597,
    "released": "2026-09-19",
+   "first_release": "2015-04-05",
    "stale": false,
    "inactive": false,
    "requires": "!=5.0.*,<6.1,>=4.2"
@@ -6028,6 +6210,7 @@
    "signs": {},
    "downloads": 232182,
    "released": "2025-11-16",
+   "first_release": "2014-06-29",
    "stale": false,
    "inactive": false,
    "requires": ">=2.2"
@@ -6054,6 +6237,7 @@
    "signs": {},
    "downloads": 2299161,
    "released": "2026-02-22",
+   "first_release": "2022-07-15",
    "stale": false,
    "inactive": false,
    "requires": ">=3.1"
@@ -6086,6 +6270,7 @@
    },
    "downloads": 492967,
    "released": "2026-08-26",
+   "first_release": "2022-10-13",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -6106,6 +6291,7 @@
    "signs": {},
    "downloads": 218501,
    "released": "2023-01-05",
+   "first_release": "2014-07-12",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -6126,6 +6312,7 @@
    "signs": {},
    "downloads": 2249157,
    "released": "2023-07-24",
+   "first_release": "2011-05-26",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -6155,6 +6342,7 @@
    },
    "downloads": 483048,
    "released": "2025-03-28",
+   "first_release": "2010-06-17",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -6179,6 +6367,7 @@
    "signs": {},
    "downloads": 238548,
    "released": "2025-12-19",
+   "first_release": "2012-12-30",
    "stale": false,
    "inactive": false,
    "requires": ">=4.0"
@@ -6205,6 +6394,7 @@
    "signs": {},
    "downloads": 10537415,
    "released": "2026-06-02",
+   "first_release": "2011-11-03",
    "stale": false,
    "inactive": false,
    "requires": "<7.0,>=5.2"
@@ -6230,6 +6420,7 @@
    "signs": {},
    "downloads": 218804,
    "released": "2025-04-07",
+   "first_release": "2008-11-06",
    "stale": false,
    "inactive": false,
    "requires": "!=5.0.*,>=4.2"
@@ -6258,6 +6449,7 @@
    },
    "downloads": 218124,
    "released": "2025-05-13",
+   "first_release": "2016-06-01",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6278,6 +6470,7 @@
    "signs": {},
    "downloads": 158185,
    "released": "2022-02-23",
+   "first_release": "2015-08-14",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -6303,6 +6496,7 @@
    "signs": {},
    "downloads": 750367,
    "released": "2026-07-12",
+   "first_release": "2015-09-12",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6329,6 +6523,7 @@
    "signs": {},
    "downloads": 464833,
    "released": "2026-06-29",
+   "first_release": "2017-08-10",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -6349,6 +6544,7 @@
    "signs": {},
    "downloads": 1863785,
    "released": "2022-07-17",
+   "first_release": "2017-12-07",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -6369,6 +6565,7 @@
    "signs": {},
    "downloads": 214737,
    "released": "2018-04-30",
+   "first_release": "2013-09-06",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -6393,6 +6590,7 @@
    "signs": {},
    "downloads": 2277960,
    "released": "2026-06-12",
+   "first_release": "2012-02-28",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6415,6 +6613,7 @@
    "signs": {},
    "downloads": 269136,
    "released": "2024-11-06",
+   "first_release": "2013-10-24",
    "stale": false,
    "inactive": false,
    "requires": ">=3.0"
@@ -6445,6 +6644,7 @@
    },
    "downloads": 159177,
    "released": "2025-09-18",
+   "first_release": "2021-11-25",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6468,6 +6668,7 @@
    "signs": {},
    "downloads": 174267,
    "released": "2025-12-07",
+   "first_release": "2011-06-16",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6488,6 +6689,7 @@
    "signs": {},
    "downloads": 764660,
    "released": "2026-08-30",
+   "first_release": "2012-05-27",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6518,6 +6720,7 @@
    },
    "downloads": 1940099,
    "released": "2026-08-17",
+   "first_release": "2013-07-16",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -6540,6 +6743,7 @@
    "signs": {},
    "downloads": 155852,
    "released": "2025-06-03",
+   "first_release": "2019-01-13",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6565,6 +6769,7 @@
    "signs": {},
    "downloads": 326714,
    "released": "2025-06-26",
+   "first_release": "2015-02-16",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -6591,6 +6796,7 @@
    "signs": {},
    "downloads": 1973385,
    "released": "2026-08-12",
+   "first_release": "2016-12-13",
    "stale": false,
    "inactive": false,
    "requires": "<6.1,>=5.2.8"
@@ -6616,6 +6822,7 @@
    "signs": {},
    "downloads": 265838,
    "released": "2025-07-10",
+   "first_release": "2018-01-05",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6638,6 +6845,7 @@
    "signs": {},
    "downloads": 229951,
    "released": "2023-05-02",
+   "first_release": "2010-06-29",
    "stale": true,
    "inactive": false,
    "requires": ">=3.2"
@@ -6663,6 +6871,7 @@
    "signs": {},
    "downloads": 443865,
    "released": "2026-01-07",
+   "first_release": "2012-08-24",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6683,6 +6892,7 @@
    "signs": {},
    "downloads": 423912,
    "released": "2026-01-05",
+   "first_release": "2017-08-11",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6709,6 +6919,7 @@
    "signs": {},
    "downloads": 246727,
    "released": "2026-10-02",
+   "first_release": "2016-01-05",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -6736,6 +6947,7 @@
    "signs": {},
    "downloads": 1682972,
    "released": "2026-09-03",
+   "first_release": "2011-03-07",
    "stale": false,
    "inactive": false,
    "requires": "<7,>=3.2"
@@ -6760,6 +6972,7 @@
    "signs": {},
    "downloads": 265970,
    "released": "2026-10-02",
+   "first_release": "2012-05-03",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -6787,6 +7000,7 @@
    "signs": {},
    "downloads": 193850,
    "released": "2026-10-09",
+   "first_release": "2022-01-09",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2.17"
@@ -6811,6 +7025,7 @@
    "signs": {},
    "downloads": 180304,
    "released": "2024-10-31",
+   "first_release": "2022-08-21",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6838,6 +7053,7 @@
    "signs": {},
    "downloads": 2316921,
    "released": "2026-09-12",
+   "first_release": "2014-06-06",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -6865,6 +7081,7 @@
    },
    "downloads": 165177,
    "released": "2026-07-30",
+   "first_release": "2012-04-04",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -6895,6 +7112,7 @@
    },
    "downloads": 4888149,
    "released": "2026-07-22",
+   "first_release": "2013-04-22",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -6915,6 +7133,7 @@
    "signs": {},
    "downloads": 130149,
    "released": "2019-02-12",
+   "first_release": "2014-06-12",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -6942,6 +7161,7 @@
    "signs": {},
    "downloads": 180773,
    "released": "2026-08-19",
+   "first_release": "2021-12-02",
    "stale": false,
    "inactive": false,
    "requires": "<6.2,>=6.1"
@@ -6962,6 +7182,7 @@
    "signs": {},
    "downloads": 138241,
    "released": "2025-04-10",
+   "first_release": "2016-07-28",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -6988,6 +7209,7 @@
    "signs": {},
    "downloads": 375785,
    "released": "2026-01-01",
+   "first_release": "2013-09-15",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -7012,6 +7234,7 @@
    "signs": {},
    "downloads": 256451,
    "released": "2024-08-11",
+   "first_release": "2010-04-16",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -7035,6 +7258,7 @@
    "signs": {},
    "downloads": 428756,
    "released": "2024-07-05",
+   "first_release": "2013-05-17",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -7058,6 +7282,7 @@
    "signs": {},
    "downloads": 210730,
    "released": "2026-09-24",
+   "first_release": "2013-12-30",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -7078,6 +7303,7 @@
    "signs": {},
    "downloads": 135213,
    "released": "2023-09-28",
+   "first_release": "2019-04-02",
    "stale": true,
    "inactive": false,
    "requires": ">=3.2"
@@ -7098,6 +7324,7 @@
    "signs": {},
    "downloads": 491645,
    "released": "2019-12-10",
+   "first_release": "2013-03-01",
    "stale": true,
    "inactive": false,
    "requires": ">=1.8"
@@ -7125,6 +7352,7 @@
    "signs": {},
    "downloads": 205836,
    "released": "2026-09-02",
+   "first_release": "2012-04-03",
    "stale": false,
    "inactive": false,
    "requires": "<6.2,>=4.2"
@@ -7149,6 +7377,7 @@
    "signs": {},
    "downloads": 12258617,
    "released": "2025-04-02",
+   "first_release": "2009-08-20",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -7174,6 +7403,7 @@
    "signs": {},
    "downloads": 3507592,
    "released": "2026-05-30",
+   "first_release": "2019-04-13",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -7201,6 +7431,7 @@
    "signs": {},
    "downloads": 10681757,
    "released": "2026-10-05",
+   "first_release": "2019-01-20",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -7228,6 +7459,7 @@
    "signs": {},
    "downloads": 11988691,
    "released": "2026-10-05",
+   "first_release": "2020-11-14",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -7258,6 +7490,7 @@
    },
    "downloads": 841082,
    "released": "2026-08-30",
+   "first_release": "2011-06-20",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -7281,6 +7514,7 @@
    "signs": {},
    "downloads": 1522173,
    "released": "2024-09-29",
+   "first_release": "2010-03-21",
    "stale": true,
    "inactive": false,
    "requires": ">=4.1"
@@ -7307,6 +7541,7 @@
    "signs": {},
    "downloads": 413780,
    "released": "2026-06-12",
+   "first_release": "2019-04-11",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2.20"
@@ -7333,6 +7568,7 @@
    "signs": {},
    "downloads": 613009,
    "released": "2026-02-06",
+   "first_release": "2024-05-30",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -7363,6 +7599,7 @@
    },
    "downloads": 155056,
    "released": "2026-08-28",
+   "first_release": "2026-02-06",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -7389,6 +7626,7 @@
    "signs": {},
    "downloads": 248035,
    "released": "2025-11-14",
+   "first_release": "2023-05-17",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -7416,6 +7654,7 @@
    },
    "downloads": 126050,
    "released": "2025-08-21",
+   "first_release": "2011-03-16",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -7436,6 +7675,7 @@
    "signs": {},
    "downloads": 171056,
    "released": "2018-02-01",
+   "first_release": "2017-09-15",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -7463,6 +7703,7 @@
    "signs": {},
    "downloads": 935639,
    "released": "2026-10-09",
+   "first_release": "2015-06-12",
    "stale": false,
    "inactive": false,
    "requires": "<6.2,>=5.2"
@@ -7487,6 +7728,7 @@
    },
    "downloads": 193462,
    "released": "2026-08-27",
+   "first_release": "2025-06-27",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -7514,6 +7756,7 @@
    "signs": {},
    "downloads": 561208,
    "released": "2026-09-23",
+   "first_release": "2019-11-21",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -7541,6 +7784,7 @@
    "signs": {},
    "downloads": 130963,
    "released": "2026-08-02",
+   "first_release": "2015-05-23",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -7568,6 +7812,7 @@
    "signs": {},
    "downloads": 8183007,
    "released": "2026-06-06",
+   "first_release": "2012-12-20",
    "stale": false,
    "inactive": false,
    "requires": "<6.2,>=4.2"
@@ -7593,6 +7838,7 @@
    "signs": {},
    "downloads": 546057,
    "released": "2025-10-21",
+   "first_release": "2008-09-10",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -7617,6 +7863,7 @@
    },
    "downloads": 183697,
    "released": "2026-09-07",
+   "first_release": "2018-07-28",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -7644,6 +7891,7 @@
    "signs": {},
    "downloads": 1153146,
    "released": "2026-09-15",
+   "first_release": "2009-12-16",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -7669,6 +7917,7 @@
    "signs": {},
    "downloads": 2779723,
    "released": "2025-09-27",
+   "first_release": "2012-09-12",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -7696,6 +7945,7 @@
    "signs": {},
    "downloads": 143131,
    "released": "2026-09-30",
+   "first_release": "2023-12-05",
    "stale": false,
    "inactive": false,
    "requires": "<6.2,>=5.2"
@@ -7723,6 +7973,7 @@
    "signs": {},
    "downloads": 1308131,
    "released": "2026-09-24",
+   "first_release": "2022-08-20",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -7749,6 +8000,7 @@
    "signs": {},
    "downloads": 461769,
    "released": "2026-10-02",
+   "first_release": "2021-08-27",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -7769,6 +8021,7 @@
    "signs": {},
    "downloads": 566447,
    "released": "2019-06-22",
+   "first_release": "2013-01-06",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -7789,6 +8042,7 @@
    "signs": {},
    "downloads": 137457,
    "released": "2022-12-13",
+   "first_release": "2013-11-13",
    "stale": true,
    "inactive": false,
    "requires": ">=3.2"
@@ -7815,6 +8069,7 @@
    "signs": {},
    "downloads": 212092,
    "released": "2026-07-30",
+   "first_release": "2014-05-01",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -7837,6 +8092,7 @@
    "signs": {},
    "downloads": 1260924,
    "released": "2026-09-14",
+   "first_release": "2021-04-03",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -7862,6 +8118,7 @@
    "signs": {},
    "downloads": 1578156,
    "released": "2025-06-12",
+   "first_release": "2011-01-23",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -7892,6 +8149,7 @@
    },
    "downloads": 575947,
    "released": "2025-09-22",
+   "first_release": "2022-03-24",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -7916,6 +8174,7 @@
    "signs": {},
    "downloads": 160865,
    "released": "2026-03-08",
+   "first_release": "2014-02-09",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -7943,6 +8202,7 @@
    "signs": {},
    "downloads": 191126,
    "released": "2026-10-01",
+   "first_release": "2013-11-29",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -7968,6 +8228,7 @@
    "signs": {},
    "downloads": 826101,
    "released": "2026-05-13",
+   "first_release": "2015-05-16",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -7993,6 +8254,7 @@
    "signs": {},
    "downloads": 171330,
    "released": "2025-10-06",
+   "first_release": "2010-04-20",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -8018,6 +8280,7 @@
    "signs": {},
    "downloads": 1264502,
    "released": "2026-01-02",
+   "first_release": "2011-01-12",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -8038,6 +8301,7 @@
    "signs": {},
    "downloads": 308685,
    "released": "2021-07-27",
+   "first_release": "2019-03-08",
    "stale": true,
    "inactive": false,
    "requires": ">=2.2"
@@ -8065,6 +8329,7 @@
    "signs": {},
    "downloads": 24473425,
    "released": "2026-10-06",
+   "first_release": "2011-02-21",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -8092,6 +8357,7 @@
    },
    "downloads": 2700701,
    "released": "2025-04-04",
+   "first_release": "2018-07-29",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -8112,6 +8378,7 @@
    "signs": {},
    "downloads": 3803287,
    "released": "2023-12-12",
+   "first_release": "2013-01-14",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -8134,6 +8401,7 @@
    "signs": {},
    "downloads": 2492065,
    "released": "2025-05-14",
+   "first_release": "2019-09-09",
    "stale": false,
    "inactive": false,
    "requires": ">=2.0"
@@ -8161,6 +8429,7 @@
    },
    "downloads": 224727,
    "released": "2024-06-14",
+   "first_release": "2018-04-10",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -8181,6 +8450,7 @@
    "signs": {},
    "downloads": 316195,
    "released": "2020-08-09",
+   "first_release": "2015-01-13",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -8208,6 +8478,7 @@
    },
    "downloads": 338505,
    "released": "2026-09-01",
+   "first_release": "2014-01-03",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -8232,6 +8503,7 @@
    },
    "downloads": 253379,
    "released": "2025-10-17",
+   "first_release": "2015-07-20",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -8252,6 +8524,7 @@
    "signs": {},
    "downloads": 175201,
    "released": "2017-07-04",
+   "first_release": "2015-02-03",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -8272,6 +8545,7 @@
    "signs": {},
    "downloads": 1544807,
    "released": "2023-10-06",
+   "first_release": "2018-02-05",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -8297,6 +8571,7 @@
    "signs": {},
    "downloads": 6474867,
    "released": "2025-07-21",
+   "first_release": "2017-05-09",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -8317,6 +8592,7 @@
    "signs": {},
    "downloads": 5831441,
    "released": "2026-08-25",
+   "first_release": "2019-03-05",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -8337,6 +8613,7 @@
    "signs": {},
    "downloads": 410576,
    "released": "2020-04-12",
+   "first_release": "2014-11-27",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -8362,6 +8639,7 @@
    "signs": {},
    "downloads": 533624,
    "released": "2026-02-17",
+   "first_release": "2011-03-16",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -8387,6 +8665,7 @@
    "signs": {},
    "downloads": 2171226,
    "released": "2025-04-10",
+   "first_release": "2013-07-29",
    "stale": false,
    "inactive": false,
    "requires": "<6.0,>=2.2"
@@ -8407,6 +8686,7 @@
    "signs": {},
    "downloads": 327629,
    "released": "2023-08-08",
+   "first_release": "2020-09-22",
    "stale": true,
    "inactive": false,
    "requires": ">=2.2"
@@ -8427,6 +8707,7 @@
    "signs": {},
    "downloads": 327794,
    "released": "2022-01-09",
+   "first_release": "2018-12-13",
    "stale": true,
    "inactive": false,
    "requires": ">=1.11"
@@ -8452,6 +8733,7 @@
    "signs": {},
    "downloads": 1746599,
    "released": "2026-07-31",
+   "first_release": "2013-11-08",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -8472,6 +8754,7 @@
    "signs": {},
    "downloads": 345338,
    "released": "2025-12-17",
+   "first_release": "2019-11-09",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -8498,6 +8781,7 @@
    "signs": {},
    "downloads": 13006705,
    "released": "2026-07-06",
+   "first_release": "2020-03-01",
    "stale": false,
    "inactive": false,
    "requires": ">=2.2"
@@ -8518,6 +8802,7 @@
    "signs": {},
    "downloads": 1420962,
    "released": "2026-10-01",
+   "first_release": "2021-09-24",
    "stale": false,
    "inactive": false,
    "requires": ">=2.2"
@@ -8538,6 +8823,7 @@
    "signs": {},
    "downloads": 496765,
    "released": "2026-04-29",
+   "first_release": "2022-05-07",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -8567,6 +8853,7 @@
    },
    "downloads": 462256,
    "released": "2025-03-10",
+   "first_release": "2017-02-18",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -8592,6 +8879,7 @@
    "signs": {},
    "downloads": 2035201,
    "released": "2026-10-09",
+   "first_release": "2017-12-13",
    "stale": false,
    "inactive": false,
    "requires": ">=4.0"
@@ -8616,6 +8904,7 @@
    "signs": {},
    "downloads": 315575,
    "released": "2026-04-07",
+   "first_release": "2016-08-05",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -8638,6 +8927,7 @@
    "signs": {},
    "downloads": 949091,
    "released": "2025-03-13",
+   "first_release": "2016-09-09",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -8658,6 +8948,7 @@
    "signs": {},
    "downloads": 124874,
    "released": "2023-08-05",
+   "first_release": "2018-05-07",
    "stale": true,
    "inactive": false,
    "requires": null
@@ -8682,6 +8973,7 @@
    "signs": {},
    "downloads": 228360,
    "released": "2026-08-16",
+   "first_release": "2019-04-06",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -8707,6 +8999,7 @@
    "signs": {},
    "downloads": 1170908,
    "released": "2025-12-19",
+   "first_release": "2016-11-28",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -8734,6 +9027,7 @@
    "signs": {},
    "downloads": 345503,
    "released": "2026-09-18",
+   "first_release": "2021-02-18",
    "stale": false,
    "inactive": false,
    "requires": "<6.2,>=5.2"
@@ -8759,6 +9053,7 @@
    "signs": {},
    "downloads": 184289,
    "released": "2025-04-06",
+   "first_release": "2018-03-06",
    "stale": false,
    "inactive": false,
    "requires": "!=5.0.*,>=4.2"
@@ -8784,6 +9079,7 @@
    "signs": {},
    "downloads": 2006882,
    "released": "2026-07-11",
+   "first_release": "2013-10-25",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -8814,6 +9110,7 @@
    },
    "downloads": 21111730,
    "released": "2026-08-10",
+   "first_release": "2012-04-30",
    "stale": false,
    "inactive": false,
    "requires": null
@@ -8838,6 +9135,7 @@
    "signs": {},
    "downloads": 5297445,
    "released": "2026-10-08",
+   "first_release": "2016-11-27",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -8864,6 +9162,7 @@
    "signs": {},
    "downloads": 2004644,
    "released": "2026-10-05",
+   "first_release": "2020-10-30",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
@@ -8891,6 +9190,7 @@
    "signs": {},
    "downloads": 605647,
    "released": "2026-08-25",
+   "first_release": "2014-02-07",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"
