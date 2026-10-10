@@ -563,6 +563,13 @@ button, .copy { font: inherit; font-size: 14px; font-weight: 550; cursor: pointe
   border-radius: 2px; padding: 6px 14px; min-height: 32px;
   transition: border-color 150ms var(--ease-ui), color 150ms var(--ease-ui); }
 button:hover, .copy:hover { border-color: var(--accent); }
+.command.copyable { cursor: pointer; }
+.command.copyable code { transition: border-color 150ms var(--ease-ui); }
+.command.copyable:hover code, .command.copyable:hover .copy { border-color: var(--accent); }
+.badge-preview { display: grid; gap: 8px; justify-items: start; padding: 20px 24px;
+  margin: 0 0 12px; }
+.badge-preview img { display: block; }
+.badge-states { display: flex; flex-wrap: wrap; gap: 8px; }
 .changes-list { margin: 8px 0 0; padding-left: 20px; }
 .changes-list li { margin: 4px 0; }
 
@@ -870,15 +877,28 @@ def _matrix(data: dict) -> str:
 
 
 def _for_maintainers(data: dict) -> str:
-    """The badge a package can show in its README, linked back to its row."""
+    """The badge a package can show in its README, drawn as it will look, linked back to its
+    row, with the three messages it can carry."""
     example = next((p["name"] for p in data["packages"] if p["name"] == "django-filter"), None)
     example = example or (data["packages"][0]["name"] if data["packages"] else "your-package")
+    released = [v["version"] for v in data["versions"] if v["released"]]
+    newest = released[-1] if released else "6.1"
     snippet = badge_snippet(example)
+    states = "".join(
+        f'<img src="https://img.shields.io/badge/{urllib.parse.quote(f"Django {newest}")}-'
+        f'{urllib.parse.quote(message)}-{color}" alt="Django {escape(newest)}: '
+        f'{escape(message)}" height="20">'
+        for message, color in _BADGE.values()
+    )
     return (
         '<h2 id="badges">A badge for your README</h2>'
         '<p class="hint">For maintainers: what this page says about the newest Django release, '
         "updated every week. Replace the package name; for one version, use "
-        f"<code>badges/{escape(example)}/6.1.json</code>.</p>"
+        f"<code>badges/{escape(example)}/{escape(newest)}.json</code>.</p>"
+        '<div class="badge-preview panel"><p class="label">Preview</p>'
+        f'<a href="#{escape(example)}"><img src="{escape(badge_image(example))}" '
+        f'alt="Django support badge of {escape(example)}" height="20"></a>'
+        f'<p class="label">It says one of</p><div class="badge-states">{states}</div></div>'
         f'<div class="command"><code>{escape(snippet)}</code><button type="button" '
         f'class="copy" data-copy="{escape(snippet)}" hidden>Copy</button></div>'
     )
@@ -955,10 +975,15 @@ _SCRIPT = r"""
   addEventListener("keydown", (e) => {
     if (e.key === "/" && document.activeElement !== q) { e.preventDefault(); q.focus(); }
   });
+  // The command field copies like its button, and the button says so.
   for (const b of document.querySelectorAll("button.copy")) {
     b.hidden = false;
-    b.addEventListener("click", () => navigator.clipboard.writeText(b.dataset.copy).then(() => {
-      b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1500);
+    const field = b.closest(".command");
+    field.classList.add("copyable");
+    field.addEventListener("click", () => navigator.clipboard.writeText(b.dataset.copy).then(() => {
+      b.textContent = "Copied";
+      clearTimeout(b.timer);
+      b.timer = setTimeout(() => (b.textContent = "Copy"), 1500);
     }));
   }
   read();
@@ -1429,11 +1454,16 @@ def write_badges(data: dict, out: Path) -> None:
         target.write_text(json.dumps(badge))
 
 
+def badge_image(name: str, version: str | None = None) -> str:
+    """The Shields.io URL that draws a package's badge from its endpoint on this page."""
+    path = f"{name}/{version}.json" if version else f"{name}.json"
+    endpoint = f"{ECOSYSTEM_URL}badges/{path}"
+    return f"https://img.shields.io/endpoint?url={urllib.parse.quote(endpoint, safe='')}"
+
+
 def badge_snippet(name: str) -> str:
     """The Markdown for a package's README: the badge, linked to the package on the page."""
-    endpoint = f"{ECOSYSTEM_URL}badges/{name}.json"
-    image = f"https://img.shields.io/endpoint?url={urllib.parse.quote(endpoint, safe='')}"
-    return f"[![Django support]({image})]({ECOSYSTEM_URL}#{name})"
+    return f"[![Django support]({badge_image(name)})]({ECOSYSTEM_URL}#{name})"
 
 
 # --- the command line -----------------------------------------------------------------------

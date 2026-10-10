@@ -216,3 +216,29 @@ def test_ecosystem_charts_answer_pointer_and_keys(browser, index, tmp_path):
     assert figure.locator(".layer.downloads").is_visible()
     assert not figure.locator(".layer.packages").is_visible()
     assert not errors
+
+
+def test_ecosystem_command_field_copies_like_its_button(browser, index, tmp_path):
+    import importlib.util
+    from datetime import date
+    from pathlib import Path
+
+    path = Path(__file__).parent.parent / "ecosystem" / "build.py"
+    spec = importlib.util.spec_from_file_location("ecosystem_build", path)
+    build = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(build)
+    names = ["django-ready", "django-before", "django-with", "django-blocked", "django-lagging"]
+    target = tmp_path / "index.html"
+    target.write_text(build.page(build.build(index, names, today=date(2026, 1, 15))))
+    context = browser.new_context(permissions=["clipboard-read", "clipboard-write"])
+    page = context.new_page()
+    page.goto(target.as_uri())
+    field = page.locator(".try .command")
+    field.locator("code").click()
+    sync_api.expect(field.locator("button.copy")).to_have_text("Copied")
+    assert page.evaluate("navigator.clipboard.readText()") == "uvx django-upgrade-report"
+    badge = page.locator("#badges ~ .command")
+    badge.locator("code").click()
+    assert page.evaluate("navigator.clipboard.readText()").startswith("[![Django support]")
+    assert page.locator(".badge-preview img").count() == 4  # the badge and its three messages
+    context.close()

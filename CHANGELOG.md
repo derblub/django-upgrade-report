@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Ecosystem page
 
+- The badge section shows the badge as it will look, and the three messages it can carry. Clicking a command or the badge code copies it, like its button, which says so.
 - The page wears the Pushing Pixels design: the dark ink theme, Google Sans Flex, uppercase headings, square corners, the teal accent, and the pushed pixel closing the three numbers at the top. The preview card for shared links matches.
 - The curves are interactive: a crosshair shows every version's share at the point under the pointer or the arrow keys, a version can be picked out from the legend, and a switch counts packages or their downloads. Each version has its own colour, checked for colour-blind readers, the newest in the brand teal. A second chart puts the versions side by side in calendar time over the last three years.
 - Shared links show a preview card with this week's numbers (built each week as `og.png`), and the page has a description for search results.
