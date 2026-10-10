@@ -276,3 +276,13 @@ def test_signs_downloads_and_badges(build, index):
     snippet = build.badge_snippet("django-ready")
     assert snippet.startswith("[![Django support](https://img.shields.io/endpoint?url=https%3A")
     assert snippet.endswith("(https://derblub.github.io/django-upgrade-report/#django-ready)")
+
+
+def test_downloads_bar_is_on_a_log_scale(build):
+    span = (100_000, 10_000_000)
+    assert build._reach(10_000_000, span) == (
+        '<span class="reach" aria-hidden="true"><i style="width:100%"></i></span>'
+    )
+    assert 'style="width:52%"' in build._reach(1_000_000, span)  # halfway in tenfold steps
+    assert 'style="width:4%"' in build._reach(100_000, span)  # the least still shows
+    assert build._reach(None, span) == build._reach(500, (500, 500)) == ""

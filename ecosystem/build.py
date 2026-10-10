@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
 import shutil
@@ -663,6 +664,10 @@ tbody tr:hover > *, .matrix tbody tr:hover > .name { background: var(--hover); }
 .matrix tbody tr { cursor: pointer; }
 .matrix tr.active > *, .matrix tr:target > * { background: var(--raised); }
 .matrix tr.active > .name, .matrix tr:target > .name { box-shadow: inset 2px 0 0 var(--accent); }
+.reach { display: block; width: 100%; max-width: 72px; height: 4px; margin: 6px 0 0;
+  background: var(--raised); }
+.reach i { display: block; height: 100%; background: var(--muted-hi); }
+.legend-row .reach { width: 24px; margin: 0; align-self: center; }
 .flag { display: block; width: fit-content; margin: 4px 0 0; font-size: 11px; font-weight: 450;
   color: var(--muted-hi); border: 1px solid var(--raised); padding: 0 6px; }
 /* On a desktop the list fits the page: no sideways scrolling, only down. */
@@ -849,6 +854,8 @@ def _matrix(data: dict) -> str:
     heads = "".join(f'<th class="s">{escape(v)}</th>' for v in versions)
     rows = []
     packages = sorted(data["packages"], key=lambda p: (-(p.get("downloads") or 0), p["name"]))
+    counts = [p["downloads"] for p in packages if p.get("downloads")]
+    span = (min(counts), max(counts)) if counts else (0, 0)
     for p in packages:
         cells = "".join(
             f'<td class="s {_cell(p, v)}" title="{escape(_title(p, v))}">'
@@ -866,7 +873,8 @@ def _matrix(data: dict) -> str:
             f'<tr id="{name}" data-name="{name}" data-downloads="{p.get("downloads") or 0}" '
             f'data-released="{escape(p.get("released") or "")}" data-status="{statuses}">'
             f'<th class="name" scope="row"><a href="https://pypi.org/project/{name}/">{name}</a>'
-            f"{flags}</th><td>{_compact(p.get('downloads'))}</td>"
+            f'{flags}</th><td class="dl">{_compact(p.get("downloads"))}'
+            f"{_reach(p.get('downloads'), span)}</td>"
             f"<td>{escape(p.get('released') or '')}</td>"
             f"<td>{escape(str(p['version']))}</td>{cells}</tr>"
         )
@@ -893,7 +901,9 @@ def _matrix(data: dict) -> str:
         '<li><span class="s check">?</span><b>To check</b> it does not say</li>'
         '<li><span class="s check signed">?</span><b>With a sign</b> its README names the '
         "version, or its main branch tests it</li>"
-        '<li><span class="s blocked">✗</span><b>Blocked</b> it excludes the version</li></ul>'
+        '<li><span class="s blocked">✗</span><b>Blocked</b> it excludes the version</li>'
+        '<li><span class="reach"><i style="width:60%"></i></span><b>Downloads</b> of the last '
+        "30 days, the bar on a log scale</li></ul>"
     )
     return (
         f"{toolbar}{legend}"
@@ -901,6 +911,17 @@ def _matrix(data: dict) -> str:
         f"<th>Downloads</th><th>Last release</th><th>Newest</th>{heads}</tr></thead>"
         f'<tbody id="rows">{"".join(rows)}</tbody></table></div>'
     )
+
+
+def _reach(downloads: int | None, span: tuple[int, int]) -> str:
+    """A bar under the downloads: on a log scale, since the most downloaded package has a
+    few hundred times the downloads of the 300th; a linear bar would leave most rows empty."""
+    low, high = span
+    if not downloads or high <= low:
+        return ""
+    share = math.log(downloads / low) / math.log(high / low)
+    width = 4 + 96 * share
+    return f'<span class="reach" aria-hidden="true"><i style="width:{width:.0f}%"></i></span>'
 
 
 def _for_maintainers(data: dict) -> str:
