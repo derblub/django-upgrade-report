@@ -167,3 +167,52 @@ def test_ecosystem_page_filters_and_keeps_them_in_the_address(browser, index, tm
     page.reload()
     assert page.evaluate("document.getElementById('5.0').open")
     assert not errors
+
+
+def test_ecosystem_charts_answer_pointer_and_keys(browser, index, tmp_path):
+    import importlib.util
+    from datetime import date
+    from pathlib import Path
+
+    path = Path(__file__).parent.parent / "ecosystem" / "build.py"
+    spec = importlib.util.spec_from_file_location("ecosystem_build", path)
+    build = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(build)
+    names = ["django-ready", "django-before", "django-with", "django-blocked", "django-lagging"]
+    downloads = {"django-ready": 900, "django-before": 5_000_000, "django-blocked": 1_200}
+    data = build.build(index, names, today=date(2026, 1, 15), downloads=downloads)
+    target = tmp_path / "index.html"
+    target.write_text(build.page(data))
+    page = browser.new_page(viewport={"width": 1200, "height": 900})
+    errors = []
+    page.on("pageerror", lambda error: errors.append(error))
+    page.goto(target.as_uri())
+    charts = page.locator(".charts")
+    assert page.is_visible(".toggle")
+
+    figure = page.locator('figure[data-chart="release"]')
+    figure.focus()  # the keyboard reaches the newest point first
+    tip = figure.locator(".tooltip")
+    sync_api.expect(tip).to_be_visible()
+    first = tip.inner_text()
+    page.keyboard.press("ArrowLeft")
+    assert tip.inner_text() != first and "days after release" in tip.inner_text()
+    page.keyboard.press("Escape")
+    sync_api.expect(tip).to_be_hidden()
+
+    box = figure.bounding_box()
+    page.mouse.move(box["x"] + box["width"] * 0.1, box["y"] + box["height"] * 0.5)
+    sync_api.expect(tip).to_be_visible()
+    assert "Django 5.2 LTS" in tip.inner_text()
+
+    page.click('.legend button[data-v="5.2"]')
+    sync_api.expect(charts).to_have_attribute("data-focus", "5.2")
+    assert figure.locator('.series.focus[data-v="5.2"]').count() >= 1
+    page.click('.legend button[data-v="5.2"]')
+    assert charts.get_attribute("data-focus") is None
+
+    page.click('.toggle button[data-mode="downloads"]')
+    sync_api.expect(charts).to_have_attribute("data-mode", "downloads")
+    assert figure.locator(".layer.downloads").is_visible()
+    assert not figure.locator(".layer.packages").is_visible()
+    assert not errors

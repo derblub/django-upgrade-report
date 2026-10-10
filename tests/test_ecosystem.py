@@ -122,15 +122,35 @@ def test_page_has_a_preview_for_shared_links(build, index):
     assert "<b>1</b><span>packages block Django 6.0</span>" in card
 
 
-def test_page_leads_with_figures_and_one_chart(build, index):
-    data = build.build(index, PACKAGES, today=date(2026, 1, 15))
+def test_page_leads_with_figures_and_two_charts(build, index):
+    data = build.build(index, PACKAGES, today=date(2026, 1, 15), downloads=DOWNLOADS)
     html = build.page(data)
-    assert html.index('<div class="tiles figures">') < html.index('<figure class="chart">')
-    assert "<b>3</b><span>of 5 declare Django 5.2 LTS</span>" in html
-    chart = html.split('<figure class="chart">', 1)[1].split("</figure>", 1)[0]
-    assert chart.count("<polyline") == sum(len(v["curve"]) >= 2 for v in data["versions"])
-    assert '<g class="lts">' in chart and '<g class="feature">' in chart
-    assert ">4.2 LTS <tspan" in chart  # labelled at the end of its line
+    assert html.index('<div class="figures">') < html.index('<section class="charts"')
+    assert '<div class="figure ready"><b>3</b><span>of 5 declare Django 5.2 LTS</span>' in html
+    for kind in ("release", "calendar"):
+        chart = html.split(f'data-chart="{kind}"', 1)[1].split("</figure>", 1)[0]
+        assert '<g class="layer packages">' in chart and '<g class="layer downloads">' in chart
+        assert 'class="crosshair"' in chart
+    release = html.split('data-chart="release"', 1)[1].split("</figure>", 1)[0]
+    # Newest first takes the brand teal; older than the fifth would step back to the neutral.
+    assert '<g class="series" data-v="6.0" style="--c:var(--s1)">' in release
+    assert '<g class="series" data-v="4.2" style="--c:var(--s5)">' in release
+    assert ">4.2 LTS <tspan" in release  # labelled at the end of its line
+    assert '<button type="button" data-v="5.2" aria-pressed="false" style="--c:var(--s2)">' in html
+    spec = json.loads(html.split('id="chart-data">', 1)[1].split("</script>", 1)[0])
+    assert set(spec) == {"release", "calendar"}
+    assert set(spec["release"]["modes"]) == {"packages", "downloads"}
+
+
+def test_timeline_and_weighted_curves(build, index):
+    data = build.build(index, PACKAGES, today=date(2026, 1, 15), downloads=DOWNLOADS)
+    v60 = next(v for v in data["versions"] if v["version"] == "6.0")
+    assert v60["timeline"][0] == ["2025-12-03", 0.0]  # from the release
+    assert v60["timeline"][1][0] == "2026-01-01"  # then the first of every month
+    assert v60["timeline"][-1] == ["2026-01-15", 0.4]  # and today: 2 of 5 declared it
+    # Weighted: django-before (5,000,000 downloads) declared 6.0 on 2026-01-01.
+    assert v60["curve_downloads"][-1][1] > 0.99
+    assert build._chart_series(data)[0]["c"] == "var(--s1)"
 
 
 def snapshot(day, statuses):

@@ -16,6 +16,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import sys
 import urllib.parse
 import urllib.request
@@ -43,7 +44,7 @@ from django_upgrade_report.analysis import (
 from django_upgrade_report.evidence import FetchError, GitHubFiles, test_matrix
 from django_upgrade_report.frameworks import DJANGO
 from django_upgrade_report.pypi import USER_AGENT, PyPI, PyPIError, default_cache_dir
-from django_upgrade_report.render.html import _CSS, FAVICON, brand
+from django_upgrade_report.render.html import FAVICON, brand
 from django_upgrade_report.sources import Dependency, DependencySet
 
 HERE = Path(__file__).parent
@@ -57,6 +58,7 @@ WORKERS = 8
 # channels) are missed: asking about all 15,000 top packages is not worth that load.
 CANDIDATE = re.compile(r"django|wagtail|^drf[-_]|^dj[-_]|djangorestframework|^channels")
 CURVE_DAYS = (0, 30, 60, 90, 180, 270, 365, 540, 730)
+TIMELINE_MONTHS = 36
 EARLY = 365
 """Days before a release from which a package's releases can declare it."""
 
@@ -215,7 +217,7 @@ def build(
                 rows[name]["signs"][label] = [e.text for e in p.evidence]
             if since.get(name) is not None:
                 rows[name]["declared_since"][label] = since[name].date().isoformat()
-                declared.append(since[name].date())
+                declared.append((since[name].date(), rows[name].get("downloads") or 0))
         ga = goal.ga.date() if goal.ga else None
         columns.append(
             {
@@ -225,6 +227,9 @@ def build(
                 "counts": counts,
                 "downloads": _download_shares(rows, label),
                 "curve": _curve(declared, ga, today, len(judged)),
+                "curve_downloads": _curve(declared, ga, today, _weight(rows, judged), True),
+                "timeline": _timeline(declared, ga, today, len(judged)),
+                "timeline_downloads": _timeline(declared, ga, today, _weight(rows, judged), True),
             }
         )
     return {
@@ -270,9 +275,28 @@ def _download_shares(rows: dict, label: str) -> dict | None:
     return {key: round(value / whole, 3) for key, value in total.items()} if whole else None
 
 
-def _curve(since: list[date], ga: date | None, today: date, total: int) -> list[list]:
+def _weight(rows: dict, judged) -> int:
+    """All downloads of the judged packages: what the weighted shares divide by."""
+    return sum(rows[name].get("downloads") or 0 for name in judged)
+
+
+def _declared_share(
+    declared: list[tuple[date, int]], day: date, total: int, weighted: bool
+) -> float:
+    done = sum(weight if weighted else 1 for when, weight in declared if when <= day)
+    return round(done / total, 3)
+
+
+def _curve(
+    declared: list[tuple[date, int]],
+    ga: date | None,
+    today: date,
+    total: int,
+    weighted: bool = False,
+) -> list[list]:
     """``[days after the release, share that had declared it]``, up to today: how fast the
-    ecosystem caught up, counting packages that dropped the version since, too."""
+    ecosystem caught up, counting packages that dropped the version since, too. Weighted, each
+    package counts with its downloads."""
     if ga is None or not total:
         return []
     points = []
@@ -280,8 +304,31 @@ def _curve(since: list[date], ga: date | None, today: date, total: int) -> list[
         day = ga + timedelta(days=days)
         if day > today:
             break
-        points.append([days, round(sum(1 for d in since if d <= day) / total, 3)])
+        points.append([days, _declared_share(declared, day, total, weighted)])
     return points
+
+
+def _timeline(
+    declared: list[tuple[date, int]],
+    ga: date | None,
+    today: date,
+    total: int,
+    weighted: bool = False,
+) -> list[list]:
+    """``[date, share that had declared it]`` on the first of every month of the last
+    ``TIMELINE_MONTHS`` from the release on, and today: the versions side by side in time."""
+    if ga is None or not total:
+        return []
+    start = max(ga, today - timedelta(days=TIMELINE_MONTHS * 31))
+    days = [start]
+    month = date(start.year, start.month, 1)
+    while True:
+        month = date(month.year + month.month // 12, month.month % 12 + 1, 1)
+        if month >= today:
+            break
+        days.append(month)
+    days.append(today)
+    return [[day.isoformat(), _declared_share(declared, day, total, weighted)] for day in days]
 
 
 # --- the weeks before ------------------------------------------------------------------------
@@ -365,29 +412,32 @@ def description(data: dict) -> str:
 
 
 def card(data: dict) -> str:
-    """The preview image as a page, 1200 by 630: what a shared link shows."""
+    """The preview image as a page, 1200 by 630: what a shared link shows. Pushing Pixels ink,
+    the brand typeface carried inside, so it renders the same anywhere."""
     h = highlights(data)
     new = h["newest"]
     figures = []
     if h["lts"]:
+        lts = h["lts"]
         figures.append(
-            (f"{h['lts']['ready']}", f"of {h['total']} declare Django {h['lts']['version']} LTS")
+            ("ready", lts["ready"], f"of {h['total']} declare Django {lts['version']} LTS")
         )
     figures.append(
         (
-            f"{new['ready']}",
+            "ready",
+            new["ready"],
             f"declare Django {new['version']}, {new['days']} days after its release",
         )
     )
-    figures.append((f"{new['blocked']}", f"packages block Django {new['version']}"))
+    figures.append(("blocked", new["blocked"], f"packages block Django {new['version']}"))
     tiles = "".join(
-        f'<div class="figure"><b>{escape(value)}</b><span>{escape(label)}</span></div>'
-        for value, label in figures
+        f'<div class="figure {css}"><b>{value}</b><span>{escape(label)}</span></div>'
+        for css, value, label in figures
     )
     return f"""<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><style>{_CSS}{_CARD_CSS}</style></head>
-<body><div class="card">
-<p class="kicker">Django ecosystem readiness · {escape(data["generated"])}</p>
+<html lang="en"><head><meta charset="utf-8"><style>{_card_fonts()}{_PAGE_CSS}{_CARD_CSS}</style>
+</head><body><div class="card">
+<p class="label">Django ecosystem · {escape(data["generated"])}</p>
 <h1>How ready is the Django ecosystem?</h1>
 <div class="figures">{tiles}</div>
 <p class="foot"><span>derblub.github.io/django-upgrade-report · updated every week</span>
@@ -396,22 +446,30 @@ def card(data: dict) -> str:
 """
 
 
+def _card_fonts() -> str:
+    """The brand typeface as data, for a page rendered without the site around it."""
+    import base64
+
+    font = (HERE / "fonts" / "google-sans-flex-latin-wght-normal.woff2").read_bytes()
+    encoded = base64.b64encode(font).decode()
+    return (
+        '@font-face { font-family: "Google Sans Flex"; font-weight: 1 1000; '
+        f'src: url(data:font/woff2;base64,{encoded}) format("woff2"); }}'
+    )
+
+
 _CARD_CSS = """
-:root { color-scheme: light; }
-body { margin: 0; width: 1200px; height: 630px; background: var(--bg); }
-.card { box-sizing: border-box; width: 1200px; height: 630px; padding: 64px 72px;
-  display: flex; flex-direction: column; }
-.kicker { color: var(--muted); font-size: 24px; margin: 0 0 12px; }
-.card h1 { font-size: 60px; margin: 0; }
-.figures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 40px; }
-.figure { background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
-  padding: 28px; }
-.figure b { display: block; font-size: 84px; line-height: 1; color: var(--ready);
-  font-variant-numeric: tabular-nums; }
-.figure:last-child b { color: var(--blocked); }
-.figure span { display: block; margin-top: 12px; font-size: 24px; color: var(--text); }
-.foot { margin-top: auto; color: var(--muted); font-size: 22px; display: flex;
-  justify-content: space-between; }
+body { width: 1200px; height: 630px; }
+.card { width: 1200px; height: 630px; padding: 64px 72px; display: flex;
+  flex-direction: column; background: var(--ink); }
+.card .label { font-size: 20px; line-height: 24px; }
+.card h1 { font-size: 64px; margin-top: 16px; }
+.card .figures { margin-top: 44px; grid-template-columns: repeat(3, 1fr); }
+.card .figure { padding: 28px; }
+.card .figure b { font-size: 88px; }
+.card .figure span { font-size: 24px; line-height: 32px; }
+.foot { margin-top: auto; display: flex; justify-content: space-between; color: var(--muted);
+  font-size: 22px; }
 .foot a { color: var(--text); text-decoration: none; }
 """
 
@@ -434,83 +492,179 @@ def render_card(html: str, out: Path) -> bool:
 # --- the page -------------------------------------------------------------------------------
 
 _PAGE_CSS = """
-.ecosystem { margin-top: 32px; }
-.ecosystem h2 { margin-top: 40px; }
-.ecosystem td.name a { color: inherit; }
-.bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; min-width: 160px;
-  background: var(--line); }
+@font-face { font-family: "Google Sans Flex"; font-style: normal; font-weight: 1 1000;
+  font-display: swap; src: url(fonts/google-sans-flex-latin-wght-normal.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD; }
+@font-face { font-family: "Google Sans Flex"; font-style: normal; font-weight: 1 1000;
+  font-display: swap;
+  src: url(fonts/google-sans-flex-latin-ext-wght-normal.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+    U+2113, U+2C60-2C7F, U+A720-A7FF; }
+:root {
+  color-scheme: dark;
+  /* Pushing Pixels, Ink: the page ground, surfaces on it, raised elements and hairlines. */
+  --ink: #1d1d20; --surface: #131315; --raised: #27272b;
+  --text: #ffffff; --muted: #99a1af; --muted-hi: #d1d5dc; --accent: #2dd4bf;
+  /* Status: declared, not declared, excluded. */
+  --ready: #5ee9b5; --check: #99a1af; --blocked: #fb2c36; --signed: #2dd4bf;
+  /* Chart series, newest release first; older ones step back to the neutral. */
+  --s1: #2dd4bf; --s2: #ee5e23; --s3: #824ae4; --s4: #f7e04f; --s5: #1c8fe0; --s-old: #6b7280;
+  --sans: "Google Sans Flex", ui-sans-serif, system-ui, sans-serif;
+  --mono: "DejaVu Sans Mono", "Liberation Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ease-ui: cubic-bezier(0.4, 0, 0.2, 1);
+}
+* { box-sizing: border-box; }
+html { background: var(--ink); }
+body { margin: 0; background: var(--ink); color: var(--text); font-family: var(--sans);
+  font-size: 16px; line-height: 1.6; font-weight: 350; -webkit-font-smoothing: antialiased; }
+main { max-width: 1040px; margin: 0 auto; padding: 64px 24px 80px; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+[tabindex]:focus-visible, summary:focus-visible { outline: 2px solid var(--accent);
+  outline-offset: 3px; }
+::selection { background: rgba(45, 212, 191, 0.45); }
+code { font-family: var(--mono); font-size: 0.92em; }
+.label { margin: 0; font-size: 12px; line-height: 16px; letter-spacing: 0.2em;
+  text-transform: uppercase; font-weight: 550; color: var(--muted); }
+h1 { margin: 12px 0 0 -0.05em; font-size: clamp(2rem, 1rem + 4vw, 4.5rem); line-height: 1;
+  font-weight: 650; text-transform: uppercase; text-wrap: balance; }
+header .intro { margin: 24px 0 0; max-width: 65ch; font-size: 20px; line-height: 30px;
+  font-weight: 300; color: var(--muted-hi); text-wrap: pretty; }
+h2 { margin: 80px 0 8px; font-size: 24px; line-height: 32px; font-weight: 600;
+  text-transform: uppercase; }
+@media (min-width: 48rem) { h2 { font-size: 30px; line-height: 36px; } }
+h3 { margin: 32px 0 8px; font-size: 16px; font-weight: 550; text-transform: uppercase;
+  letter-spacing: 0.08em; }
+.hint { margin: 0 0 16px; max-width: 65ch; color: var(--muted); text-wrap: pretty; }
+.hint a { color: inherit; }
+.panel { background: var(--surface); border: 1px solid var(--raised); }
+
+/* The numbers the page leads with, each closed by the pushed pixel. */
+.figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px; margin: 48px 0 0; background: var(--raised); border: 1px solid var(--raised); }
+.figure { background: var(--surface); padding: 24px; }
+.figure b { display: block; font-size: 64px; line-height: 1; font-weight: 900;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.figure b::after { content: ""; display: inline-block; width: 0.16em; height: 0.16em;
+  margin-left: 0.06em; border-radius: 0.03em; background: var(--pixel, var(--accent)); }
+.figure.ready { --pixel: var(--ready); } .figure.blocked { --pixel: var(--blocked); }
+.figure span { display: block; margin-top: 12px; color: var(--muted-hi); }
+
+.try { margin: 24px 0 0; padding: 24px; }
+.try p { margin: 0 0 12px; max-width: 65ch; }
+.command { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+.command code { overflow-wrap: anywhere; padding: 8px 12px; background: var(--ink);
+  border: 1px solid var(--raised); color: var(--text); font-size: 15px; }
+button, .copy { font: inherit; font-size: 14px; font-weight: 550; cursor: pointer;
+  color: var(--text); background: var(--raised); border: 1px solid var(--raised);
+  border-radius: 2px; padding: 6px 14px; min-height: 32px;
+  transition: border-color 150ms var(--ease-ui), color 150ms var(--ease-ui); }
+button:hover, .copy:hover { border-color: var(--accent); }
+.changes-list { margin: 8px 0 0; padding-left: 20px; }
+.changes-list li { margin: 4px 0; }
+
+/* Charts. */
+.chart-controls { display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: center;
+  margin: 8px 0 16px; }
+.toggle { display: inline-flex; border: 1px solid var(--raised); }
+.toggle button { border: 0; border-radius: 0; background: transparent; color: var(--muted); }
+.toggle button[aria-pressed=true] { background: var(--raised); color: var(--text); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.legend button { display: inline-flex; align-items: center; gap: 8px; background: transparent;
+  border-color: transparent; color: var(--muted-hi); font-weight: 450; padding: 4px 8px; }
+.legend button[aria-pressed=true] { border-color: var(--text); color: var(--text); }
+.key { display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+  background: var(--c); }
+.chart { position: relative; margin: 0 0 8px; padding: 16px 16px 8px; overflow-x: auto; }
+.chart svg { display: block; width: 100%; min-width: 620px; height: auto; overflow: visible; }
+.chart .grid { stroke: var(--raised); stroke-width: 1; }
+.chart .tick { fill: var(--muted); font-size: 12px; font-family: var(--sans); }
+.chart polyline { fill: none; stroke: var(--c); stroke-width: 2; stroke-linejoin: round;
+  stroke-linecap: round; }
+.chart .end { fill: var(--c); stroke: var(--surface); stroke-width: 2; }
+.chart .end-label { fill: var(--text); font-size: 13px; font-weight: 550;
+  font-family: var(--sans); }
+.chart .end-label .value { fill: var(--muted); font-weight: 350; }
+.chart .leader { stroke: var(--muted); stroke-width: 1; }
+.chart .series { transition: opacity 150ms var(--ease-ui); }
+.charts[data-focus] .series { opacity: 0.15; }
+.charts[data-focus] .series.focus { opacity: 1; }
+.charts .layer.downloads { display: none; }
+.charts[data-mode=downloads] .layer.downloads { display: inline; }
+.charts[data-mode=downloads] .layer.packages { display: none; }
+.chart .crosshair { stroke: var(--muted-hi); stroke-width: 1; visibility: hidden; }
+.chart.hover .crosshair { visibility: visible; }
+.tooltip { position: absolute; top: 12px; pointer-events: none; background: var(--ink);
+  border: 1px solid var(--raised); padding: 8px 12px; font-size: 13px; line-height: 20px;
+  min-width: 170px; white-space: nowrap; z-index: 5; }
+.tooltip b { display: block; font-weight: 550; margin-bottom: 4px; }
+.tooltip span { display: flex; align-items: center; gap: 8px; }
+.tooltip span .val { margin-left: auto; font-style: normal; font-variant-numeric: tabular-nums;
+  color: var(--muted-hi); padding-left: 12px; }
+
+/* Tables. */
+.table { background: var(--surface); border: 1px solid var(--raised); overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 10px 14px; border-top: 1px solid var(--raised);
+  vertical-align: top; }
+thead th { border-top: 0; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); font-weight: 550; }
+td.name, th.name { font-weight: 550; white-space: nowrap; }
+.name a { color: var(--text); }
+.name a:hover { color: var(--accent); }
+.overview td:nth-child(2) { white-space: nowrap; color: var(--muted-hi); }
+.bar { display: flex; gap: 2px; height: 10px; min-width: 160px; margin-top: 7px; }
 .bar span { display: block; }
-.bar .ready { background: var(--ready); }
-.bar .check { background: var(--check); }
+.bar .ready { background: var(--ready); } .bar .check { background: var(--raised); }
 .bar .blocked { background: var(--blocked); }
-td.s { text-align: center; font-weight: 600; }
-.try { margin: 24px 0 0; padding: 16px 20px; background: var(--panel);
-  border: 1px solid var(--line); border-radius: 10px; }
-.try p { margin: 0 0 10px; }
-.command { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.command code { overflow-wrap: anywhere; font-size: 16px; padding: 6px 10px;
-  border-radius: 6px; background: var(--bg);
-  border: 1px solid var(--line); }
-.copy { font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 6px; cursor: pointer;
-  border: 1px solid var(--line); background: var(--panel); color: var(--text); }
-details.version { margin-top: 8px; }
-details.version summary { cursor: pointer; padding: 6px 0; }
-details.version summary h3 { display: inline; font-size: 15px; margin: 0; }
-details.version .table { margin: 6px 0 12px; }
-.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 8px; }
-.toolbar input, .toolbar select { font: inherit; font-size: 14px; padding: 6px 10px;
-  border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
-.toolbar input { flex: 1 1 220px; }
+.sub { display: block; color: var(--muted); font-size: 12px; }
+td.s { text-align: center; font-weight: 650; }
+td.s.ready { color: var(--ready); } td.s.check { color: var(--check); }
+td.s.blocked { color: var(--blocked); }
+td.s.signed { color: var(--signed); box-shadow: inset 0 -2px 0 var(--signed); }
+details.version { border-top: 1px solid var(--raised); }
+details.version:last-of-type { border-bottom: 1px solid var(--raised); }
+details.version summary { cursor: pointer; padding: 12px 0; list-style-position: inside; }
+details.version summary h3 { display: inline; margin: 0; }
+details.version .table { margin: 0 0 16px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0 8px; }
+.toolbar input, .toolbar select { font: inherit; font-size: 15px; padding: 6px 10px;
+  min-height: 36px; border: 1px solid var(--raised); border-radius: 2px;
+  background: var(--surface); color: var(--text); }
+.toolbar input { flex: 1 1 240px; }
 #shown { color: var(--muted); font-size: 13px; }
-.legend-row .s { font-weight: 600; margin-left: 8px; }
+.legend-row .s { font-weight: 650; margin-left: 10px; }
 .legend-row .s.ready { color: var(--ready); } .legend-row .s.check { color: var(--check); }
 .legend-row .s.blocked { color: var(--blocked); }
-.legend-row .s.signed { background: var(--check-bg); padding: 0 4px; border-radius: 3px; }
+.legend-row .s.signed { color: var(--signed); box-shadow: inset 0 -2px 0 var(--signed); }
 .matrix { max-height: 80vh; overflow: auto; }
 .matrix table { width: max-content; min-width: 100%; }
-.ecosystem .name a { color: inherit; }
-.matrix thead th { position: sticky; top: 0; z-index: 2; background: var(--panel); }
-.matrix .name { position: sticky; left: 0; z-index: 1; background: var(--panel);
-  text-align: left; font-weight: 600; white-space: nowrap; }
+.matrix thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); }
+.matrix .name { position: sticky; left: 0; z-index: 1; background: var(--surface); }
 .matrix thead th.name { z-index: 3; }
 .matrix td { white-space: nowrap; }
-.matrix tr:target, .matrix tr:target .name { background: var(--check-bg); }
-.flag { margin-left: 6px; font-size: 11px; font-weight: 400; color: var(--upgrade);
-  border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; }
+.matrix tr:target, .matrix tr:target .name { background: var(--raised); }
+.flag { margin-left: 8px; font-size: 11px; font-weight: 450; color: var(--muted-hi);
+  border: 1px solid var(--raised); padding: 0 6px; }
+.meta { margin-top: 80px; padding-top: 16px; border-top: 1px solid var(--raised);
+  color: var(--muted); font-size: 13px; }
+.meta a { color: inherit; }
+.brand { white-space: nowrap; }
+.pp-mark { width: 1.15em; height: 1.15em; vertical-align: -0.22em; margin-right: 0.3em; }
 @media (max-width: 640px) {
+  main { padding: 40px 16px 64px; }
+  .figure b { font-size: 48px; }
   .matrix .name { white-space: normal; min-width: 130px; max-width: 160px;
     overflow-wrap: anywhere; }
   .flag { display: inline-block; margin: 2px 0 0; }
 }
-.ecosystem > h2 { margin-top: 48px; }
-.tiles.figures { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 32px 0 8px; }
-.tiles.figures b { font-size: 44px; }
-.tiles.figures span { font-size: 15px; color: var(--text); }
-.chart { margin: 16px 0 0; background: var(--panel); border: 1px solid var(--line);
-  border-radius: 10px; padding: 16px 16px 8px; }
-.chart { overflow-x: auto; }
-.chart svg { display: block; width: 100%; min-width: 620px; height: auto; overflow: visible; }
-.overview td:nth-child(2) { white-space: nowrap; }
-.chart .grid { stroke: var(--line); stroke-width: 1; }
-.chart .tick { fill: var(--muted); font-size: 12px; }
-.chart polyline { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.chart .lts polyline, .chart .key.lts { stroke: var(--text); background: var(--text); }
-.chart .feature polyline, .chart .key.feature { stroke: var(--muted); background: var(--muted); }
-.chart .lts .end { fill: var(--text); } .chart .feature .end { fill: var(--muted); }
-.chart .end { stroke: var(--panel); stroke-width: 2; }
-.chart .hit { fill: transparent; }
-.chart .label { fill: var(--text); font-size: 13px; font-weight: 600; }
-.chart .label .value { fill: var(--muted); font-weight: 400; }
-.chart .leader { stroke: var(--muted); stroke-width: 1; }
-.changes-list { margin: 8px 0 0; padding-left: 20px; }
-.changes-list li { margin: 4px 0; }
-.legend { display: flex; gap: 20px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-.legend .key { display: inline-block; width: 18px; height: 2px; vertical-align: middle;
-  margin-right: 6px; border-radius: 1px; }
-td.s.ready { color: var(--ready); } td.s.check { color: var(--check); }
-td.s.blocked { color: var(--blocked); }
-td.s.signed { background: var(--check-bg); }
-.sub { display: block; color: var(--muted); font-size: 12px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 1ms !important;
+    animation-duration: 1ms !important; }
+}
 """
 _ICON = {"ready": "✓", "check": "?", "blocked": "✗"}
 
@@ -519,19 +673,18 @@ def page(data: dict) -> str:
     """A static page with the same look as the HTML report. Without JavaScript everything is
     shown; the script adds search, filters, sorting and copying, kept in the address."""
     inner = f"""<header>
+<p class="label">Django ecosystem · updated {escape(data["generated"])}</p>
 <h1>How ready is the Django ecosystem?</h1>
-<p>The newest release of the {data["packages_count"]} most downloaded Django-related packages on
-PyPI, judged against every Django version by what its maintainers declare: the
-<code>Framework :: Django</code> classifiers and the Django requirement. Updated every week.</p>
+<p class="intro">The newest release of the {data["packages_count"]} most downloaded
+Django-related packages on PyPI, judged against every Django version by what its maintainers
+declare: the <code>Framework :: Django</code> classifiers and the Django requirement. Updated
+every week.</p>
 </header>
 <div class="ecosystem">
 {_figures(data)}
 {_try()}
 {_changes(data)}
-<h2>How fast packages declare a new Django</h2>
-<p class="hint">Share of the {data["packages_count"]} packages with a release that declared the
-version, by days after its release.</p>
-{_chart(data)}
+{_charts(data)}
 <h2>Every Django version</h2>
 {_overview(data)}
 <p class="hint">Declared after release: the share of packages with a release that declared the
@@ -555,7 +708,7 @@ blocked: the metadata does not say either way. By {escape(AUTHOR)}, {brand()}.</
 {_meta_tags(data)}
 <link rel="alternate" type="application/atom+xml" title="Weekly changes" href="feed.xml">
 {FAVICON}
-<style>{_CSS}{_PAGE_CSS}</style>
+<style>{_PAGE_CSS}</style>
 </head>
 <body>
 <main>
@@ -570,7 +723,7 @@ blocked: the metadata does not say either way. By {escape(AUTHOR)}, {brand()}.</
 def _try() -> str:
     """The command for your own project, near the top, with a copy button."""
     return (
-        '<div class="try"><p><b>Your own project:</b> which of your dependencies block the '
+        '<div class="try panel"><p><b>Your own project:</b> which of your dependencies block the '
         "upgrade, which you can upgrade today, and in which order. Reads your lockfile, sends "
         "only package names to PyPI.</p>"
         '<div class="command"><code>uvx django-upgrade-report</code>'
@@ -631,7 +784,7 @@ def _blockers(data: dict) -> str:
         )
         count = len(blocked)
         title = (
-            f"Django {label}: {count} package{'s' if count != 1 else ''} exclude it"
+            f"Django {label}: {count} package{'s exclude' if count != 1 else ' excludes'} it"
             if count
             else f"Django {label}: no package excludes it"
         )
@@ -811,6 +964,104 @@ _SCRIPT = r"""
   read();
   apply(false);
 })();
+(() => {
+  const charts = document.querySelector(".charts");
+  if (!charts) return;
+  const spec = JSON.parse(document.getElementById("chart-data").textContent);
+  const toggle = charts.querySelector(".toggle");
+  toggle.hidden = false;
+  toggle.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    charts.dataset.mode = b.dataset.mode;
+    for (const x of toggle.querySelectorAll("button")) x.setAttribute("aria-pressed", x === b);
+    for (const f of figures) if (f.classList.contains("hover")) f.refresh();
+  });
+  const legend = charts.querySelectorAll(".legend button");
+  function focusOn(v) {
+    if (v) charts.dataset.focus = v; else delete charts.dataset.focus;
+    for (const b of legend) b.setAttribute("aria-pressed", b.dataset.v === v);
+    for (const g of charts.querySelectorAll(".series")) {
+      g.classList.toggle("focus", g.dataset.v === v);
+    }
+  }
+  for (const b of legend) b.addEventListener("click", () =>
+    focusOn(charts.dataset.focus === b.dataset.v ? null : b.dataset.v));
+  const months = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ");
+  const when = (kind, x) => {
+    if (kind === "release") return x ? x + " days after release" : "release day";
+    const d = new Date((x - 719163) * 86400000);  // ordinal day to a date
+    return d.getUTCDate() + " " + months[d.getUTCMonth()] + " " + d.getUTCFullYear();
+  };
+  const figures = [...charts.querySelectorAll("figure.chart")];
+  for (const fig of figures) {
+    const kind = fig.dataset.chart, c = spec[kind];
+    const svg = fig.querySelector("svg"), tip = fig.querySelector(".tooltip");
+    const line = fig.querySelector(".crosshair");
+    const [x0, x1] = c.x, [left, top, w, h] = c.plot;
+    const width = svg.viewBox.baseVal.width;
+    let at = null;
+    const mode = () => c.modes[charts.dataset.mode];
+    const xs = () => [...new Set(mode().series.flatMap((s) => s.p.map((p) => p[0])))]
+      .sort((a, b) => a - b);
+    const px = (x) => left + (x - x0) / ((x1 - x0) || 1) * w;
+    function value(points, x) {  // the share at x, or the last one before it
+      if (!points.length || x < points[0][0]) return null;
+      let found = null;
+      for (const p of points) if (p[0] <= x) found = p[1];
+      return x > points[points.length - 1][0] ? null : found;
+    }
+    function show(x) {
+      at = x;
+      const pos = px(x);
+      line.setAttribute("x1", pos); line.setAttribute("x2", pos);
+      fig.classList.add("hover");
+      const rows = mode().series.map((s) => [s, value(s.p, x)]).filter((r) => r[1] !== null);
+      tip.replaceChildren();
+      const head = document.createElement("b");
+      head.textContent = when(kind, x);
+      tip.append(head);
+      for (const [s, v] of rows) {
+        const row = document.createElement("span");
+        row.style.setProperty("--c", s.c);
+        const key = document.createElement("i");
+        key.className = "key";
+        const val = document.createElement("i");
+        val.className = "val";
+        val.textContent = Math.round(v * 100) + "%";
+        row.append(key, "Django " + s.name, val);
+        tip.append(row);
+      }
+      tip.hidden = false;
+      const scale = svg.getBoundingClientRect().width / width;
+      const offset = svg.getBoundingClientRect().left - fig.getBoundingClientRect().left;
+      const room = pos * scale + offset;
+      tip.style.left = (room + 16 + tip.offsetWidth > fig.clientWidth
+        ? room - 16 - tip.offsetWidth : room + 16) + "px";
+    }
+    function hide() { fig.classList.remove("hover"); tip.hidden = true; }
+    fig.refresh = () => at !== null && show(nearest(at));
+    function nearest(x) {
+      return xs().reduce((a, b) => (Math.abs(b - x) < Math.abs(a - x) ? b : a));
+    }
+    svg.addEventListener("pointermove", (e) => {
+      const r = svg.getBoundingClientRect();
+      const vx = (e.clientX - r.left) * width / r.width;
+      if (vx < left - 8 || vx > left + w + 8) return hide();
+      show(nearest(x0 + (vx - left) / w * (x1 - x0)));
+    });
+    svg.addEventListener("pointerleave", hide);
+    fig.addEventListener("focus", () => show(at ?? xs().at(-1)));
+    fig.addEventListener("blur", hide);
+    fig.addEventListener("keydown", (e) => {
+      const all = xs(), i = Math.max(0, all.indexOf(at ?? all.at(-1)));
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault();
+        show(all[Math.min(all.length - 1, Math.max(0, i + (e.key === "ArrowRight" ? 1 : -1)))]);
+      } else if (e.key === "Escape") hide();
+    });
+  }
+})();
 """
 
 
@@ -837,17 +1088,15 @@ def _meta_tags(data: dict) -> str:
 
 
 def _figures(data: dict) -> str:
-    """The three numbers the page leads with, as tiles like the report's."""
+    """The three numbers the page leads with, each closed by the pushed pixel in its status
+    colour."""
     h = highlights(data)
     new = h["newest"]
     tiles = []
     if h["lts"]:
+        lts = h["lts"]
         tiles.append(
-            (
-                "ready",
-                h["lts"]["ready"],
-                f"of {h['total']} declare Django {h['lts']['version']} LTS",
-            )
+            ("ready", lts["ready"], f"of {h['total']} declare Django {lts['version']} LTS")
         )
     tiles.append(
         (
@@ -858,98 +1107,199 @@ def _figures(data: dict) -> str:
     )
     tiles.append(("blocked", new["blocked"], f"packages block Django {new['version']}"))
     inner = "".join(
-        f'<div class="tile {css}"><b>{value}</b><span>{escape(label)}</span></div>'
+        f'<div class="figure {css}"><b>{value}</b><span>{escape(label)}</span></div>'
         for css, value, label in tiles
     )
-    return f'<div class="tiles figures">{inner}</div>'
+    return f'<div class="figures">{inner}</div>'
 
 
-_CHART = {"width": 860, "height": 320, "left": 44, "right": 92, "top": 16, "bottom": 40}
+_CHART = {"width": 860, "height": 340, "left": 48, "right": 104, "top": 16, "bottom": 40}
+_SLOTS = ("s1", "s2", "s3", "s4", "s5")
+"""Colours for the newest five released versions; older ones take the neutral ``s-old``."""
+_MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
 
-def _chart(data: dict) -> str:
-    """Every curve on one axis, days after the release: LTS versions in ink, the others muted,
-    each labelled at its end. Native tooltips on the points; the table below has the values."""
+def _chart_series(data: dict) -> list[dict]:
+    """Every version with a curve, newest first, with its colour and its points for both
+    charts and both ways of counting. A version keeps its colour until a newer one comes out."""
+    shown = [v for v in data["versions"] if len(v["curve"]) >= 2]
+    found = []
+    for i, v in enumerate(reversed(shown)):
+        lts = DJANGO.is_lts(Version(v["version"]))
+
+        def dated(points):
+            return [[date.fromisoformat(day).toordinal(), share] for day, share in points or []]
+
+        found.append(
+            {
+                "v": v["version"],
+                "name": f"{v['version']}{' LTS' if lts else ''}",
+                "c": f"var(--{_SLOTS[i]})" if i < len(_SLOTS) else "var(--s-old)",
+                "release": {
+                    "packages": v["curve"],
+                    "downloads": v.get("curve_downloads") or [],
+                },
+                "calendar": {
+                    "packages": dated(v.get("timeline")),
+                    "downloads": dated(v.get("timeline_downloads")),
+                },
+            }
+        )
+    return found
+
+
+def _ticks(kind: str, x0: int, x1: int) -> list[tuple[int, str]]:
+    if kind == "release":
+        return [
+            (0, "release"),
+            (90, "3 months"),
+            (180, "6 months"),
+            (365, "1 year"),
+            (540, "18 months"),
+            (730, "2 years"),
+        ]
+    ticks = []
+    first = date.fromordinal(x0)
+    for year in range(first.year, date.fromordinal(x1).year + 1):
+        for month in (1, 7):
+            day = date(year, month, 1).toordinal()
+            if x0 <= day <= x1:
+                ticks.append((day, f"{_MONTHS[month - 1]} {year}"))
+    return ticks
+
+
+def _charts(data: dict) -> str:
+    """How fast packages declare a new Django, two ways: by days after each release, and side
+    by side in calendar time. Both count packages or their downloads; the script switches,
+    highlights a version and shows the values under the pointer. Without it, both charts show
+    the share of packages, labelled at the end of each line."""
+    series = _chart_series(data)
+    if not series:
+        return ""
+    spec = {}
+    figures = {}
+    for kind in ("release", "calendar"):
+        xs = [x for s in series for mode in s[kind].values() for x, _ in mode]
+        if not xs:
+            continue
+        x0, x1 = (0, CURVE_DAYS[-1]) if kind == "release" else (min(xs), max(xs))
+        layers, modes = [], {}
+        for mode in ("packages", "downloads"):
+            layer, ceiling = _layer(series, kind, mode, x0, x1)
+            layers.append(layer)
+            modes[mode] = {
+                "ceiling": ceiling,
+                "series": [
+                    {"v": s["v"], "name": s["name"], "c": s["c"], "p": s[kind][mode]}
+                    for s in series
+                    if s[kind][mode]
+                ],
+            }
+        w, h = _CHART["width"], _CHART["height"]
+        left, top = _CHART["left"], _CHART["top"]
+        plot_w = w - left - _CHART["right"]
+        plot_h = h - top - _CHART["bottom"]
+        spec[kind] = {"x": [x0, x1], "plot": [left, top, plot_w, plot_h]}
+        spec[kind]["modes"] = modes
+        label = (
+            "Share of packages that declared each Django version, by days after its release"
+            if kind == "release"
+            else "Share of packages that declared each Django version, by date"
+        )
+        figures[kind] = (
+            f'<figure class="chart panel" data-chart="{kind}" tabindex="0" role="group" '
+            f'aria-label="{label}. Arrow keys move through the points.">'
+            f'<svg viewBox="0 0 {w} {h}" role="img" aria-label="{label}">{"".join(layers)}'
+            f'<line class="crosshair" x1="0" x2="0" y1="{top}" y2="{top + plot_h}"/></svg>'
+            '<div class="tooltip" hidden></div></figure>'
+        )
+    legend = "".join(
+        f'<button type="button" data-v="{escape(s["v"])}" aria-pressed="false" '
+        f'style="--c:{s["c"]}"><i class="key"></i>Django {escape(s["name"])}</button>'
+        for s in series
+    )
+    data_json = json.dumps(spec, separators=(",", ":")).replace("<", "\\u003c")
+    total = data["packages_count"]
+    return f"""<section class="charts" data-mode="packages">
+<h2>How fast packages catch up</h2>
+<p class="hint">Share of the {total} packages with a release that declared each version, by days
+after its release. Downloads counts each package with its downloads of the last 30 days.</p>
+<div class="chart-controls">
+<div class="toggle" role="group" aria-label="Count" hidden><button type="button"
+data-mode="packages" aria-pressed="true">Packages</button><button type="button"
+data-mode="downloads" aria-pressed="false">Downloads</button></div>
+<div class="legend" role="group" aria-label="Highlight a version">{legend}</div>
+</div>
+{figures.get("release", "")}
+<h3>Side by side in time</h3>
+<p class="hint">The same shares by date: where each version stood at any moment of the last
+three years.</p>
+{figures.get("calendar", "")}
+<script type="application/json" id="chart-data">{data_json}</script>
+</section>"""
+
+
+def _layer(series: list[dict], kind: str, mode: str, x0: int, x1: int) -> tuple[str, float]:
+    """One way of counting as SVG: grid, axis, a line per version and its end label."""
     w, h = _CHART["width"], _CHART["height"]
     left, right, top, bottom = (_CHART[k] for k in ("left", "right", "top", "bottom"))
     plot_w, plot_h = w - left - right, h - top - bottom
-    curves = [v for v in data["versions"] if len(v["curve"]) >= 2]
-    if not curves:
-        return ""
-    highest = max(share for v in curves for _, share in v["curve"])
+    shares = [share for s in series for _, share in s[kind][mode]]
+    highest = max(shares, default=0)
     ceiling = max(0.1, min(1.0, -(-highest * 10 // 1) / 10))  # up to the next 10 %
-    most = CURVE_DAYS[-1]
+    span = (x1 - x0) or 1
 
-    def x(days: float) -> float:
-        return left + days / most * plot_w
+    def x(value: float) -> float:
+        return left + (value - x0) / span * plot_w
 
     def y(share: float) -> float:
         return top + plot_h - share / ceiling * plot_h
 
     parts = []
-    steps = round(ceiling * 10)
-    for i in range(steps + 1):
+    for i in range(round(ceiling * 10) + 1):
         share = i / 10
         parts.append(
             f'<line class="grid" x1="{left}" x2="{left + plot_w}" y1="{y(share):.1f}" '
             f'y2="{y(share):.1f}"/><text class="tick" x="{left - 8}" y="{y(share) + 4:.1f}" '
             f'text-anchor="end">{i * 10}%</text>'
         )
-    for days, label in (
-        (0, "release"),
-        (90, "3 months"),
-        (180, "6 months"),
-        (365, "1 year"),
-        (540, "18 months"),
-        (730, "2 years"),
-    ):
+    for value, label in _ticks(kind, x0, x1):
         parts.append(
-            f'<text class="tick" x="{x(days):.1f}" y="{top + plot_h + 22}" '
-            f'text-anchor="middle">{label}</text>'
+            f'<text class="tick" x="{x(value):.1f}" y="{top + plot_h + 22}" '
+            f'text-anchor="middle">{escape(label)}</text>'
         )
     ends = []
-    for v in curves:
-        lts = DJANGO.is_lts(Version(v["version"]))
-        css = "lts" if lts else "feature"
-        name = f"Django {v['version']}{' LTS' if lts else ''}"
-        points = " ".join(f"{x(d):.1f},{y(s_):.1f}" for d, s_ in v["curve"])
-        dots = "".join(
-            f'<circle class="hit" cx="{x(d):.1f}" cy="{y(s_):.1f}" r="7"><title>{escape(name)}: '
-            f"{s_ * 100:.0f}% after {_days(d)}</title></circle>"
-            for d, s_ in v["curve"]
-        )
-        last_d, last_s = v["curve"][-1]
+    for s in reversed(series):  # the newest drawn last, on top
+        points = s[kind][mode]
+        if len(points) < 2:
+            continue
+        line = " ".join(f"{x(d):.1f},{y(v):.1f}" for d, v in points)
+        last_x, last_v = points[-1]
+        ends.append([y(last_v), x(last_x), y(last_v), s, last_v])
         parts.append(
-            f'<g class="{css}"><polyline points="{points}"/>'
-            f'<circle class="end" cx="{x(last_d):.1f}" cy="{y(last_s):.1f}" r="4"/>{dots}</g>'
-        )
-        ends.append(
-            [y(last_s), x(last_d), y(last_s), v["version"] + (" LTS" if lts else ""), last_s]
+            f'<g class="series" data-v="{escape(s["v"])}" style="--c:{s["c"]}">'
+            f'<polyline points="{line}"/><circle class="end" cx="{x(last_x):.1f}" '
+            f'cy="{y(last_v):.1f}" r="4"/></g>'
         )
     # End labels that would touch move apart, with a hairline back to their line's end.
-    ends.sort()
+    ends.sort(key=lambda e: e[0])
     for i in range(1, len(ends)):
         ends[i][0] = max(ends[i][0], ends[i - 1][0] + 15)
-    for label_y, end_x, end_y, text, share in ends:
+    labels = []
+    for label_y, end_x, end_y, s, share in ends:
         lx = end_x + 10
-        if abs(label_y - end_y) > 1:
-            parts.append(
-                f'<line class="leader" x1="{end_x + 5:.1f}" y1="{end_y:.1f}" x2="{lx - 2:.1f}" '
-                f'y2="{label_y - 4:.1f}"/>'
-            )
-        parts.append(
-            f'<text class="label" x="{lx:.1f}" y="{label_y:.1f}">{escape(text)} '
-            f'<tspan class="value">{share * 100:.0f}%</tspan></text>'
+        leader = (
+            f'<line class="leader" x1="{end_x + 5:.1f}" y1="{end_y:.1f}" x2="{lx - 2:.1f}" '
+            f'y2="{label_y - 4:.1f}"/>'
+            if abs(label_y - end_y) > 1
+            else ""
         )
-    legend = (
-        '<div class="legend"><span><i class="key lts"></i>LTS release</span>'
-        '<span><i class="key feature"></i>feature release</span></div>'
-    )
-    return (
-        f'<figure class="chart">{legend}<svg viewBox="0 0 {w} {h}" role="img" '
-        'aria-label="Share of packages that declared each Django version, by days after its '
-        f'release">{"".join(parts)}</svg></figure>'
-    )
+        labels.append(
+            f'<g class="series" data-v="{escape(s["v"])}">{leader}'
+            f'<text class="end-label" x="{lx:.1f}" y="{label_y:.1f}">{escape(s["name"])} '
+            f'<tspan class="value">{share * 100:.0f}%</tspan></text></g>'
+        )
+    return f'<g class="layer {mode}">{"".join(parts)}{"".join(labels)}</g>', ceiling
 
 
 _MOVES = (("ready", "now ready"), ("blocked", "now blocked"), ("dropped", "no longer ready"))
@@ -1136,6 +1486,7 @@ def main(argv: list[str] | None = None, pypi: PyPI | None = None) -> int:
     (args.out / "feed.xml").write_text(feed(snapshots or [data]))
     (args.out / "data.json").write_text(json.dumps(data, indent=1) + "\n")
     (args.out / "index.html").write_text(page(data))
+    shutil.copytree(HERE / "fonts", args.out / "fonts", dirs_exist_ok=True)
     write_badges(data, args.out / "badges")
     if render_card(card(data), args.out / "og.png"):
         print(f"wrote {args.out}/og.png", file=sys.stderr)

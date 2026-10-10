@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Ecosystem page
 
+- The page wears the Pushing Pixels design: the dark ink theme, Google Sans Flex, uppercase headings, square corners, the teal accent, and the pushed pixel closing the three numbers at the top. The preview card for shared links matches.
+- The curves are interactive: a crosshair shows every version's share at the point under the pointer or the arrow keys, a version can be picked out from the legend, and a switch counts packages or their downloads. Each version has its own colour, checked for colour-blind readers, the newest in the brand teal. A second chart puts the versions side by side in calendar time over the last three years.
 - Shared links show a preview card with this week's numbers (built each week as `og.png`), and the page has a description for search results.
 - The page leads with three numbers (packages that declare the newest LTS, the newest release and how long it has been out, and the packages that block it) and one chart with the curves of every Django version on one axis, LTS releases in ink, each labelled at its end.
 - "This week" lists the packages that became ready, began to block or stopped declaring a Django version since the week before, also as an Atom feed (`feed.xml`). Every week's `data.json` is kept on the `ecosystem-history` branch.
