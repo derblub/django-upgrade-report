@@ -17,6 +17,7 @@ import json
 import os
 import re
 import sys
+import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
@@ -39,6 +40,7 @@ from django_upgrade_report.analysis import (
     is_django_related,
     supports,
 )
+from django_upgrade_report.evidence import FetchError, GitHubFiles, test_matrix
 from django_upgrade_report.frameworks import DJANGO
 from django_upgrade_report.pypi import USER_AGENT, PyPI, PyPIError, default_cache_dir
 from django_upgrade_report.render.html import _CSS, FAVICON, brand
@@ -151,15 +153,19 @@ def build(
     packages: list[str],
     today: date | None = None,
     downloads: dict[str, int] | None = None,
+    files=None,
 ) -> dict:
-    """The status of the newest release of each package for every Django version."""
+    """The status of the newest release of each package for every Django version.
+
+    With ``files`` (GitHub, ``--evidence``), packages to check for the newest release and the
+    next one also show whether the test matrix on their default branch runs it."""
     today = today or datetime.now(timezone.utc).date()
     django = pypi.project("django")
     if django is None:
         raise RuntimeError("Could not read Django's release history")
     series = _series(django)
     rows = {
-        name: {"name": name, "version": None, "status": {}, "declared_since": {}}
+        name: {"name": name, "version": None, "status": {}, "declared_since": {}, "signs": {}}
         for name in packages
     }
     for name, row in rows.items():
@@ -176,7 +182,10 @@ def build(
             requires=str(spec) if spec else None,
         )
     columns = []
-    for target, before in versions(django):
+    pairs = versions(django)
+    released_ = [t for t, _ in pairs if t in series]
+    looked_at = {pairs[-1][0], *released_[-1:]}  # where signs from GitHub are worth the requests
+    for target, before in pairs:
         label = f"{target.major}.{target.minor}"
         # From the newest patch of the version before: what an upgrade to it would see.
         deps = {"django": Dependency("django", str(series[before][-1]))} if before else {}
@@ -194,10 +203,16 @@ def build(
         with ThreadPoolExecutor(WORKERS) as pool:
             found = pool.map(first_declared, [pypi] * len(names), names, [goal] * len(names))
             since = dict(zip(names, found, strict=True))
+        if files is not None and target in looked_at:
+            _look_on_github(files, report, label)
+        counts["signs"] = 0
         for name, p in judged.items():
             status = Status.CHECK if p.status is Status.UPGRADE else p.status  # a pre-release
             counts[status.value] += 1
             rows[name]["status"][label] = status.value
+            if status is Status.CHECK and p.evidence:
+                counts["signs"] += 1
+                rows[name]["signs"][label] = [e.text for e in p.evidence]
             if since.get(name) is not None:
                 rows[name]["declared_since"][label] = since[name].date().isoformat()
                 declared.append(since[name].date())
@@ -208,6 +223,7 @@ def build(
                 "released": goal.released,
                 "ga": ga.isoformat() if ga else None,
                 "counts": counts,
+                "downloads": _download_shares(rows, label),
                 "curve": _curve(declared, ga, today, len(judged)),
             }
         )
@@ -220,6 +236,38 @@ def build(
             (row for row in rows.values() if row["status"]), key=lambda row: row["name"]
         ),
     }
+
+
+def _look_on_github(files, report, label: str) -> None:
+    """Signs from the test matrix on the default branch, for packages to check without one."""
+
+    def look(p) -> None:
+        try:
+            sign = test_matrix(files, p.repository_url, label)
+        except FetchError:
+            return
+        if sign is not None:
+            p.evidence.append(sign)
+
+    wanted = [
+        p
+        for p in report.packages
+        if p.status is Status.CHECK and not p.evidence and p.repository_url
+    ]
+    with ThreadPoolExecutor(4) as pool:
+        list(pool.map(look, wanted))
+
+
+def _download_shares(rows: dict, label: str) -> dict | None:
+    """The share of downloads behind each status: packages weighted by how much they are
+    used. ``None`` without download numbers."""
+    total = {"ready": 0, "check": 0, "blocked": 0}
+    for row in rows.values():
+        status = row["status"].get(label)
+        if status in total and row.get("downloads"):
+            total[status] += row["downloads"]
+    whole = sum(total.values())
+    return {key: round(value / whole, 3) for key, value in total.items()} if whole else None
 
 
 def _curve(since: list[date], ga: date | None, today: date, total: int) -> list[list]:
@@ -400,7 +448,8 @@ td.s { text-align: center; font-weight: 600; }
   border: 1px solid var(--line); border-radius: 10px; }
 .try p { margin: 0 0 10px; }
 .command { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.command code { font-size: 16px; padding: 6px 10px; border-radius: 6px; background: var(--bg);
+.command code { overflow-wrap: anywhere; font-size: 16px; padding: 6px 10px;
+  border-radius: 6px; background: var(--bg);
   border: 1px solid var(--line); }
 .copy { font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 6px; cursor: pointer;
   border: 1px solid var(--line); background: var(--panel); color: var(--text); }
@@ -416,6 +465,7 @@ details.version .table { margin: 6px 0 12px; }
 .legend-row .s { font-weight: 600; margin-left: 8px; }
 .legend-row .s.ready { color: var(--ready); } .legend-row .s.check { color: var(--check); }
 .legend-row .s.blocked { color: var(--blocked); }
+.legend-row .s.signed { background: var(--check-bg); padding: 0 4px; border-radius: 3px; }
 .matrix { max-height: 80vh; overflow: auto; }
 .matrix table { width: max-content; min-width: 100%; }
 .ecosystem .name a { color: inherit; }
@@ -459,6 +509,8 @@ details.version .table { margin: 6px 0 12px; }
   margin-right: 6px; border-radius: 1px; }
 td.s.ready { color: var(--ready); } td.s.check { color: var(--check); }
 td.s.blocked { color: var(--blocked); }
+td.s.signed { background: var(--check-bg); }
+.sub { display: block; color: var(--muted); font-size: 12px; }
 """
 _ICON = {"ready": "✓", "check": "?", "blocked": "✗"}
 
@@ -487,6 +539,7 @@ version by then, counting packages whose newest release has dropped it since.</p
 {_blockers(data)}
 <h2 id="packages">Every package</h2>
 {_matrix(data)}
+{_for_maintainers(data)}
 </div>
 <p class="meta">Generated {escape(data["generated"])} by
 <a href="{REPO_URL}">{escape(data["tool"])}</a> with the rules of the report:
@@ -530,7 +583,7 @@ def _overview(data: dict) -> str:
     rows = []
     for v in data["versions"]:
         counts = v["counts"]
-        total = sum(counts.values()) or 1
+        total = counts["ready"] + counts["check"] + counts["blocked"] or 1
         bar = "".join(
             f'<span class="{key}" style="width:{counts[key] / total * 100:.1f}%"></span>'
             for key in ("ready", "check", "blocked")
@@ -542,14 +595,26 @@ def _overview(data: dict) -> str:
             f"<td>{escape(when)}</td>"
             f'<td><div class="bar" title="{counts["ready"]} ready, {counts["check"]} to check, '
             f'{counts["blocked"]} blocked">{bar}</div></td>'
-            f"<td>{counts['ready']}</td><td>{counts['check']}</td><td>{counts['blocked']}</td>"
+            f"<td>{counts['ready']}</td><td>{counts['check']}{_signs(counts)}</td>"
+            f"<td>{counts['blocked']}</td><td>{_share(v.get('downloads'))}</td>"
             f"<td>{_curve_text(v['curve'])}</td></tr>"
         )
     return (
         '<div class="table overview"><table><thead><tr><th>Version</th><th></th><th>Share</th>'
-        "<th>ready</th><th>to check</th><th>blocked</th><th>Declared after release</th></tr>"
+        "<th>ready</th><th>to check</th><th>blocked</th><th>Ready by downloads</th>"
+        "<th>Declared after release</th></tr>"
         f"</thead><tbody>{''.join(rows)}</tbody></table></div>"
     )
+
+
+def _signs(counts: dict) -> str:
+    signs = counts.get("signs")
+    return f'<span class="sub">{signs} with a sign</span>' if signs else ""
+
+
+def _share(shares: dict | None) -> str:
+    """The share of downloads that goes to packages that are ready."""
+    return f"{shares['ready'] * 100:.0f}%" if shares else ""
 
 
 def _blockers(data: dict) -> str:
@@ -600,7 +665,7 @@ def _matrix(data: dict) -> str:
     packages = sorted(data["packages"], key=lambda p: (-(p.get("downloads") or 0), p["name"]))
     for p in packages:
         cells = "".join(
-            f'<td class="s {p["status"].get(v, "")}" title="{escape(_title(p, v))}">'
+            f'<td class="s {_cell(p, v)}" title="{escape(_title(p, v))}">'
             f"{_ICON.get(p['status'].get(v), '')}</td>"
             for v in versions
         )
@@ -610,7 +675,7 @@ def _matrix(data: dict) -> str:
             for key, text in (("inactive", "inactive"), ("stale", "no release in 2 years"))
             if p.get(key)
         )
-        statuses = " ".join(f"{escape(v)}:{p['status'].get(v, '')}" for v in versions)
+        statuses = " ".join(f"{escape(v)}:{_cell(p, v).replace(' ', '-')}" for v in versions)
         rows.append(
             f'<tr id="{name}" data-name="{name}" data-downloads="{p.get("downloads") or 0}" '
             f'data-released="{escape(p.get("released") or "")}" data-status="{statuses}">'
@@ -630,6 +695,7 @@ def _matrix(data: dict) -> str:
         f'<select id="v" aria-label="Django version">{options}</select>'
         '<select id="status" aria-label="Status"><option value="">any status</option>'
         '<option value="ready">ready</option><option value="check">to check</option>'
+        '<option value="check-signed">to check, with a sign</option>'
         '<option value="blocked">blocked</option></select>'
         '<select id="sort" aria-label="Sort"><option value="downloads">most downloaded</option>'
         '<option value="name">name</option><option value="released">last release</option>'
@@ -638,7 +704,9 @@ def _matrix(data: dict) -> str:
     legend = (
         '<p class="hint legend-row"><span class="s ready">✓</span> ready: the newest release '
         'declares it <span class="s check">?</span> to check: it does not say '
-        '<span class="s blocked">✗</span> blocked: it excludes it</p>'
+        '<span class="s blocked">✗</span> blocked: it excludes it '
+        '<span class="s check signed">?</span> to check, with a sign of support (its README '
+        "names the version, or the test matrix on its main branch runs it)</p>"
     )
     return (
         f"{toolbar}{legend}"
@@ -646,6 +714,27 @@ def _matrix(data: dict) -> str:
         f"<th>Downloads</th><th>Last release</th><th>Newest</th>{heads}</tr></thead>"
         f'<tbody id="rows">{"".join(rows)}</tbody></table></div>'
     )
+
+
+def _for_maintainers(data: dict) -> str:
+    """The badge a package can show in its README, linked back to its row."""
+    example = next((p["name"] for p in data["packages"] if p["name"] == "django-filter"), None)
+    example = example or (data["packages"][0]["name"] if data["packages"] else "your-package")
+    snippet = badge_snippet(example)
+    return (
+        '<h2 id="badges">A badge for your README</h2>'
+        '<p class="hint">For maintainers: what this page says about the newest Django release, '
+        "updated every week. Replace the package name; for one version, use "
+        f"<code>badges/{escape(example)}/6.1.json</code>.</p>"
+        f'<div class="command"><code>{escape(snippet)}</code><button type="button" '
+        f'class="copy" data-copy="{escape(snippet)}" hidden>Copy</button></div>'
+    )
+
+
+def _cell(package: dict, version: str) -> str:
+    """The status, and ``signed`` for a package to check with a sign of support."""
+    status = package["status"].get(version, "")
+    return f"{status} signed" if package.get("signs", {}).get(version) else status
 
 
 def _compact(number: int | None) -> str:
@@ -687,7 +776,8 @@ _SCRIPT = r"""
     for (const r of rows) {
       const status = (r.dataset.status.split(" ").find((s) => s.startsWith(ver + ":")) || "")
         .split(":")[1];
-      const ok = (!term || r.dataset.name.includes(term)) && (!want || status === want);
+      const ok = (!term || r.dataset.name.includes(term)) &&
+        (!want || status === want || (want === "check" && status === "check-signed"));
       r.hidden = !ok;
       shown += ok;
     }
@@ -931,6 +1021,9 @@ def feed(snapshots: list[dict]) -> str:
 
 def _title(package: dict, version: str) -> str:
     title = package["status"].get(version, "not checked")
+    signs = package.get("signs", {}).get(version)
+    if signs:
+        title = f"{title}: {'; '.join(signs)}"
     since = package["declared_since"].get(version)
     return f"{title}, first declared {since}" if since else title
 
@@ -951,6 +1044,48 @@ def _days(days: int) -> str:
     return f"{days} days" if days else "the release"
 
 
+# --- badges for maintainers ----------------------------------------------------------------
+
+_BADGE = {
+    "ready": ("declared", "brightgreen"),
+    "check": ("not declared", "lightgrey"),
+    "blocked": ("excluded", "red"),
+}
+
+
+def badges(data: dict) -> dict[str, dict]:
+    """Shields.io endpoint badges: ``name/6.1.json`` per package and version, and
+    ``name.json`` for the newest release, as ``{"schemaVersion": 1, "label": ...}``."""
+    released = [v["version"] for v in data["versions"] if v["released"]]
+    found = {}
+    for p in data["packages"]:
+        for version, status in p["status"].items():
+            message, color = _BADGE[status]
+            found[f"{p['name']}/{version}.json"] = {
+                "schemaVersion": 1,
+                "label": f"Django {version}",
+                "message": message,
+                "color": color,
+            }
+        if released and released[-1] in p["status"]:
+            found[f"{p['name']}.json"] = found[f"{p['name']}/{released[-1]}.json"]
+    return found
+
+
+def write_badges(data: dict, out: Path) -> None:
+    for path, badge in badges(data).items():
+        target = out / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(badge))
+
+
+def badge_snippet(name: str) -> str:
+    """The Markdown for a package's README: the badge, linked to the package on the page."""
+    endpoint = f"{ECOSYSTEM_URL}badges/{name}.json"
+    image = f"https://img.shields.io/endpoint?url={urllib.parse.quote(endpoint, safe='')}"
+    return f"[![Django support]({image})]({ECOSYSTEM_URL}#{name})"
+
+
 # --- the command line -----------------------------------------------------------------------
 
 
@@ -959,6 +1094,11 @@ def main(argv: list[str] | None = None, pypi: PyPI | None = None) -> int:
     parser.add_argument("command", choices=["select", "build"])
     parser.add_argument("--count", type=int, default=COUNT)
     parser.add_argument("--out", type=Path, default=SITE)
+    parser.add_argument(
+        "--evidence",
+        action="store_true",
+        help="look at the test matrix on GitHub for packages to check (uses GITHUB_TOKEN)",
+    )
     parser.add_argument(
         "--history",
         type=Path,
@@ -981,7 +1121,11 @@ def main(argv: list[str] | None = None, pypi: PyPI | None = None) -> int:
     except OSError as exc:  # the page without download numbers beats no page
         print(f"downloads left out: {exc}", file=sys.stderr)
         downloads = None
-    data = build(pypi, packages, downloads=downloads)
+    files = None
+    if args.evidence:
+        token = os.environ.get("GITHUB_TOKEN")
+        files = GitHubFiles(default_cache_dir(), token=token)
+    data = build(pypi, packages, downloads=downloads, files=files)
     snapshots = []
     if args.history:
         args.history.mkdir(parents=True, exist_ok=True)
@@ -992,6 +1136,7 @@ def main(argv: list[str] | None = None, pypi: PyPI | None = None) -> int:
     (args.out / "feed.xml").write_text(feed(snapshots or [data]))
     (args.out / "data.json").write_text(json.dumps(data, indent=1) + "\n")
     (args.out / "index.html").write_text(page(data))
+    write_badges(data, args.out / "badges")
     if render_card(card(data), args.out / "og.png"):
         print(f"wrote {args.out}/og.png", file=sys.stderr)
     else:

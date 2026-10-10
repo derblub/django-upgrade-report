@@ -10,8 +10,10 @@
    "counts": {
     "ready": 4,
     "check": 0,
-    "blocked": 1
+    "blocked": 1,
+    "signs": 0
    },
+   "downloads": null,
    "curve": [
     [
      0,
@@ -58,8 +60,10 @@
    "counts": {
     "ready": 1,
     "check": 2,
-    "blocked": 2
+    "blocked": 2,
+    "signs": 0
    },
+   "downloads": null,
    "curve": [
     [
      0,
@@ -106,8 +110,10 @@
    "counts": {
     "ready": 1,
     "check": 2,
-    "blocked": 2
+    "blocked": 2,
+    "signs": 0
    },
+   "downloads": null,
    "curve": [
     [
      0,
@@ -146,8 +152,10 @@
    "counts": {
     "ready": 3,
     "check": 1,
-    "blocked": 1
+    "blocked": 1,
+    "signs": 0
    },
+   "downloads": null,
    "curve": [
     [
      0,
@@ -182,8 +190,10 @@
    "counts": {
     "ready": 2,
     "check": 2,
-    "blocked": 1
+    "blocked": 1,
+    "signs": 0
    },
+   "downloads": null,
    "curve": [
     [
      0,
@@ -202,8 +212,10 @@
    "counts": {
     "ready": 0,
     "check": 4,
-    "blocked": 1
+    "blocked": 1,
+    "signs": 0
    },
+   "downloads": null,
    "curve": []
   }
  ],
@@ -226,6 +238,7 @@
     "5.2": "2026-01-01",
     "6.0": "2026-01-01"
    },
+   "signs": {},
    "downloads": null,
    "released": "2026-01-01",
    "stale": false,
@@ -244,6 +257,7 @@
     "6.1": "blocked"
    },
    "declared_since": {},
+   "signs": {},
    "downloads": null,
    "released": "2021-01-01",
    "stale": true,
@@ -264,6 +278,7 @@
    "declared_since": {
     "4.2": "2026-01-01"
    },
+   "signs": {},
    "downloads": null,
    "released": "2026-01-01",
    "stale": false,
@@ -287,6 +302,7 @@
     "5.1": "2026-01-01",
     "5.2": "2026-01-01"
    },
+   "signs": {},
    "downloads": null,
    "released": "2026-01-01",
    "stale": false,
@@ -309,6 +325,7 @@
     "5.2": "2026-01-01",
     "6.0": "2026-01-01"
    },
+   "signs": {},
    "downloads": null,
    "released": "2026-01-01",
    "stale": false,

@@ -38,11 +38,14 @@ jobs:
             git worktree add --orphan -b ecosystem-history history
           fi
       - name: Build
-        # Playwright's Chromium renders the preview image (og.png) for shared links.
+        # Playwright's Chromium renders the preview image (og.png) for shared links. The
+        # token lists workflow files for --evidence instead of guessing their names.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           uvx --from playwright playwright install --with-deps chromium
           PYTHONPATH=src uv run --no-project --with packaging --with playwright \
-            python ecosystem/build.py build --history history/data
+            python ecosystem/build.py build --history history/data --evidence
           test -f ecosystem/site/og.png
       - name: Keep this week's data
         working-directory: history

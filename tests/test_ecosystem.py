@@ -211,3 +211,48 @@ def test_page_links_versions_and_packages_and_lists_blockers(build, index):
     assert '<span class="flag">no release in 2 years</span>' in html
     assert '<div class="toolbar" id="toolbar" hidden>' in html  # shown by the script only
     assert build._compact(24_512_000) == "24.5M" and build._compact(1_200) == "1.2K"
+
+
+class FakeFiles:
+    """GitHub with one repository whose tox.ini runs the next Django."""
+
+    def workflows(self, owner, repo):
+        return []
+
+    def text(self, owner, repo, path):
+        return "[tox]\nenvlist = py312-django{52,61}\n" if path == "tox.ini" else None
+
+
+def test_signs_downloads_and_badges(build, index):
+    index.packages["django-lagging"][0]["project_urls"] = {
+        "Source": "https://github.com/acme/django-lagging"
+    }
+    data = build.build(
+        index, PACKAGES, today=date(2026, 1, 15), downloads=DOWNLOADS, files=FakeFiles()
+    )
+    columns = {v["version"]: v for v in data["versions"]}
+    rows = {p["name"]: p for p in data["packages"]}
+    # Looked at for the newest release (6.0) and the next one (6.1) only.
+    assert rows["django-lagging"]["signs"] == {"6.1": ["main branch tests Django 6.1 (tox.ini)"]}
+    assert columns["6.1"]["counts"]["signs"] == 1 and columns["5.2"]["counts"]["signs"] == 0
+    # Weighted by downloads: django-before alone carries almost all of them.
+    assert columns["5.0"]["downloads"] == {"ready": 0.0, "check": 1.0, "blocked": 0.0}
+    assert columns["5.2"]["downloads"]["ready"] == 1.0  # 5,000,900 of 5,002,100
+
+    html = build.page(data)
+    assert '<td class="s check signed" title="check: main branch tests Django 6.1' in html
+    assert '<option value="check-signed">to check, with a sign</option>' in html
+    assert "6.1:check-signed" in html
+
+    found = build.badges(data)
+    assert found["django-ready/5.2.json"] == {
+        "schemaVersion": 1,
+        "label": "Django 5.2",
+        "message": "declared",
+        "color": "brightgreen",
+    }
+    assert found["django-blocked.json"]["message"] == "excluded"  # the newest release, 6.0
+    assert found["django-blocked.json"]["label"] == "Django 6.0"
+    snippet = build.badge_snippet("django-ready")
+    assert snippet.startswith("[![Django support](https://img.shields.io/endpoint?url=https%3A")
+    assert snippet.endswith("(https://derblub.github.io/django-upgrade-report/#django-ready)")
