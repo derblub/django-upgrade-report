@@ -242,3 +242,24 @@ def test_ecosystem_command_field_copies_like_its_button(browser, index, tmp_path
     assert page.evaluate("navigator.clipboard.readText()").startswith("[![Django support]")
     assert page.locator(".badge-preview img").count() == 4  # the badge and its three messages
     context.close()
+
+
+def test_ecosystem_package_list_fits_a_desktop(browser, index, tmp_path):
+    import importlib.util
+    from datetime import date
+    from pathlib import Path
+
+    path = Path(__file__).parent.parent / "ecosystem" / "build.py"
+    spec = importlib.util.spec_from_file_location("ecosystem_build", path)
+    build = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(build)
+    names = ["django-ready", "django-before", "django-with", "django-blocked", "django-lagging"]
+    target = tmp_path / "index.html"
+    target.write_text(build.page(build.build(index, names, today=date(2026, 1, 15))))
+    page = browser.new_page(viewport={"width": 1100, "height": 800})
+    page.goto(target.as_uri())
+    width, room = page.evaluate(
+        "(() => { const m = document.querySelector('.matrix'); "
+        "return [m.scrollWidth, m.clientWidth]; })()"
+    )
+    assert width <= room  # down, never sideways

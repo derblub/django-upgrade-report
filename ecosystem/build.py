@@ -654,8 +654,14 @@ details.version .table { margin: 0 0 16px; }
 .matrix thead th.name { z-index: 3; }
 .matrix td { white-space: nowrap; }
 .matrix tr:target, .matrix tr:target .name { background: var(--raised); }
-.flag { margin-left: 8px; font-size: 11px; font-weight: 450; color: var(--muted-hi);
-  border: 1px solid var(--raised); padding: 0 6px; }
+.flag { display: block; width: fit-content; margin: 4px 0 0; font-size: 11px; font-weight: 450;
+  color: var(--muted-hi); border: 1px solid var(--raised); padding: 0 6px; }
+/* On a desktop the list fits the page: no sideways scrolling, only down. */
+.matrix th, .matrix td { padding: 10px 10px; }
+.matrix thead th { letter-spacing: 0.08em; }
+.matrix th.s, .matrix td.s { padding-left: 4px; padding-right: 4px; text-align: center;
+  min-width: 36px; }
+@media (min-width: 641px) { .matrix table { width: 100%; } }
 .meta { margin-top: 80px; padding-top: 16px; border-top: 1px solid var(--raised);
   color: var(--muted); font-size: 13px; }
 .meta a { color: inherit; }
@@ -666,7 +672,6 @@ details.version .table { margin: 0 0 16px; }
   .figure b { font-size: 48px; }
   .matrix .name { white-space: normal; min-width: 130px; max-width: 160px;
     overflow-wrap: anywhere; }
-  .flag { display: inline-block; margin: 2px 0 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 1ms !important;
