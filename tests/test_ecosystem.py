@@ -91,7 +91,7 @@ def test_page_escapes_and_links(build):
     }
     html = build.page(data)
     assert "&lt;x&gt;" in html and "<x>" not in html
-    assert 'title="ready, first declared 2025-04-10"' in html
+    assert 'title="ready, first declared 2025-04-10, 8 days after Django 5.2"' in html
     assert "100% after 30 days" in html
     assert 'class="brand" href="https://pushingpixels.at"' in html
     assert '<link rel="icon" href="data:image/svg+xml,' in html
@@ -297,3 +297,31 @@ def test_blocker_tables_share_the_downloads_scale(build):
     html = build._blockers(data)
     assert 'class="reach"' in html
     assert 'style="width:4%"' in html  # scaled against every package, not only the blocked
+
+
+def test_last_release_shows_its_age(build):
+    from datetime import date
+
+    today = date(2026, 10, 10)
+    assert build._age("2026-10-10", today) == (
+        '<td class="age fresh">2026-10-10<span class="sub">today</span></td>'
+    )
+    assert "1 day ago" in build._age("2026-10-09", today)
+    assert 'class="age aging"' in build._age("2025-12-10", today)
+    assert "10 months ago" in build._age("2025-12-10", today)
+    assert 'class="age old"' in build._age("2020-07-15", today)
+    assert "6 years ago" in build._age("2020-07-15", today)
+    assert build._age(None, today) == "<td></td>"
+
+
+def test_lag_counts_only_versions_the_package_could_have_declared(build):
+    gas = {"5.0": "2023-12-04", "5.1": "2024-08-07", "5.2": "2025-04-02"}
+    package = {
+        "first_release": "2024-01-01",
+        "declared_since": {"5.0": "2024-01-01", "5.1": "2024-08-01", "5.2": "2025-05-02"},
+    }
+    assert build._lag(package, "5.0", gas["5.0"]) is None  # it did not exist yet
+    assert build._lag(package, "5.1", gas["5.1"]) == 0  # declared before the release
+    assert build._lag(package, "5.2", gas["5.2"]) == 30
+    assert build._typical_lag(package, gas) == 15
+    assert build._typical_lag({"declared_since": {}}, gas) is None

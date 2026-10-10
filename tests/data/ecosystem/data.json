@@ -644,6 +644,7 @@
    "signs": {},
    "downloads": null,
    "released": "2026-01-01",
+   "first_release": "2026-01-01",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -663,6 +664,7 @@
    "signs": {},
    "downloads": null,
    "released": "2021-01-01",
+   "first_release": "2021-01-01",
    "stale": true,
    "inactive": false,
    "requires": "<5.0"
@@ -684,6 +686,7 @@
    "signs": {},
    "downloads": null,
    "released": "2026-01-01",
+   "first_release": "2026-01-01",
    "stale": false,
    "inactive": false,
    "requires": ">=3.2"
@@ -708,6 +711,7 @@
    "signs": {},
    "downloads": null,
    "released": "2026-01-01",
+   "first_release": "2026-01-01",
    "stale": false,
    "inactive": false,
    "requires": ">=4.2"
@@ -731,6 +735,7 @@
    "signs": {},
    "downloads": null,
    "released": "2026-01-01",
+   "first_release": "2026-01-01",
    "stale": false,
    "inactive": false,
    "requires": ">=5.2"

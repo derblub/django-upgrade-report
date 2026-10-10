@@ -292,3 +292,35 @@ def test_ecosystem_package_row_marks_on_click(browser, index, tmp_path):
     ]
     blocked.click()  # a second click clears it
     assert page.locator("#rows tr.active").count() == 0
+
+
+def test_ecosystem_headers_sort_and_light_up_their_column(browser, index, tmp_path):
+    import importlib.util
+    from datetime import date
+    from pathlib import Path
+
+    path = Path(__file__).parent.parent / "ecosystem" / "build.py"
+    spec = importlib.util.spec_from_file_location("ecosystem_build", path)
+    build = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(build)
+    names = ["django-ready", "django-before", "django-with", "django-blocked", "django-lagging"]
+    target = tmp_path / "index.html"
+    target.write_text(build.page(build.build(index, names, today=date(2026, 1, 15))))
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda error: errors.append(error))
+    page.goto(target.as_uri())
+    order = "[...document.querySelectorAll('#rows tr')].map(r => r.id)"
+    page.click("th[data-sort=name] .sort")
+    assert page.evaluate(order) == sorted(names)
+    assert page.get_attribute("th[data-sort=name]", "aria-sort") == "ascending"
+    page.click("th[data-sort=name] .sort")  # a second click turns it around
+    assert page.evaluate(order) == sorted(names, reverse=True)
+    assert page.evaluate("location.hash") == "#sort=name&dir=desc"
+    page.click("th[data-sort='v:5.0'] .sort")  # blocked first
+    assert page.evaluate(order)[0] == "django-blocked"
+    assert page.input_value("#sort") == "v:5.0"
+    assert page.evaluate("document.querySelector('col[data-v=\\'6.0\\']').className") == ("picked")
+    page.hover("#django-ready td.s >> nth=0")
+    assert "hot" in page.evaluate("document.querySelector('col[data-v]').className")
+    assert not errors

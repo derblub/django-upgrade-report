@@ -176,10 +176,12 @@ def build(
         if project is None:
             continue
         last = max((r.uploaded for r in project.releases if r.uploaded), default=None)
+        first = min((r.uploaded for r in project.releases if r.uploaded), default=None)
         spec = django_requirement(project.latest)
         row.update(
             downloads=(downloads or {}).get(name),
             released=last.date().isoformat() if last else None,
+            first_release=first.date().isoformat() if first else None,
             stale=bool(last) and (today - last.date()).days > STALE_AFTER_DAYS,
             inactive=_INACTIVE in project.latest.classifiers,
             requires=str(spec) if spec else None,
@@ -628,6 +630,8 @@ td.name, th.name { font-weight: 550; white-space: nowrap; }
 .bar span { display: block; }
 .bar .ready { background: var(--ready); } .bar .check { background: var(--raised); }
 .bar .blocked { background: var(--blocked); }
+.bar.thin { height: 4px; margin-top: 4px; }
+.bar.mini { min-width: 0; width: 28px; height: 3px; gap: 1px; margin: 5px auto 0; }
 .sub { display: block; color: var(--muted); font-size: 12px; }
 td.s { text-align: center; font-weight: 650; }
 td.s.ready { color: var(--ready); } td.s.check { color: var(--check); }
@@ -667,11 +671,21 @@ tbody tr:hover > *, .matrix tbody tr:hover > .name { background: var(--hover); }
 .reach { display: block; width: 100%; max-width: 72px; height: 4px; margin: 6px 0 0;
   background: var(--raised); }
 .reach i { display: block; height: 100%; background: var(--muted-hi); }
+th .sort { all: unset; cursor: pointer; }
+th .sort:hover, th[aria-sort] .sort, th.hot .sort { color: var(--text); }
+th .sort:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+th[aria-sort=ascending] .sort::after { content: "↑"; margin-left: 2px; }
+th[aria-sort=descending] .sort::after { content: "↓"; margin-left: 2px; }
+th.picked .sort { color: var(--accent); }
+/* The version under the pointer, and the one picked in the filter, light up as a column. */
+col.picked { background: rgba(45, 212, 191, 0.05); }
+col.hot { background: var(--hover); }
+.age.aging { color: var(--muted-hi); } .age.old { color: var(--muted); }
 .legend-row .reach { width: 24px; margin: 0; align-self: center; }
 .flag { display: block; width: fit-content; margin: 4px 0 0; font-size: 11px; font-weight: 450;
   color: var(--muted-hi); border: 1px solid var(--raised); padding: 0 6px; }
 /* On a desktop the list fits the page: no sideways scrolling, only down. */
-.matrix th, .matrix td { padding: 10px 10px; }
+.matrix th, .matrix td { padding: 10px 8px; }
 .matrix thead th { letter-spacing: 0.08em; }
 .matrix th.s, .matrix td.s { padding-left: 4px; padding-right: 4px; text-align: center;
   min-width: 36px; }
@@ -727,6 +741,7 @@ every week.</p>
 <h2>Every Django version</h2>
 {_overview(data)}
 <ol class="table-note">
+<li>The thick bar counts packages, the thin one under it downloads.</li>
 <li>The share of the downloads of the last 30 days that goes to packages that are ready.</li>
 <li>The share of packages with a release that declared the version by then, counting packages
 whose newest release has dropped it since.</li>
@@ -785,17 +800,32 @@ def _overview(data: dict) -> str:
             f'<tr><td class="name"><a href="#{label}">Django {label}</a></td>'
             f"<td>{escape(when)}</td>"
             f'<td><div class="bar" title="{counts["ready"]} ready, {counts["check"]} to check, '
-            f'{counts["blocked"]} blocked">{bar}</div></td>'
+            f'{counts["blocked"]} blocked">{bar}</div>{_download_bar(v.get("downloads"))}</td>'
             f"<td>{counts['ready']}</td><td>{counts['check']}{_signs(counts)}</td>"
             f"<td>{counts['blocked']}</td><td>{_share(v.get('downloads'))}</td>"
             f"<td>{_curve_text(v['curve'])}</td></tr>"
         )
     return (
-        '<div class="table overview"><table><thead><tr><th>Version</th><th></th><th>Share</th>'
-        "<th>ready</th><th>to check</th><th>blocked</th><th>Ready by downloads<sup>1</sup></th>"
-        "<th>Declared after release<sup>2</sup></th></tr>"
+        '<div class="table overview"><table><thead><tr><th>Version</th><th></th>'
+        "<th>Share<sup>1</sup></th><th>ready</th><th>to check</th><th>blocked</th>"
+        "<th>Ready by downloads<sup>2</sup></th><th>Declared after release<sup>3</sup></th></tr>"
         f"</thead><tbody>{''.join(rows)}</tbody></table></div>"
     )
+
+
+def _download_bar(shares: dict | None) -> str:
+    """The same split by downloads, as a thin bar under the one by packages."""
+    if not shares:
+        return ""
+    bar = "".join(
+        f'<span class="{key}" style="width:{shares[key] * 100:.1f}%"></span>'
+        for key in ("ready", "check", "blocked")
+    )
+    title = ", ".join(
+        f"{shares[key] * 100:.0f}% {text}"
+        for key, text in (("ready", "ready"), ("check", "to check"), ("blocked", "blocked"))
+    )
+    return f'<div class="bar thin" title="By downloads: {title}">{bar}</div>'
 
 
 def _signs(counts: dict) -> str:
@@ -849,18 +879,20 @@ def _blockers(data: dict) -> str:
 
 
 def _matrix(data: dict) -> str:
-    """Every package against every version, most downloaded first, with a search field and
-    filters that the script fills in."""
+    """Every package against every version, most downloaded first, with a search field,
+    filters and sortable headers that the script fills in."""
     versions = [v["version"] for v in data["versions"]]
     released = [v["version"] for v in data["versions"] if v["released"]]
     default = released[-1] if released else versions[-1]
-    heads = "".join(f'<th class="s">{escape(v)}</th>' for v in versions)
+    gas = {v["version"]: v["ga"] for v in data["versions"] if v["released"] and v.get("ga")}
+    today = date.fromisoformat(data["generated"])
+    heads = "".join(_version_head(v) for v in data["versions"])
     rows = []
     packages = sorted(data["packages"], key=lambda p: (-(p.get("downloads") or 0), p["name"]))
     span = _download_span(packages)
     for p in packages:
         cells = "".join(
-            f'<td class="s {_cell(p, v)}" title="{escape(_title(p, v))}">'
+            f'<td class="s {_cell(p, v)}" title="{escape(_title(p, v, gas.get(v)))}">'
             f"{_ICON.get(p['status'].get(v), '')}</td>"
             for v in versions
         )
@@ -871,18 +903,28 @@ def _matrix(data: dict) -> str:
             if p.get(key)
         )
         statuses = " ".join(f"{escape(v)}:{_cell(p, v).replace(' ', '-')}" for v in versions)
+        lag = _typical_lag(p, gas)
         rows.append(
             f'<tr id="{name}" data-name="{name}" data-downloads="{p.get("downloads") or 0}" '
             f'data-released="{escape(p.get("released") or "")}" data-status="{statuses}">'
             f'<th class="name" scope="row"><a href="https://pypi.org/project/{name}/">{name}</a>'
             f'{flags}</th><td class="dl">{_compact(p.get("downloads"))}'
-            f"{_reach(p.get('downloads'), span)}</td>"
-            f"<td>{escape(p.get('released') or '')}</td>"
-            f"<td>{escape(str(p['version']))}</td>{cells}</tr>"
+            f"{_reach(p.get('downloads'), span)}</td>{_age(p.get('released'), today)}"
+            f"<td>{escape(str(p['version']))}"
+            + (
+                f'<span class="sub" title="{_LAG_TITLE}">{_lag_text(lag)}</span>'
+                if lag is not None
+                else ""
+            )
+            + f"</td>{cells}</tr>"
         )
     options = "".join(
         f'<option value="{escape(v)}"{" selected" if v == default else ""}>Django {escape(v)}'
         "</option>"
+        for v in versions
+    )
+    by_version = "".join(
+        f'<option value="v:{escape(v)}">blocked first on Django {escape(v)}</option>'
         for v in versions
     )
     toolbar = (
@@ -895,7 +937,7 @@ def _matrix(data: dict) -> str:
         '<option value="blocked">blocked</option></select>'
         '<select id="sort" aria-label="Sort"><option value="downloads">most downloaded</option>'
         '<option value="name">name</option><option value="released">last release</option>'
-        '</select><span id="shown" aria-live="polite"></span></div>'
+        f'{by_version}</select><span id="shown" aria-live="polite"></span></div>'
     )
     legend = (
         '<ul class="legend-row" aria-label="What the marks mean">'
@@ -905,15 +947,93 @@ def _matrix(data: dict) -> str:
         "version, or its main branch tests it</li>"
         '<li><span class="s blocked">✗</span><b>Blocked</b> it excludes the version</li>'
         '<li><span class="reach"><i style="width:60%"></i></span><b>Downloads</b> of the last '
-        "30 days, the bar on a log scale</li></ul>"
+        "30 days, the bar on a log scale</li>"
+        "<li><b>Lag</b> the median time from a Django release to a release that declares it"
+        "</li><li><b>Headers</b> sort the list; click again to turn it around</li></ul>"
     )
+    columns = "<col><col><col><col>" + "".join(f'<col data-v="{escape(v)}">' for v in versions)
     return (
         f"{toolbar}{legend}"
-        '<div class="table matrix"><table><thead><tr><th class="name">Package</th>'
-        f'<th title="{_DOWNLOADS_TITLE}">Downloads</th>'
-        f"<th>Last release</th><th>Newest</th>{heads}</tr></thead>"
+        f'<div class="table matrix"><table><colgroup>{columns}</colgroup><thead><tr>'
+        + _sort_head("name", "Package", cls="name")
+        + _sort_head("downloads", "Downloads", title=_DOWNLOADS_TITLE)
+        + _sort_head("released", "Last release")
+        + f"<th>Newest</th>{heads}</tr></thead>"
         f'<tbody id="rows">{"".join(rows)}</tbody></table></div>'
     )
+
+
+_LAG_TITLE = (
+    "The median time from a Django release to the first release of this package that "
+    "declares it, over the versions released since the package's first release"
+)
+
+
+def _sort_head(key: str, label: str, cls: str = "", title: str = "") -> str:
+    attrs = (f' class="{cls}"' if cls else "") + (f' title="{escape(title)}"' if title else "")
+    return (
+        f'<th{attrs} data-sort="{escape(key)}">'
+        f'<button type="button" class="sort">{escape(label)}</button></th>'
+    )
+
+
+def _version_head(v: dict) -> str:
+    """A version's header: sorts by it, and a small bar of how the version stands."""
+    counts = v["counts"]
+    total = counts["ready"] + counts["check"] + counts["blocked"] or 1
+    bar = "".join(
+        f'<span class="{key}" style="width:{counts[key] / total * 100:.1f}%"></span>'
+        for key in ("ready", "check", "blocked")
+    )
+    label = escape(v["version"])
+    title = (
+        f"Django {label}: {counts['ready']} ready, {counts['check']} to check, "
+        f"{counts['blocked']} blocked"
+    )
+    return (
+        f'<th class="s" data-sort="v:{label}" title="{title}">'
+        f'<button type="button" class="sort">{label}</button>'
+        f'<span class="bar mini" aria-hidden="true">{bar}</span></th>'
+    )
+
+
+def _age(released: str | None, today: date) -> str:
+    """The last release with how long ago it was, fading as it gets older."""
+    if not released:
+        return "<td></td>"
+    days = (today - date.fromisoformat(released)).days
+    if days < 1:
+        ago = "today"
+    elif days < 45:
+        ago = f"{days} day{'s' if days != 1 else ''} ago"
+    elif days < 548:
+        ago = f"{round(days / 30.4)} months ago"
+    else:
+        ago = f"{round(days / 365.25)} years ago"
+    fade = "fresh" if days <= 183 else "aging" if days <= STALE_AFTER_DAYS else "old"
+    return f'<td class="age {fade}">{escape(released)}<span class="sub">{ago}</span></td>'
+
+
+def _lag(package: dict, version: str, ga: str | None) -> int | None:
+    """Days from a Django release to the first release of the package that declares it; none
+    when the package did not exist yet, since then it could not have been faster."""
+    since = package.get("declared_since", {}).get(version)
+    first = package.get("first_release")
+    if not since or not ga or (first and first > ga):
+        return None
+    return max(0, (date.fromisoformat(since) - date.fromisoformat(ga)).days)
+
+
+def _lag_text(days: int) -> str:
+    return "no lag" if days == 0 else f"lag {days} d" if days < 1000 else f"lag {days // 365} y"
+
+
+def _typical_lag(package: dict, gas: dict[str, str]) -> int | None:
+    lags = sorted(lag for v, ga in gas.items() if (lag := _lag(package, v, ga)) is not None)
+    if not lags:
+        return None
+    middle = len(lags) // 2
+    return lags[middle] if len(lags) % 2 else round((lags[middle - 1] + lags[middle]) / 2)
 
 
 _DOWNLOADS_TITLE = "Downloads of the last 30 days; the bar is on a log scale"
@@ -1025,6 +1145,25 @@ _SCRIPT = r"""
   const q = $("q"), v = $("v"), st = $("status"), sort = $("sort");
   bar.hidden = false;
   const rows = [...body.rows];
+  const table = body.closest("table"), heads = [...table.tHead.rows[0].cells];
+  const cols = [...table.querySelectorAll("col")];
+  // Sorting: most downloads and the newest release first, names A to Z, and on a version
+  // the blocked packages first. A second click on a header turns the order around.
+  const DESC = { downloads: true, released: true };
+  const RANK = { blocked: 0, check: 1, "check-signed": 2, ready: 3 };
+  let desc = true;
+  const status = (r, ver) =>
+    (r.dataset.status.split(" ").find((s) => s.startsWith(ver + ":")) || "").split(":")[1];
+  function compare(key) {
+    const byDownloads = (a, b) => b.dataset.downloads - a.dataset.downloads;
+    if (key === "downloads") return (a, b) => a.dataset.downloads - b.dataset.downloads;
+    if (key === "name") return (a, b) => a.dataset.name.localeCompare(b.dataset.name);
+    if (key === "released")
+      return (a, b) => a.dataset.released.localeCompare(b.dataset.released) || byDownloads(a, b);
+    const ver = key.slice(2);
+    return (a, b) =>
+      ((RANK[status(a, ver)] ?? 4) - (RANK[status(b, ver)] ?? 4)) || byDownloads(a, b);
+  }
   function read() {
     const h = location.hash.slice(1);
     if (!h.includes("=")) {
@@ -1037,24 +1176,28 @@ _SCRIPT = r"""
     if (p.get("v")) v.value = p.get("v");
     st.value = p.get("status") || "";
     sort.value = p.get("sort") || "downloads";
+    if (!sort.value) sort.value = "downloads";
+    desc = p.get("dir") ? p.get("dir") === "desc" : !!DESC[sort.value];
   }
   function apply(write) {
     const term = q.value.trim().toLowerCase(), want = st.value, ver = v.value;
     let shown = 0;
     for (const r of rows) {
-      const status = (r.dataset.status.split(" ").find((s) => s.startsWith(ver + ":")) || "")
-        .split(":")[1];
+      const now = status(r, ver);
       const ok = (!term || r.dataset.name.includes(term)) &&
-        (!want || status === want || (want === "check" && status === "check-signed"));
+        (!want || now === want || (want === "check" && now === "check-signed"));
       r.hidden = !ok;
       shown += ok;
     }
-    const key = sort.value;
-    const sorted = [...rows].sort((a, b) =>
-      key === "name" ? a.dataset.name.localeCompare(b.dataset.name)
-      : key === "released" ? b.dataset.released.localeCompare(a.dataset.released)
-      : b.dataset.downloads - a.dataset.downloads);
+    const key = sort.value, order = compare(key);
+    const sorted = [...rows].sort((a, b) => (desc ? -1 : 1) * order(a, b));
     body.append(...sorted);
+    for (const th of heads) {
+      th.removeAttribute("aria-sort");
+      if (th.dataset.sort === key) th.setAttribute("aria-sort", desc ? "descending" : "ascending");
+      th.classList.toggle("picked", th.dataset.sort === "v:" + ver);
+    }
+    for (const c of cols) c.classList.toggle("picked", c.dataset.v === ver);
     $("shown").textContent = shown + " of " + rows.length;
     if (write) {
       const p = new URLSearchParams();
@@ -1062,10 +1205,31 @@ _SCRIPT = r"""
       if (want) p.set("status", want);
       if (term || want) p.set("v", ver);
       if (key !== "downloads") p.set("sort", key);
+      if (desc !== !!DESC[key]) p.set("dir", desc ? "desc" : "asc");
       history.replaceState(null, "", p.toString() ? "#" + p : location.pathname);
     }
   }
-  for (const el of [q, v, st, sort]) el.addEventListener("input", () => apply(true));
+  for (const el of [q, v, st]) el.addEventListener("input", () => apply(true));
+  sort.addEventListener("input", () => { desc = !!DESC[sort.value]; apply(true); });
+  for (const th of heads) {
+    const button = th.querySelector(".sort");
+    if (!button) continue;
+    button.addEventListener("click", () => {
+      if (sort.value === th.dataset.sort) desc = !desc;
+      else { sort.value = th.dataset.sort; desc = !!DESC[sort.value]; }
+      apply(true);
+    });
+  }
+  // The version column under the pointer lights up, header included.
+  table.addEventListener("mouseover", (e) => {
+    const cell = e.target.closest("td, th");
+    const i = cell ? cell.cellIndex : -1;
+    cols.forEach((c, n) => c.classList.toggle("hot", n === i && !!c.dataset.v));
+    heads.forEach((h, n) => h.classList.toggle("hot", n === i && !!cols[n]?.dataset.v));
+  });
+  table.addEventListener("mouseleave", () => {
+    for (const c of [...cols, ...heads]) c.classList.remove("hot");
+  });
   // A click on a row marks it, so it is easy to follow across the columns; a second click
   // clears it. Links and selected text keep their own behaviour.
   body.addEventListener("click", (e) => {
@@ -1498,13 +1662,23 @@ def feed(snapshots: list[dict]) -> str:
     )
 
 
-def _title(package: dict, version: str) -> str:
+def _title(package: dict, version: str, ga: str | None = None) -> str:
     title = package["status"].get(version, "not checked")
     signs = package.get("signs", {}).get(version)
     if signs:
         title = f"{title}: {'; '.join(signs)}"
     since = package["declared_since"].get(version)
-    return f"{title}, first declared {since}" if since else title
+    if not since:
+        return title
+    lag = _lag(package, version, ga)
+    when = (
+        ""
+        if lag is None
+        else ", by the release"
+        if lag == 0
+        else f", {_days(lag)} after Django {version}"
+    )
+    return f"{title}, first declared {since}{when}"
 
 
 def _curve_text(curve: list[list]) -> str:

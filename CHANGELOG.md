@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Ecosystem page
 
+- The headers of the package list sort it: by name, downloads, last release, or a Django version with the blocked packages first. A second click turns the order around, and the address keeps it.
+- The version column under the pointer lights up, and the one picked in the filter stays tinted. Each version's header has a small bar of how many packages are ready, to check or blocked.
+- The last release says how long ago it was, and fades as it gets older.
+- Under its newest version, each package shows its lag: the median time from a Django release to a release of it that declares the version, over the versions released since its first release. The tooltip of a ready cell says how many days after the Django release it was declared. The data has each package's first release for this.
+- The overview table shows the split by downloads as a thin bar under the one by packages.
 - The downloads columns, in the package list and the lists of blocking packages, have a bar under each number, on one log scale, so it is clear at a glance which packages are among the most used and which are at the edge of the top 300.
 - Table rows light up under the pointer. A click on a package row marks it with the accent bar, so it is easy to follow across the columns; a second click clears it.
 - The notes are easier to read: the overview table numbers its two footnotes and explains them in a list under it, the table legend lists each state with its meaning, and the page ends in a footer with the data, its sources and how to read it, in three columns.
