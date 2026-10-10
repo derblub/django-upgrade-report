@@ -120,3 +120,14 @@ def test_page_has_a_preview_for_shared_links(build, index):
     card = build.card(data)
     assert "<b>3</b><span>of 5 declare Django 5.2 LTS</span>" in card
     assert "<b>1</b><span>packages block Django 6.0</span>" in card
+
+
+def test_page_leads_with_figures_and_one_chart(build, index):
+    data = build.build(index, PACKAGES, today=date(2026, 1, 15))
+    html = build.page(data)
+    assert html.index('<div class="tiles figures">') < html.index('<figure class="chart">')
+    assert "<b>3</b><span>of 5 declare Django 5.2 LTS</span>" in html
+    chart = html.split('<figure class="chart">', 1)[1].split("</figure>", 1)[0]
+    assert chart.count("<polyline") == sum(len(v["curve"]) >= 2 for v in data["versions"])
+    assert '<g class="lts">' in chart and '<g class="feature">' in chart
+    assert ">4.2 LTS <tspan" in chart  # labelled at the end of its line

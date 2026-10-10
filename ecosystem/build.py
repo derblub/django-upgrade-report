@@ -324,16 +324,36 @@ _PAGE_CSS = """
 .ecosystem { margin-top: 32px; }
 .ecosystem h2 { margin-top: 40px; }
 .ecosystem td.name a { color: inherit; }
-.curve-label { display: block; color: var(--muted); font-size: 12px; }
 .bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; min-width: 160px;
   background: var(--line); }
 .bar span { display: block; }
 .bar .ready { background: var(--ready); }
 .bar .check { background: var(--check); }
 .bar .blocked { background: var(--blocked); }
-.curve { width: 160px; height: 48px; }
-.curve polyline { fill: none; stroke: var(--ready); stroke-width: 2; }
 td.s { text-align: center; font-weight: 600; }
+.ecosystem > h2 { margin-top: 48px; }
+.tiles.figures { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 32px 0 8px; }
+.tiles.figures b { font-size: 44px; }
+.tiles.figures span { font-size: 15px; color: var(--text); }
+.chart { margin: 16px 0 0; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 10px; padding: 16px 16px 8px; }
+.chart { overflow-x: auto; }
+.chart svg { display: block; width: 100%; min-width: 620px; height: auto; overflow: visible; }
+.overview td:nth-child(2) { white-space: nowrap; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .tick { fill: var(--muted); font-size: 12px; }
+.chart polyline { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .lts polyline, .chart .key.lts { stroke: var(--text); background: var(--text); }
+.chart .feature polyline, .chart .key.feature { stroke: var(--muted); background: var(--muted); }
+.chart .lts .end { fill: var(--text); } .chart .feature .end { fill: var(--muted); }
+.chart .end { stroke: var(--panel); stroke-width: 2; }
+.chart .hit { fill: transparent; }
+.chart .label { fill: var(--text); font-size: 13px; font-weight: 600; }
+.chart .label .value { fill: var(--muted); font-weight: 400; }
+.chart .leader { stroke: var(--muted); stroke-width: 1; }
+.legend { display: flex; gap: 20px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.legend .key { display: inline-block; width: 18px; height: 2px; vertical-align: middle;
+  margin-right: 6px; border-radius: 1px; }
 td.s.ready { color: var(--ready); } td.s.check { color: var(--check); }
 td.s.blocked { color: var(--blocked); }
 """
@@ -357,7 +377,7 @@ def page(data: dict) -> str:
             f'<td><div class="bar" title="{counts["ready"]} ready, {counts["check"]} to check, '
             f'{counts["blocked"]} blocked">{bar}</div></td>'
             f"<td>{counts['ready']}</td><td>{counts['check']}</td><td>{counts['blocked']}</td>"
-            f"<td>{_svg(v['curve'])}</td></tr>"
+            f"<td>{_curve_text(v['curve'])}</td></tr>"
         )
     rows = []
     for p in data["packages"]:
@@ -379,6 +399,12 @@ PyPI, judged against every Django version by what its maintainers declare: the
 <code>Framework :: Django</code> classifiers and the Django requirement. Updated every week.</p>
 </header>
 <div class="ecosystem">
+{_figures(data)}
+<h2>How fast packages declare a new Django</h2>
+<p class="hint">Share of the {data["packages_count"]} packages with a release that declared the
+version, by days after its release.</p>
+{_chart(data)}
+<h2>Every Django version</h2>
 <div class="table overview"><table><thead><tr><th>Version</th><th></th><th>Share</th>
 <th>ready</th><th>to check</th><th>blocked</th><th>Declared after release</th></tr></thead>
 <tbody>{"".join(summary)}</tbody></table></div>
@@ -434,28 +460,134 @@ def _meta_tags(data: dict) -> str:
     )
 
 
+def _figures(data: dict) -> str:
+    """The three numbers the page leads with, as tiles like the report's."""
+    h = highlights(data)
+    new = h["newest"]
+    tiles = []
+    if h["lts"]:
+        tiles.append(
+            (
+                "ready",
+                h["lts"]["ready"],
+                f"of {h['total']} declare Django {h['lts']['version']} LTS",
+            )
+        )
+    tiles.append(
+        (
+            "ready",
+            new["ready"],
+            f"declare Django {new['version']}, {new['days']} days after its release",
+        )
+    )
+    tiles.append(("blocked", new["blocked"], f"packages block Django {new['version']}"))
+    inner = "".join(
+        f'<div class="tile {css}"><b>{value}</b><span>{escape(label)}</span></div>'
+        for css, value, label in tiles
+    )
+    return f'<div class="tiles figures">{inner}</div>'
+
+
+_CHART = {"width": 860, "height": 320, "left": 44, "right": 92, "top": 16, "bottom": 40}
+
+
+def _chart(data: dict) -> str:
+    """Every curve on one axis, days after the release: LTS versions in ink, the others muted,
+    each labelled at its end. Native tooltips on the points; the table below has the values."""
+    w, h = _CHART["width"], _CHART["height"]
+    left, right, top, bottom = (_CHART[k] for k in ("left", "right", "top", "bottom"))
+    plot_w, plot_h = w - left - right, h - top - bottom
+    curves = [v for v in data["versions"] if len(v["curve"]) >= 2]
+    if not curves:
+        return ""
+    highest = max(share for v in curves for _, share in v["curve"])
+    ceiling = max(0.1, min(1.0, -(-highest * 10 // 1) / 10))  # up to the next 10 %
+    most = CURVE_DAYS[-1]
+
+    def x(days: float) -> float:
+        return left + days / most * plot_w
+
+    def y(share: float) -> float:
+        return top + plot_h - share / ceiling * plot_h
+
+    parts = []
+    steps = round(ceiling * 10)
+    for i in range(steps + 1):
+        share = i / 10
+        parts.append(
+            f'<line class="grid" x1="{left}" x2="{left + plot_w}" y1="{y(share):.1f}" '
+            f'y2="{y(share):.1f}"/><text class="tick" x="{left - 8}" y="{y(share) + 4:.1f}" '
+            f'text-anchor="end">{i * 10}%</text>'
+        )
+    for days, label in (
+        (0, "release"),
+        (90, "3 months"),
+        (180, "6 months"),
+        (365, "1 year"),
+        (540, "18 months"),
+        (730, "2 years"),
+    ):
+        parts.append(
+            f'<text class="tick" x="{x(days):.1f}" y="{top + plot_h + 22}" '
+            f'text-anchor="middle">{label}</text>'
+        )
+    ends = []
+    for v in curves:
+        lts = DJANGO.is_lts(Version(v["version"]))
+        css = "lts" if lts else "feature"
+        name = f"Django {v['version']}{' LTS' if lts else ''}"
+        points = " ".join(f"{x(d):.1f},{y(s_):.1f}" for d, s_ in v["curve"])
+        dots = "".join(
+            f'<circle class="hit" cx="{x(d):.1f}" cy="{y(s_):.1f}" r="7"><title>{escape(name)}: '
+            f"{s_ * 100:.0f}% after {_days(d)}</title></circle>"
+            for d, s_ in v["curve"]
+        )
+        last_d, last_s = v["curve"][-1]
+        parts.append(
+            f'<g class="{css}"><polyline points="{points}"/>'
+            f'<circle class="end" cx="{x(last_d):.1f}" cy="{y(last_s):.1f}" r="4"/>{dots}</g>'
+        )
+        ends.append(
+            [y(last_s), x(last_d), y(last_s), v["version"] + (" LTS" if lts else ""), last_s]
+        )
+    # End labels that would touch move apart, with a hairline back to their line's end.
+    ends.sort()
+    for i in range(1, len(ends)):
+        ends[i][0] = max(ends[i][0], ends[i - 1][0] + 15)
+    for label_y, end_x, end_y, text, share in ends:
+        lx = end_x + 10
+        if abs(label_y - end_y) > 1:
+            parts.append(
+                f'<line class="leader" x1="{end_x + 5:.1f}" y1="{end_y:.1f}" x2="{lx - 2:.1f}" '
+                f'y2="{label_y - 4:.1f}"/>'
+            )
+        parts.append(
+            f'<text class="label" x="{lx:.1f}" y="{label_y:.1f}">{escape(text)} '
+            f'<tspan class="value">{share * 100:.0f}%</tspan></text>'
+        )
+    legend = (
+        '<div class="legend"><span><i class="key lts"></i>LTS release</span>'
+        '<span><i class="key feature"></i>feature release</span></div>'
+    )
+    return (
+        f'<figure class="chart">{legend}<svg viewBox="0 0 {w} {h}" role="img" '
+        'aria-label="Share of packages that declared each Django version, by days after its '
+        f'release">{"".join(parts)}</svg></figure>'
+    )
+
+
 def _title(package: dict, version: str) -> str:
     title = package["status"].get(version, "not checked")
     since = package["declared_since"].get(version)
     return f"{title}, first declared {since}" if since else title
 
 
-def _svg(curve: list[list]) -> str:
-    """The share ready over the days after the release, as a small line."""
-    if len(curve) < 2:
+def _curve_text(curve: list[list]) -> str:
+    """Where the curve stands now, for the table: ``56% after 2 years``."""
+    if not curve:
         return ""
-    width, height = 160, 48
-    most = CURVE_DAYS[-1]
-    points = " ".join(
-        f"{days / most * width:.1f},{height - share * height:.1f}" for days, share in curve
-    )
-    last = curve[-1]
-    label = f"{last[1] * 100:.0f}% had declared it {last[0]} days after the release"
-    return (
-        f'<svg class="curve" viewBox="0 0 {width} {height}" role="img" aria-label="{label}">'
-        f'<title>{label}</title><polyline points="{points}"/></svg>'
-        f'<span class="curve-label">{last[1] * 100:.0f}% after {_days(last[0])}</span>'
-    )
+    days, share = curve[-1]
+    return f"{share * 100:.0f}% after {_days(days)}"
 
 
 def _days(days: int) -> str:
