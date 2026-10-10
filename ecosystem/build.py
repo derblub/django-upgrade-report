@@ -813,6 +813,7 @@ def _blockers(data: dict) -> str:
     first: the question most visitors come with. The newest and the next version are open."""
     released = [v["version"] for v in data["versions"] if v["released"]]
     open_ = {released[-1], data["versions"][-1]["version"]} if released else set()
+    span = _download_span(data["packages"])
     sections = []
     for v in reversed(data["versions"]):
         label = v["version"]
@@ -828,12 +829,14 @@ def _blockers(data: dict) -> str:
         )
         rows = "".join(
             f'<tr><td class="name"><a href="#{escape(p["name"])}">{escape(p["name"])}</a></td>'
-            f"<td>{_compact(p.get('downloads'))}</td><td><code>{escape(p.get('requires') or '')}"
+            f'<td class="dl">{_compact(p.get("downloads"))}{_reach(p.get("downloads"), span)}</td>'
+            f"<td><code>{escape(p.get('requires') or '')}"
             f"</code></td><td>{escape(str(p['version']))}</td></tr>"
             for p in blocked
         )
         table = (
-            '<div class="table"><table><thead><tr><th>Package</th><th>Downloads</th>'
+            '<div class="table"><table><thead><tr><th>Package</th>'
+            f'<th title="{_DOWNLOADS_TITLE}">Downloads</th>'
             f"<th>Requires</th><th>Newest</th></tr></thead><tbody>{rows}</tbody></table></div>"
             if blocked
             else ""
@@ -854,8 +857,7 @@ def _matrix(data: dict) -> str:
     heads = "".join(f'<th class="s">{escape(v)}</th>' for v in versions)
     rows = []
     packages = sorted(data["packages"], key=lambda p: (-(p.get("downloads") or 0), p["name"]))
-    counts = [p["downloads"] for p in packages if p.get("downloads")]
-    span = (min(counts), max(counts)) if counts else (0, 0)
+    span = _download_span(packages)
     for p in packages:
         cells = "".join(
             f'<td class="s {_cell(p, v)}" title="{escape(_title(p, v))}">'
@@ -908,9 +910,19 @@ def _matrix(data: dict) -> str:
     return (
         f"{toolbar}{legend}"
         '<div class="table matrix"><table><thead><tr><th class="name">Package</th>'
-        f"<th>Downloads</th><th>Last release</th><th>Newest</th>{heads}</tr></thead>"
+        f'<th title="{_DOWNLOADS_TITLE}">Downloads</th>'
+        f"<th>Last release</th><th>Newest</th>{heads}</tr></thead>"
         f'<tbody id="rows">{"".join(rows)}</tbody></table></div>'
     )
+
+
+_DOWNLOADS_TITLE = "Downloads of the last 30 days; the bar is on a log scale"
+
+
+def _download_span(packages: list[dict]) -> tuple[int, int]:
+    """The least and the most downloads among all packages: one scale for every table."""
+    counts = [p["downloads"] for p in packages if p.get("downloads")]
+    return (min(counts), max(counts)) if counts else (0, 0)
 
 
 def _reach(downloads: int | None, span: tuple[int, int]) -> str:

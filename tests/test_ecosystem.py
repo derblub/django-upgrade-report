@@ -286,3 +286,14 @@ def test_downloads_bar_is_on_a_log_scale(build):
     assert 'style="width:52%"' in build._reach(1_000_000, span)  # halfway in tenfold steps
     assert 'style="width:4%"' in build._reach(100_000, span)  # the least still shows
     assert build._reach(None, span) == build._reach(500, (500, 500)) == ""
+
+
+def test_blocker_tables_share_the_downloads_scale(build):
+    packages = [
+        {"name": "big", "downloads": 10_000_000, "status": {"6.1": "ready"}, "version": "1"},
+        {"name": "small", "downloads": 100_000, "status": {"6.1": "blocked"}, "version": "1"},
+    ]
+    data = {"versions": [{"version": "6.1", "released": True}], "packages": packages}
+    html = build._blockers(data)
+    assert 'class="reach"' in html
+    assert 'style="width:4%"' in html  # scaled against every package, not only the blocked

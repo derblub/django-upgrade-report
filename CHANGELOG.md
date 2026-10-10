@@ -6,7 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Ecosystem page
 
-- The downloads column has a bar under each number, on a log scale, so it is clear at a glance which packages are among the most used and which are at the edge of the top 300.
+- The downloads columns, in the package list and the lists of blocking packages, have a bar under each number, on one log scale, so it is clear at a glance which packages are among the most used and which are at the edge of the top 300.
 - Table rows light up under the pointer. A click on a package row marks it with the accent bar, so it is easy to follow across the columns; a second click clears it.
 - The notes are easier to read: the overview table numbers its two footnotes and explains them in a list under it, the table legend lists each state with its meaning, and the page ends in a footer with the data, its sources and how to read it, in three columns.
 - The badge section shows the badge as it will look, and the three messages it can carry. Clicking a command or the badge code copies it, like its button, which says so.
