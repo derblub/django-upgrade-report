@@ -52,6 +52,8 @@ WORKERS = 8
 # channels) are missed: asking about all 15,000 top packages is not worth that load.
 CANDIDATE = re.compile(r"django|wagtail|^drf[-_]|^dj[-_]|djangorestframework|^channels")
 CURVE_DAYS = (0, 30, 60, 90, 180, 270, 365, 540, 730)
+EARLY = 365
+"""Days before a release from which a package's releases can declare it."""
 
 
 # --- the packages ---------------------------------------------------------------------------
@@ -97,25 +99,40 @@ def versions(django) -> list[tuple[Version, Version | None]]:
     return [*pairs, (DJANGO.next_feature(newest), newest)]
 
 
-def first_ready(pypi: PyPI, name: str, target) -> datetime | None:
-    """When the first release that declares ``target`` came out. Support rarely goes away
-    again, so a binary search over the releases finds it in a few lookups."""
+def first_declared(pypi: PyPI, name: str, target) -> datetime | None:
+    """When the first release that declares ``target`` came out, whether or not the newest
+    release still does: a package that dropped 4.2 since still declared it once.
+
+    Releases from a year before the target on count. Support comes in once and goes away
+    once, so the newest release, or else the newest of each series, finds one that declares
+    it, and a binary search before that finds the first."""
     project = pypi.project(name)
     if project is None:
         return None
-    releases = project.stable_releases()
+    since = target.ga - timedelta(days=EARLY) if target.ga else None
+    releases = [
+        r
+        for r in project.stable_releases()
+        if since is None or (r.uploaded is not None and r.uploaded >= since)
+    ]
 
-    def ready(index: int) -> bool:
+    def declares(index: int) -> bool:
         r = releases[index]
         info = pypi.release(name, str(r.version))
         return info is not None and supports(info, target, r.uploaded).verdict is Verdict.YES
 
-    if not releases or not ready(len(releases) - 1):
+    if not releases:
         return None
-    low, high = 0, len(releases) - 1
+    newest_of_series = {}
+    for index, r in enumerate(releases):
+        newest_of_series[(r.version.major, r.version.minor)] = index
+    found = next((i for i in sorted(newest_of_series.values(), reverse=True) if declares(i)), None)
+    if found is None:
+        return None
+    low, high = 0, found
     while low < high:
         middle = (low + high) // 2
-        if ready(middle):
+        if declares(middle):
             high = middle
         else:
             low = middle + 1
@@ -130,7 +147,8 @@ def build(pypi: PyPI, packages: list[str], today: date | None = None) -> dict:
         raise RuntimeError("Could not read Django's release history")
     series = _series(django)
     rows = {
-        name: {"name": name, "version": None, "status": {}, "ready_since": {}} for name in packages
+        name: {"name": name, "version": None, "status": {}, "declared_since": {}}
+        for name in packages
     }
     columns = []
     for target, before in versions(django):
@@ -145,19 +163,19 @@ def build(pypi: PyPI, packages: list[str], today: date | None = None) -> dict:
         report = analyse(DependencySet("ecosystem", deps), pypi, label, workers=WORKERS)
         goal = _build_target(django, pypi, target, None)
         counts = {status.value: 0 for status in (Status.READY, Status.CHECK, Status.BLOCKED)}
-        ready_since = []
+        declared = []
         judged = {p.name: p for p in report.packages}
-        ready = [name for name, p in judged.items() if p.status is Status.READY]
+        names = list(judged)
         with ThreadPoolExecutor(WORKERS) as pool:
-            found = pool.map(first_ready, [pypi] * len(ready), ready, [goal] * len(ready))
-            since = dict(zip(ready, found, strict=True))
+            found = pool.map(first_declared, [pypi] * len(names), names, [goal] * len(names))
+            since = dict(zip(names, found, strict=True))
         for name, p in judged.items():
             status = Status.CHECK if p.status is Status.UPGRADE else p.status  # a pre-release
             counts[status.value] += 1
             rows[name]["status"][label] = status.value
             if since.get(name) is not None:
-                rows[name]["ready_since"][label] = since[name].date().isoformat()
-                ready_since.append(since[name].date())
+                rows[name]["declared_since"][label] = since[name].date().isoformat()
+                declared.append(since[name].date())
         ga = goal.ga.date() if goal.ga else None
         columns.append(
             {
@@ -165,7 +183,7 @@ def build(pypi: PyPI, packages: list[str], today: date | None = None) -> dict:
                 "released": goal.released,
                 "ga": ga.isoformat() if ga else None,
                 "counts": counts,
-                "curve": _curve(ready_since, ga, today, len(judged)),
+                "curve": _curve(declared, ga, today, len(judged)),
             }
         )
     return {
@@ -180,7 +198,8 @@ def build(pypi: PyPI, packages: list[str], today: date | None = None) -> dict:
 
 
 def _curve(since: list[date], ga: date | None, today: date, total: int) -> list[list]:
-    """``[days after the release, share ready]``, up to today: how fast the ecosystem caught up."""
+    """``[days after the release, share that had declared it]``, up to today: how fast the
+    ecosystem caught up, counting packages that dropped the version since, too."""
     if ga is None or not total:
         return []
     points = []
@@ -361,8 +380,10 @@ PyPI, judged against every Django version by what its maintainers declare: the
 </header>
 <div class="ecosystem">
 <div class="table overview"><table><thead><tr><th>Version</th><th></th><th>Share</th>
-<th>ready</th><th>to check</th><th>blocked</th><th>Ready after release</th></tr></thead>
+<th>ready</th><th>to check</th><th>blocked</th><th>Declared after release</th></tr></thead>
 <tbody>{"".join(summary)}</tbody></table></div>
+<p class="hint">Declared after release: the share of packages with a release that declared the
+version by then, counting packages whose newest release has dropped it since.</p>
 <h2>Every package</h2>
 <div class="table"><table><thead><tr><th>Package</th><th>Newest</th>{heads}</tr></thead>
 <tbody>{"".join(rows)}</tbody></table></div>
@@ -415,8 +436,8 @@ def _meta_tags(data: dict) -> str:
 
 def _title(package: dict, version: str) -> str:
     title = package["status"].get(version, "not checked")
-    since = package["ready_since"].get(version)
-    return f"{title} since {since}" if since else title
+    since = package["declared_since"].get(version)
+    return f"{title}, first declared {since}" if since else title
 
 
 def _svg(curve: list[list]) -> str:
@@ -429,7 +450,7 @@ def _svg(curve: list[list]) -> str:
         f"{days / most * width:.1f},{height - share * height:.1f}" for days, share in curve
     )
     last = curve[-1]
-    label = f"{last[1] * 100:.0f}% ready {last[0]} days after the release"
+    label = f"{last[1] * 100:.0f}% had declared it {last[0]} days after the release"
     return (
         f'<svg class="curve" viewBox="0 0 {width} {height}" role="img" aria-label="{label}">'
         f'<title>{label}</title><polyline points="{points}"/></svg>'
