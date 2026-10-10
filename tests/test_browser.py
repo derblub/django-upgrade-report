@@ -263,3 +263,32 @@ def test_ecosystem_package_list_fits_a_desktop(browser, index, tmp_path):
         "return [m.scrollWidth, m.clientWidth]; })()"
     )
     assert width <= room  # down, never sideways
+
+
+def test_ecosystem_package_row_marks_on_click(browser, index, tmp_path):
+    import importlib.util
+    from datetime import date
+    from pathlib import Path
+
+    path = Path(__file__).parent.parent / "ecosystem" / "build.py"
+    spec = importlib.util.spec_from_file_location("ecosystem_build", path)
+    build = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(build)
+    names = ["django-ready", "django-before", "django-blocked"]
+    target = tmp_path / "index.html"
+    target.write_text(build.page(build.build(index, names, today=date(2026, 1, 15))))
+    page = browser.new_page()
+    page.goto(target.as_uri())
+    ready, blocked = (
+        page.locator("#django-ready td").first,
+        page.locator("#django-blocked td").first,
+    )
+    ready.click()
+    assert page.locator("#rows tr.active").count() == 1
+    assert "active" in page.locator("#django-ready").get_attribute("class")
+    blocked.click()  # one row at a time
+    assert page.locator("#rows tr.active").evaluate_all("rs => rs.map(r => r.id)") == [
+        "django-blocked"
+    ]
+    blocked.click()  # a second click clears it
+    assert page.locator("#rows tr.active").count() == 0

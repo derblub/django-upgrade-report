@@ -506,7 +506,7 @@ _PAGE_CSS = """
 :root {
   color-scheme: dark;
   /* Pushing Pixels, Ink: the page ground, surfaces on it, raised elements and hairlines. */
-  --ink: #1d1d20; --surface: #131315; --raised: #27272b;
+  --ink: #1d1d20; --surface: #131315; --raised: #27272b; --hover: #202024;
   --text: #ffffff; --muted: #99a1af; --muted-hi: #d1d5dc; --accent: #2dd4bf;
   /* Status: declared, not declared, excluded. */
   --ready: #5ee9b5; --check: #99a1af; --blocked: #fb2c36; --signed: #2dd4bf;
@@ -657,7 +657,12 @@ details.version .table { margin: 0 0 16px; }
 .matrix .name { position: sticky; left: 0; z-index: 1; background: var(--surface); }
 .matrix thead th.name { z-index: 3; }
 .matrix td { white-space: nowrap; }
-.matrix tr:target, .matrix tr:target .name { background: var(--raised); }
+/* Rows light up under the pointer; a clicked or linked package row stays marked. */
+tbody tr > * { transition: background-color 0.12s; }
+tbody tr:hover > *, .matrix tbody tr:hover > .name { background: var(--hover); }
+.matrix tbody tr { cursor: pointer; }
+.matrix tr.active > *, .matrix tr:target > * { background: var(--raised); }
+.matrix tr.active > .name, .matrix tr:target > .name { box-shadow: inset 2px 0 0 var(--accent); }
 .flag { display: block; width: fit-content; margin: 4px 0 0; font-size: 11px; font-weight: 450;
   color: var(--muted-hi); border: 1px solid var(--raised); padding: 0 6px; }
 /* On a desktop the list fits the page: no sideways scrolling, only down. */
@@ -1028,6 +1033,15 @@ _SCRIPT = r"""
     }
   }
   for (const el of [q, v, st, sort]) el.addEventListener("input", () => apply(true));
+  // A click on a row marks it, so it is easy to follow across the columns; a second click
+  // clears it. Links and selected text keep their own behaviour.
+  body.addEventListener("click", (e) => {
+    const r = e.target.closest("tr");
+    if (!r || e.target.closest("a") || String(getSelection())) return;
+    const was = r.classList.contains("active");
+    for (const other of body.querySelectorAll("tr.active")) other.classList.remove("active");
+    r.classList.toggle("active", !was);
+  });
   addEventListener("hashchange", () => { read(); apply(false); });
   addEventListener("keydown", (e) => {
     if (e.key === "/" && document.activeElement !== q) { e.preventDefault(); q.focus(); }
