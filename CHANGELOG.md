@@ -8,6 +8,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - Shared links show a preview card with this week's numbers (built each week as `og.png`), and the page has a description for search results.
 - The page leads with three numbers (packages that declare the newest LTS, the newest release and how long it has been out, and the packages that block it) and one chart with the curves of every Django version on one axis, LTS releases in ink, each labelled at its end.
+- "This week" lists the packages that became ready, began to block or stopped declaring a Django version since the week before, also as an Atom feed (`feed.xml`). Every week's `data.json` is kept on the `ecosystem-history` branch.
 - The curve of how fast packages declared a Django version counts every package with a release that declared it, also when its newest release has dropped it since. It used to leave those out, so the curves of older versions were too low: 4.2 two years after its release was at 56 %, not 41 %.
 
 ## [1.1.0] - 2026-10-09

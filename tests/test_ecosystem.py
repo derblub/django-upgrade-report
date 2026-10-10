@@ -131,3 +131,50 @@ def test_page_leads_with_figures_and_one_chart(build, index):
     assert chart.count("<polyline") == sum(len(v["curve"]) >= 2 for v in data["versions"])
     assert '<g class="lts">' in chart and '<g class="feature">' in chart
     assert ">4.2 LTS <tspan" in chart  # labelled at the end of its line
+
+
+def snapshot(day, statuses):
+    return {
+        "generated": day,
+        "versions": [{"version": "6.1"}, {"version": "6.2"}],
+        "packages": [{"name": name, "status": status} for name, status in statuses.items()],
+    }
+
+
+def test_changes_since_last_week(build):
+    before = snapshot("2026-10-05", {"a": {"6.1": "check"}, "b": {"6.1": "ready"}, "c": {}})
+    now = snapshot(
+        "2026-10-12",
+        {"a": {"6.1": "ready"}, "b": {"6.1": "blocked"}, "d": {"6.1": "ready"}},
+    )
+    changed = build.changes(before, now)
+    assert changed == {
+        "since": "2026-10-05",
+        "versions": {"6.1": {"ready": ["a"], "blocked": ["b"], "dropped": ["b"]}},
+        "added": ["d"],  # new in the list: not "newly ready"
+        "removed": ["c"],
+    }
+    assert build.changes(None, now) is None
+
+
+def test_history_feeds_the_page_and_the_feed(build, tmp_path):
+    (tmp_path / "2026-10-05.json").write_text(json.dumps(snapshot("2026-10-05", {})))
+    assert build.previous(tmp_path, "2026-10-12")["generated"] == "2026-10-05"
+    assert build.previous(tmp_path, "2026-10-05") is None  # not today's own
+
+    week = snapshot("2026-10-12", {})
+    week["changes"] = {
+        "since": "2026-10-05",
+        "versions": {"6.1": {"ready": ["a", "<b>"], "blocked": [], "dropped": []}},
+    }
+    section = build._changes(week)
+    assert "Since 2026-10-05" in section
+    assert "<li><b>Django 6.1</b> now ready: a, &lt;b&gt;</li>" in section
+    atom = build.feed([week, snapshot("2026-10-05", {})])
+    assert "<title>Week of 2026-10-12: 2 newly ready</title>" in atom
+    assert atom.count("<entry>") == 1  # a week without changes has no entry
+    assert "&lt;b&gt;" in atom and "<b>" not in atom.split("<entry>")[1].split("</title>")[1]
+
+    assert "show up here from the next run on" in build._changes(snapshot("2026-10-12", {}))
+    quiet = snapshot("2026-10-12", {}) | {"changes": {"since": "2026-10-05", "versions": {}}}
+    assert "Nothing changed since 2026-10-05" in build._changes(quiet)

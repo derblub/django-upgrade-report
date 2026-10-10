@@ -211,6 +211,46 @@ def _curve(since: list[date], ga: date | None, today: date, total: int) -> list[
     return points
 
 
+# --- the weeks before ------------------------------------------------------------------------
+
+
+def previous(history: Path, today: str) -> dict | None:
+    """The newest snapshot in ``history`` from before ``today``."""
+    older = sorted(p for p in history.glob("*.json") if p.stem < today)
+    return json.loads(older[-1].read_text()) if older else None
+
+
+def changes(before: dict | None, now: dict) -> dict | None:
+    """What changed since ``before``, per Django version: packages that are ready now and
+    were not, that block now and did not, and that are no longer ready."""
+    if before is None:
+        return None
+    old = {p["name"]: p["status"] for p in before.get("packages", [])}
+    versions = {}
+    for v in now["versions"]:
+        label = v["version"]
+        moved = {"ready": [], "blocked": [], "dropped": []}
+        for p in now["packages"]:
+            was, is_ = old.get(p["name"], {}).get(label), p["status"].get(label)
+            if p["name"] not in old or was == is_:
+                continue
+            if is_ == "ready":
+                moved["ready"].append(p["name"])
+            elif is_ == "blocked":
+                moved["blocked"].append(p["name"])
+            if was == "ready":
+                moved["dropped"].append(p["name"])
+        if any(moved.values()):
+            versions[label] = moved
+    names = {p["name"] for p in now["packages"]}
+    return {
+        "since": before["generated"],
+        "versions": versions,
+        "added": sorted(names - set(old)),
+        "removed": sorted(set(old) - names),
+    }
+
+
 # --- what the page says first ---------------------------------------------------------------
 
 
@@ -351,6 +391,8 @@ td.s { text-align: center; font-weight: 600; }
 .chart .label { fill: var(--text); font-size: 13px; font-weight: 600; }
 .chart .label .value { fill: var(--muted); font-weight: 400; }
 .chart .leader { stroke: var(--muted); stroke-width: 1; }
+.changes-list { margin: 8px 0 0; padding-left: 20px; }
+.changes-list li { margin: 4px 0; }
 .legend { display: flex; gap: 20px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 .legend .key { display: inline-block; width: 18px; height: 2px; vertical-align: middle;
   margin-right: 6px; border-radius: 1px; }
@@ -400,6 +442,7 @@ PyPI, judged against every Django version by what its maintainers declare: the
 </header>
 <div class="ecosystem">
 {_figures(data)}
+{_changes(data)}
 <h2>How fast packages declare a new Django</h2>
 <p class="hint">Share of the {data["packages_count"]} packages with a release that declared the
 version, by days after its release.</p>
@@ -426,6 +469,7 @@ metadata does not say either way. Your own project:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Django ecosystem readiness</title>
 {_meta_tags(data)}
+<link rel="alternate" type="application/atom+xml" title="Weekly changes" href="feed.xml">
 {FAVICON}
 <style>{_CSS}{_PAGE_CSS}</style>
 </head>
@@ -576,6 +620,73 @@ def _chart(data: dict) -> str:
     )
 
 
+_MOVES = (("ready", "now ready"), ("blocked", "now blocked"), ("dropped", "no longer ready"))
+
+
+def _change_lines(changed: dict) -> list[tuple[str, str]]:
+    """``("Django 6.1", "now ready: django-filter, django-ninja")`` per version and move."""
+    lines = []
+    for version, moved in sorted(changed["versions"].items(), key=lambda kv: Version(kv[0])):
+        for key, label in _MOVES:
+            if moved.get(key):
+                lines.append((f"Django {version}", f"{label}: {', '.join(moved[key])}"))
+    return lines
+
+
+def _changes(data: dict) -> str:
+    """What changed since last week, the reason to come back."""
+    changed = data.get("changes")
+    if changed is None:
+        return (
+            '<h2>This week</h2><p class="hint">Changes since the week before show up here '
+            "from the next run on.</p>"
+        )
+    lines = _change_lines(changed)
+    since = escape(changed["since"])
+    if not lines:
+        return f'<h2>This week</h2><p class="hint">Nothing changed since {since}.</p>'
+    items = "".join(f"<li><b>{escape(version)}</b> {escape(text)}</li>" for version, text in lines)
+    return (
+        f'<h2>This week</h2><p class="hint">Since {since}. Also as a '
+        f'<a href="feed.xml">feed</a>.</p><ul class="changes-list">{items}</ul>'
+    )
+
+
+def feed(snapshots: list[dict]) -> str:
+    """An Atom feed with one entry per week that changed something, newest first."""
+    entries = []
+    for snap in sorted(snapshots, key=lambda d: d["generated"], reverse=True):
+        changed = snap.get("changes")
+        if not changed or not changed["versions"]:
+            continue
+        lines = _change_lines(changed)
+        ready = sum(len(m.get("ready", [])) for m in changed["versions"].values())
+        title = (
+            f"Week of {snap['generated']}: {ready} newly ready"
+            if ready
+            else (f"Week of {snap['generated']}: {len(lines)} changes")
+        )
+        body = "".join(f"<li><b>{escape(v)}</b> {escape(t)}</li>" for v, t in lines)
+        entries.append(
+            f"<entry><title>{escape(title)}</title>"
+            f'<link href="{ECOSYSTEM_URL}"/>'
+            f"<id>{ECOSYSTEM_URL}#week-{snap['generated']}</id>"
+            f"<updated>{snap['generated']}T06:00:00Z</updated>"
+            f'<content type="html">{escape(f"<ul>{body}</ul>")}</content></entry>'
+        )
+        if len(entries) == 12:
+            break
+    updated = max((d["generated"] for d in snapshots), default="1970-01-01")
+    return (
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        '<feed xmlns="http://www.w3.org/2005/Atom">'
+        "<title>How ready is the Django ecosystem?</title>"
+        f'<link href="{ECOSYSTEM_URL}"/><link rel="self" href="{ECOSYSTEM_URL}feed.xml"/>'
+        f"<id>{ECOSYSTEM_URL}</id><updated>{updated}T06:00:00Z</updated>"
+        f"<author><name>{escape(AUTHOR)}</name></author>{''.join(entries)}</feed>\n"
+    )
+
+
 def _title(package: dict, version: str) -> str:
     title = package["status"].get(version, "not checked")
     since = package["declared_since"].get(version)
@@ -606,6 +717,12 @@ def main(argv: list[str] | None = None, pypi: PyPI | None = None) -> int:
     parser.add_argument("command", choices=["select", "build"])
     parser.add_argument("--count", type=int, default=COUNT)
     parser.add_argument("--out", type=Path, default=SITE)
+    parser.add_argument(
+        "--history",
+        type=Path,
+        help="directory of the weekly data.json snapshots: compares with the newest before "
+        "today, then adds today's",
+    )
     args = parser.parse_args(argv)
     pypi = pypi or PyPI(cache_dir=default_cache_dir())
     if args.command == "select":
@@ -618,7 +735,14 @@ def main(argv: list[str] | None = None, pypi: PyPI | None = None) -> int:
         return 0
     packages = json.loads(PACKAGES.read_text())["packages"]
     data = build(pypi, packages)
+    snapshots = []
+    if args.history:
+        args.history.mkdir(parents=True, exist_ok=True)
+        data["changes"] = changes(previous(args.history, data["generated"]), data)
+        (args.history / f"{data['generated']}.json").write_text(json.dumps(data, indent=1) + "\n")
+        snapshots = [json.loads(p.read_text()) for p in sorted(args.history.glob("*.json"))]
     args.out.mkdir(parents=True, exist_ok=True)
+    (args.out / "feed.xml").write_text(feed(snapshots or [data]))
     (args.out / "data.json").write_text(json.dumps(data, indent=1) + "\n")
     (args.out / "index.html").write_text(page(data))
     if render_card(card(data), args.out / "og.png"):

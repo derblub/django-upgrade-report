@@ -3,14 +3,15 @@ name: Ecosystem
 # Publishes how ready the most downloaded Django packages are for each Django version to
 # GitHub Pages, every week. Needs Pages enabled in the repository settings, with
 # "GitHub Actions" as the source. The PyPI answers are cached between runs: releases never
-# change, so a week only asks about what is new.
+# change, so a week only asks about what is new. Every week's data.json is kept on the
+# ecosystem-history branch: the page compares with the week before.
 on:
   schedule:
     - cron: "17 5 * * 1"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write  # the ecosystem-history branch
   pages: write
   id-token: write
 
@@ -29,13 +30,28 @@ jobs:
           path: ~/.cache/django-upgrade-report
           key: ecosystem-${{ github.run_id }}
           restore-keys: ecosystem-
+      - name: Check out the history
+        run: |
+          if git fetch --depth 1 origin ecosystem-history; then
+            git worktree add history FETCH_HEAD
+          else
+            git worktree add --orphan -b ecosystem-history history
+          fi
       - name: Build
         # Playwright's Chromium renders the preview image (og.png) for shared links.
         run: |
           uvx --from playwright playwright install --with-deps chromium
           PYTHONPATH=src uv run --no-project --with packaging --with playwright \
-            python ecosystem/build.py build
+            python ecosystem/build.py build --history history/data
           test -f ecosystem/site/og.png
+      - name: Keep this week's data
+        working-directory: history
+        run: |
+          git add data
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q -m "Ecosystem data of $(date -u +%F)" || exit 0
+          git push origin HEAD:ecosystem-history
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ecosystem/site
