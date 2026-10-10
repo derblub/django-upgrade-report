@@ -28,11 +28,14 @@ from packaging.version import Version
 
 from django_upgrade_report import AUTHOR, ECOSYSTEM_URL, REPO_URL, __version__
 from django_upgrade_report.analysis import (
+    _INACTIVE,
+    STALE_AFTER_DAYS,
     Status,
     Verdict,
     _build_target,
     _series,
     analyse,
+    django_requirement,
     is_django_related,
     supports,
 )
@@ -80,11 +83,15 @@ def _project(pypi: PyPI, name: str):
         return None
 
 
-def _top() -> tuple[str, list[str]]:
+def _top() -> tuple[str, list[str], dict[str, int]]:
+    """When the data set was made, the names most downloaded first, and the downloads of the
+    last 30 days per canonical name."""
     request = urllib.request.Request(TOP, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(request, timeout=60) as response:
         data = json.load(response)
-    return data.get("last_update", ""), [row["project"] for row in data["rows"]]
+    rows = data["rows"]
+    downloads = {canonicalize_name(row["project"]): row["download_count"] for row in rows}
+    return data.get("last_update", ""), [row["project"] for row in rows], downloads
 
 
 # --- the readiness --------------------------------------------------------------------------
@@ -139,7 +146,12 @@ def first_declared(pypi: PyPI, name: str, target) -> datetime | None:
     return releases[low].uploaded
 
 
-def build(pypi: PyPI, packages: list[str], today: date | None = None) -> dict:
+def build(
+    pypi: PyPI,
+    packages: list[str],
+    today: date | None = None,
+    downloads: dict[str, int] | None = None,
+) -> dict:
     """The status of the newest release of each package for every Django version."""
     today = today or datetime.now(timezone.utc).date()
     django = pypi.project("django")
@@ -150,6 +162,19 @@ def build(pypi: PyPI, packages: list[str], today: date | None = None) -> dict:
         name: {"name": name, "version": None, "status": {}, "declared_since": {}}
         for name in packages
     }
+    for name, row in rows.items():
+        project = _project(pypi, name)
+        if project is None:
+            continue
+        last = max((r.uploaded for r in project.releases if r.uploaded), default=None)
+        spec = django_requirement(project.latest)
+        row.update(
+            downloads=(downloads or {}).get(name),
+            released=last.date().isoformat() if last else None,
+            stale=bool(last) and (today - last.date()).days > STALE_AFTER_DAYS,
+            inactive=_INACTIVE in project.latest.classifiers,
+            requires=str(spec) if spec else None,
+        )
     columns = []
     for target, before in versions(django):
         label = f"{target.major}.{target.minor}"
@@ -371,6 +396,42 @@ _PAGE_CSS = """
 .bar .check { background: var(--check); }
 .bar .blocked { background: var(--blocked); }
 td.s { text-align: center; font-weight: 600; }
+.try { margin: 24px 0 0; padding: 16px 20px; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 10px; }
+.try p { margin: 0 0 10px; }
+.command { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.command code { font-size: 16px; padding: 6px 10px; border-radius: 6px; background: var(--bg);
+  border: 1px solid var(--line); }
+.copy { font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--panel); color: var(--text); }
+details.version { margin-top: 8px; }
+details.version summary { cursor: pointer; padding: 6px 0; }
+details.version summary h3 { display: inline; font-size: 15px; margin: 0; }
+details.version .table { margin: 6px 0 12px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 8px; }
+.toolbar input, .toolbar select { font: inherit; font-size: 14px; padding: 6px 10px;
+  border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
+.toolbar input { flex: 1 1 220px; }
+#shown { color: var(--muted); font-size: 13px; }
+.legend-row .s { font-weight: 600; margin-left: 8px; }
+.legend-row .s.ready { color: var(--ready); } .legend-row .s.check { color: var(--check); }
+.legend-row .s.blocked { color: var(--blocked); }
+.matrix { max-height: 80vh; overflow: auto; }
+.matrix table { width: max-content; min-width: 100%; }
+.ecosystem .name a { color: inherit; }
+.matrix thead th { position: sticky; top: 0; z-index: 2; background: var(--panel); }
+.matrix .name { position: sticky; left: 0; z-index: 1; background: var(--panel);
+  text-align: left; font-weight: 600; white-space: nowrap; }
+.matrix thead th.name { z-index: 3; }
+.matrix td { white-space: nowrap; }
+.matrix tr:target, .matrix tr:target .name { background: var(--check-bg); }
+.flag { margin-left: 6px; font-size: 11px; font-weight: 400; color: var(--upgrade);
+  border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; }
+@media (max-width: 640px) {
+  .matrix .name { white-space: normal; min-width: 130px; max-width: 160px;
+    overflow-wrap: anywhere; }
+  .flag { display: inline-block; margin: 2px 0 0; }
+}
 .ecosystem > h2 { margin-top: 48px; }
 .tiles.figures { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 32px 0 8px; }
 .tiles.figures b { font-size: 44px; }
@@ -403,37 +464,8 @@ _ICON = {"ready": "✓", "check": "?", "blocked": "✗"}
 
 
 def page(data: dict) -> str:
-    """A static page with the same look as the HTML report."""
-    heads = "".join(f"<th>{escape(v['version'])}</th>" for v in data["versions"])
-    summary = []
-    for v in data["versions"]:
-        counts = v["counts"]
-        total = sum(counts.values()) or 1
-        bar = "".join(
-            f'<span class="{key}" style="width:{counts[key] / total * 100:.1f}%"></span>'
-            for key in ("ready", "check", "blocked")
-        )
-        when = f"released {v['ga']}" if v["released"] else "not released yet"
-        summary.append(
-            f'<tr><td class="name">Django {escape(v["version"])}</td><td>{escape(when)}</td>'
-            f'<td><div class="bar" title="{counts["ready"]} ready, {counts["check"]} to check, '
-            f'{counts["blocked"]} blocked">{bar}</div></td>'
-            f"<td>{counts['ready']}</td><td>{counts['check']}</td><td>{counts['blocked']}</td>"
-            f"<td>{_curve_text(v['curve'])}</td></tr>"
-        )
-    rows = []
-    for p in data["packages"]:
-        cells = "".join(
-            f'<td class="s {p["status"].get(v["version"], "")}" '
-            f'title="{escape(_title(p, v["version"]))}">'
-            f"{_ICON.get(p['status'].get(v['version']), '')}</td>"
-            for v in data["versions"]
-        )
-        name = escape(p["name"])
-        rows.append(
-            f'<tr><td class="name"><a href="https://pypi.org/project/{name}/">{name}</a></td>'
-            f"<td>{escape(str(p['version']))}</td>{cells}</tr>"
-        )
+    """A static page with the same look as the HTML report. Without JavaScript everything is
+    shown; the script adds search, filters, sorting and copying, kept in the address."""
     inner = f"""<header>
 <h1>How ready is the Django ecosystem?</h1>
 <p>The newest release of the {data["packages_count"]} most downloaded Django-related packages on
@@ -442,26 +474,25 @@ PyPI, judged against every Django version by what its maintainers declare: the
 </header>
 <div class="ecosystem">
 {_figures(data)}
+{_try()}
 {_changes(data)}
 <h2>How fast packages declare a new Django</h2>
 <p class="hint">Share of the {data["packages_count"]} packages with a release that declared the
 version, by days after its release.</p>
 {_chart(data)}
 <h2>Every Django version</h2>
-<div class="table overview"><table><thead><tr><th>Version</th><th></th><th>Share</th>
-<th>ready</th><th>to check</th><th>blocked</th><th>Declared after release</th></tr></thead>
-<tbody>{"".join(summary)}</tbody></table></div>
+{_overview(data)}
 <p class="hint">Declared after release: the share of packages with a release that declared the
 version by then, counting packages whose newest release has dropped it since.</p>
-<h2>Every package</h2>
-<div class="table"><table><thead><tr><th>Package</th><th>Newest</th>{heads}</tr></thead>
-<tbody>{"".join(rows)}</tbody></table></div>
+{_blockers(data)}
+<h2 id="packages">Every package</h2>
+{_matrix(data)}
 </div>
 <p class="meta">Generated {escape(data["generated"])} by
 <a href="{REPO_URL}">{escape(data["tool"])}</a> with the rules of the report:
-<a href="{REPO_URL}#how-it-decides">how it decides</a>. To check is not blocked: the
-metadata does not say either way. Your own project:
-<code>uvx django-upgrade-report</code>. By {escape(AUTHOR)}, {brand()}.</p>"""
+<a href="{REPO_URL}#how-it-decides">how it decides</a>. Downloads of the last 30 days from
+<a href="https://github.com/hugovk/top-pypi-packages">top-pypi-packages</a>. To check is not
+blocked: the metadata does not say either way. By {escape(AUTHOR)}, {brand()}.</p>"""
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -477,8 +508,219 @@ metadata does not say either way. Your own project:
 <main>
 {inner}
 </main>
+<script>{_SCRIPT}</script>
 </body>
 </html>
+"""
+
+
+def _try() -> str:
+    """The command for your own project, near the top, with a copy button."""
+    return (
+        '<div class="try"><p><b>Your own project:</b> which of your dependencies block the '
+        "upgrade, which you can upgrade today, and in which order. Reads your lockfile, sends "
+        "only package names to PyPI.</p>"
+        '<div class="command"><code>uvx django-upgrade-report</code>'
+        '<button type="button" class="copy" data-copy="uvx django-upgrade-report" hidden>'
+        "Copy</button></div></div>"
+    )
+
+
+def _overview(data: dict) -> str:
+    rows = []
+    for v in data["versions"]:
+        counts = v["counts"]
+        total = sum(counts.values()) or 1
+        bar = "".join(
+            f'<span class="{key}" style="width:{counts[key] / total * 100:.1f}%"></span>'
+            for key in ("ready", "check", "blocked")
+        )
+        when = f"released {v['ga']}" if v["released"] else "not released yet"
+        label = escape(v["version"])
+        rows.append(
+            f'<tr><td class="name"><a href="#{label}">Django {label}</a></td>'
+            f"<td>{escape(when)}</td>"
+            f'<td><div class="bar" title="{counts["ready"]} ready, {counts["check"]} to check, '
+            f'{counts["blocked"]} blocked">{bar}</div></td>'
+            f"<td>{counts['ready']}</td><td>{counts['check']}</td><td>{counts['blocked']}</td>"
+            f"<td>{_curve_text(v['curve'])}</td></tr>"
+        )
+    return (
+        '<div class="table overview"><table><thead><tr><th>Version</th><th></th><th>Share</th>'
+        "<th>ready</th><th>to check</th><th>blocked</th><th>Declared after release</th></tr>"
+        f"</thead><tbody>{''.join(rows)}</tbody></table></div>"
+    )
+
+
+def _blockers(data: dict) -> str:
+    """Per Django version, the packages whose newest release excludes it, most downloaded
+    first: the question most visitors come with. The newest and the next version are open."""
+    released = [v["version"] for v in data["versions"] if v["released"]]
+    open_ = {released[-1], data["versions"][-1]["version"]} if released else set()
+    sections = []
+    for v in reversed(data["versions"]):
+        label = v["version"]
+        blocked = sorted(
+            (p for p in data["packages"] if p["status"].get(label) == "blocked"),
+            key=lambda p: (-(p.get("downloads") or 0), p["name"]),
+        )
+        count = len(blocked)
+        title = (
+            f"Django {label}: {count} package{'s' if count != 1 else ''} exclude it"
+            if count
+            else f"Django {label}: no package excludes it"
+        )
+        rows = "".join(
+            f'<tr><td class="name"><a href="#{escape(p["name"])}">{escape(p["name"])}</a></td>'
+            f"<td>{_compact(p.get('downloads'))}</td><td><code>{escape(p.get('requires') or '')}"
+            f"</code></td><td>{escape(str(p['version']))}</td></tr>"
+            for p in blocked
+        )
+        table = (
+            '<div class="table"><table><thead><tr><th>Package</th><th>Downloads</th>'
+            f"<th>Requires</th><th>Newest</th></tr></thead><tbody>{rows}</tbody></table></div>"
+            if blocked
+            else ""
+        )
+        sections.append(
+            f'<details class="version" id="{escape(label)}"{" open" if label in open_ else ""}>'
+            f"<summary><h3>{escape(title)}</h3></summary>{table}</details>"
+        )
+    return '<h2 id="blockers">What blocks each version</h2>' + "".join(sections)
+
+
+def _matrix(data: dict) -> str:
+    """Every package against every version, most downloaded first, with a search field and
+    filters that the script fills in."""
+    versions = [v["version"] for v in data["versions"]]
+    released = [v["version"] for v in data["versions"] if v["released"]]
+    default = released[-1] if released else versions[-1]
+    heads = "".join(f'<th class="s">{escape(v)}</th>' for v in versions)
+    rows = []
+    packages = sorted(data["packages"], key=lambda p: (-(p.get("downloads") or 0), p["name"]))
+    for p in packages:
+        cells = "".join(
+            f'<td class="s {p["status"].get(v, "")}" title="{escape(_title(p, v))}">'
+            f"{_ICON.get(p['status'].get(v), '')}</td>"
+            for v in versions
+        )
+        name = escape(p["name"])
+        flags = "".join(
+            f'<span class="flag">{text}</span>'
+            for key, text in (("inactive", "inactive"), ("stale", "no release in 2 years"))
+            if p.get(key)
+        )
+        statuses = " ".join(f"{escape(v)}:{p['status'].get(v, '')}" for v in versions)
+        rows.append(
+            f'<tr id="{name}" data-name="{name}" data-downloads="{p.get("downloads") or 0}" '
+            f'data-released="{escape(p.get("released") or "")}" data-status="{statuses}">'
+            f'<th class="name" scope="row"><a href="https://pypi.org/project/{name}/">{name}</a>'
+            f"{flags}</th><td>{_compact(p.get('downloads'))}</td>"
+            f"<td>{escape(p.get('released') or '')}</td>"
+            f"<td>{escape(str(p['version']))}</td>{cells}</tr>"
+        )
+    options = "".join(
+        f'<option value="{escape(v)}"{" selected" if v == default else ""}>Django {escape(v)}'
+        "</option>"
+        for v in versions
+    )
+    toolbar = (
+        '<div class="toolbar" id="toolbar" hidden><input type="search" id="q" '
+        'placeholder="Search packages  ( / )" aria-label="Search packages">'
+        f'<select id="v" aria-label="Django version">{options}</select>'
+        '<select id="status" aria-label="Status"><option value="">any status</option>'
+        '<option value="ready">ready</option><option value="check">to check</option>'
+        '<option value="blocked">blocked</option></select>'
+        '<select id="sort" aria-label="Sort"><option value="downloads">most downloaded</option>'
+        '<option value="name">name</option><option value="released">last release</option>'
+        '</select><span id="shown" aria-live="polite"></span></div>'
+    )
+    legend = (
+        '<p class="hint legend-row"><span class="s ready">✓</span> ready: the newest release '
+        'declares it <span class="s check">?</span> to check: it does not say '
+        '<span class="s blocked">✗</span> blocked: it excludes it</p>'
+    )
+    return (
+        f"{toolbar}{legend}"
+        '<div class="table matrix"><table><thead><tr><th class="name">Package</th>'
+        f"<th>Downloads</th><th>Last release</th><th>Newest</th>{heads}</tr></thead>"
+        f'<tbody id="rows">{"".join(rows)}</tbody></table></div>'
+    )
+
+
+def _compact(number: int | None) -> str:
+    """``12.3M``, ``456K``: downloads at a glance."""
+    if not number:
+        return ""
+    for size, unit in ((1_000_000_000, "B"), (1_000_000, "M"), (1_000, "K")):
+        if number >= size:
+            return f"{number / size:.1f}".rstrip("0").rstrip(".") + unit
+    return str(number)
+
+
+# Search, filters and sorting for the package list, and the copy button. The state lives in
+# the address (#q=allauth&v=6.1&status=blocked), so a filtered view can be passed on; an
+# address without "=" is a plain anchor, which opens its version's section.
+_SCRIPT = r"""
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const bar = $("toolbar"), body = $("rows");
+  const q = $("q"), v = $("v"), st = $("status"), sort = $("sort");
+  bar.hidden = false;
+  const rows = [...body.rows];
+  function read() {
+    const h = location.hash.slice(1);
+    if (!h.includes("=")) {
+      const el = h && document.getElementById(decodeURIComponent(h));
+      if (el && el.tagName === "DETAILS") el.open = true;
+      return;
+    }
+    const p = new URLSearchParams(h);
+    q.value = p.get("q") || "";
+    if (p.get("v")) v.value = p.get("v");
+    st.value = p.get("status") || "";
+    sort.value = p.get("sort") || "downloads";
+  }
+  function apply(write) {
+    const term = q.value.trim().toLowerCase(), want = st.value, ver = v.value;
+    let shown = 0;
+    for (const r of rows) {
+      const status = (r.dataset.status.split(" ").find((s) => s.startsWith(ver + ":")) || "")
+        .split(":")[1];
+      const ok = (!term || r.dataset.name.includes(term)) && (!want || status === want);
+      r.hidden = !ok;
+      shown += ok;
+    }
+    const key = sort.value;
+    const sorted = [...rows].sort((a, b) =>
+      key === "name" ? a.dataset.name.localeCompare(b.dataset.name)
+      : key === "released" ? b.dataset.released.localeCompare(a.dataset.released)
+      : b.dataset.downloads - a.dataset.downloads);
+    body.append(...sorted);
+    $("shown").textContent = shown + " of " + rows.length;
+    if (write) {
+      const p = new URLSearchParams();
+      if (term) p.set("q", term);
+      if (want) p.set("status", want);
+      if (term || want) p.set("v", ver);
+      if (key !== "downloads") p.set("sort", key);
+      history.replaceState(null, "", p.toString() ? "#" + p : location.pathname);
+    }
+  }
+  for (const el of [q, v, st, sort]) el.addEventListener("input", () => apply(true));
+  addEventListener("hashchange", () => { read(); apply(false); });
+  addEventListener("keydown", (e) => {
+    if (e.key === "/" && document.activeElement !== q) { e.preventDefault(); q.focus(); }
+  });
+  for (const b of document.querySelectorAll("button.copy")) {
+    b.hidden = false;
+    b.addEventListener("click", () => navigator.clipboard.writeText(b.dataset.copy).then(() => {
+      b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1500);
+    }));
+  }
+  read();
+  apply(false);
+})();
 """
 
 
@@ -726,7 +968,7 @@ def main(argv: list[str] | None = None, pypi: PyPI | None = None) -> int:
     args = parser.parse_args(argv)
     pypi = pypi or PyPI(cache_dir=default_cache_dir())
     if args.command == "select":
-        updated, top = _top()
+        updated, top, _ = _top()
         chosen = select(pypi, top, args.count)
         PACKAGES.write_text(
             json.dumps({"source": TOP, "top_updated": updated, "packages": chosen}, indent=1) + "\n"
@@ -734,7 +976,12 @@ def main(argv: list[str] | None = None, pypi: PyPI | None = None) -> int:
         print(f"{PACKAGES.name}: {len(chosen)} packages", file=sys.stderr)
         return 0
     packages = json.loads(PACKAGES.read_text())["packages"]
-    data = build(pypi, packages)
+    try:
+        downloads = _top()[2]
+    except OSError as exc:  # the page without download numbers beats no page
+        print(f"downloads left out: {exc}", file=sys.stderr)
+        downloads = None
+    data = build(pypi, packages, downloads=downloads)
     snapshots = []
     if args.history:
         args.history.mkdir(parents=True, exist_ok=True)

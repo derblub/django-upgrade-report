@@ -133,3 +133,37 @@ def test_only_direct_dependencies(project, browser):
     page.uncheck("#direct")
     assert len(shown(page)) == 3
     page.close()
+
+
+def test_ecosystem_page_filters_and_keeps_them_in_the_address(browser, index, tmp_path):
+    import importlib.util
+    from datetime import date
+    from pathlib import Path
+
+    path = Path(__file__).parent.parent / "ecosystem" / "build.py"
+    spec = importlib.util.spec_from_file_location("ecosystem_build", path)
+    build = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(build)
+    names = ["django-ready", "django-before", "django-with", "django-blocked", "django-lagging"]
+    data = build.build(index, names, today=date(2026, 1, 15))
+    target = tmp_path / "index.html"
+    target.write_text(build.page(data))
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda error: errors.append(error))
+    page.goto(target.as_uri())
+    assert page.is_visible("#toolbar")
+    page.fill("#q", "ready")
+    sync_api.expect(page.locator("#shown")).to_have_text("1 of 5")
+    assert page.evaluate("location.hash") == "#q=ready&v=6.0"
+    page.fill("#q", "")
+    page.select_option("#v", "5.0")
+    page.select_option("#status", "blocked")
+    sync_api.expect(page.locator("#shown")).to_have_text("2 of 5")
+    page.goto(target.as_uri() + "#status=ready&v=5.2")
+    page.reload()
+    sync_api.expect(page.locator("#shown")).to_have_text("3 of 5")
+    page.goto(target.as_uri() + "#5.0")
+    page.reload()
+    assert page.evaluate("document.getElementById('5.0').open")
+    assert not errors

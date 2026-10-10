@@ -178,3 +178,36 @@ def test_history_feeds_the_page_and_the_feed(build, tmp_path):
     assert "show up here from the next run on" in build._changes(snapshot("2026-10-12", {}))
     quiet = snapshot("2026-10-12", {}) | {"changes": {"since": "2026-10-05", "versions": {}}}
     assert "Nothing changed since 2026-10-05" in build._changes(quiet)
+
+
+DOWNLOADS = {"django-ready": 900, "django-before": 5_000_000, "django-blocked": 1_200}
+
+
+def test_rows_carry_downloads_releases_and_requirements(build, index):
+    data = build.build(index, PACKAGES, today=date(2026, 1, 15), downloads=DOWNLOADS)
+    rows = {p["name"]: p for p in data["packages"]}
+    assert rows["django-before"]["downloads"] == 5_000_000
+    assert rows["django-lagging"]["downloads"] is None
+    assert rows["django-blocked"]["released"] == "2021-01-01"
+    assert rows["django-blocked"]["stale"] and not rows["django-ready"]["stale"]
+    assert rows["django-blocked"]["requires"] == "<5.0"
+
+
+def test_page_links_versions_and_packages_and_lists_blockers(build, index):
+    data = build.build(index, PACKAGES, today=date(2026, 1, 15), downloads=DOWNLOADS)
+    html = build.page(data)
+    assert 'uvx django-upgrade-report</code><button type="button" class="copy"' in html
+    assert '<a href="#5.2">Django 5.2</a>' in html
+    assert '<details class="version" id="6.0" open>' in html  # the newest release
+    assert '<details class="version" id="6.1" open>' in html  # the next one
+    assert '<details class="version" id="5.0">' in html
+    blockers = html.split('id="5.0">', 1)[1].split("</details>", 1)[0]
+    assert "Django 5.0: 2 packages exclude it" in blockers
+    assert blockers.index("django-blocked") < blockers.index("django-with")  # by downloads
+    assert "<code>&lt;5.0</code>" in blockers
+    matrix = html.split('<tbody id="rows">', 1)[1]
+    assert matrix.index('id="django-before"') < matrix.index('id="django-blocked"')
+    assert 'data-status="4.2:ready 5.0:blocked' in html
+    assert '<span class="flag">no release in 2 years</span>' in html
+    assert '<div class="toolbar" id="toolbar" hidden>' in html  # shown by the script only
+    assert build._compact(24_512_000) == "24.5M" and build._compact(1_200) == "1.2K"

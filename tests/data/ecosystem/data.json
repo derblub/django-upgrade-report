@@ -225,7 +225,12 @@
     "5.1": "2026-01-01",
     "5.2": "2026-01-01",
     "6.0": "2026-01-01"
-   }
+   },
+   "downloads": null,
+   "released": "2026-01-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-blocked",
@@ -238,7 +243,12 @@
     "6.0": "blocked",
     "6.1": "blocked"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "downloads": null,
+   "released": "2021-01-01",
+   "stale": true,
+   "inactive": false,
+   "requires": "<5.0"
   },
   {
    "name": "django-lagging",
@@ -253,7 +263,12 @@
    },
    "declared_since": {
     "4.2": "2026-01-01"
-   }
+   },
+   "downloads": null,
+   "released": "2026-01-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-ready",
@@ -271,7 +286,12 @@
     "5.0": "2026-01-01",
     "5.1": "2026-01-01",
     "5.2": "2026-01-01"
-   }
+   },
+   "downloads": null,
+   "released": "2026-01-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-with",
@@ -288,7 +308,12 @@
     "4.2": "2026-01-01",
     "5.2": "2026-01-01",
     "6.0": "2026-01-01"
-   }
+   },
+   "downloads": null,
+   "released": "2026-01-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   }
  ]
 }
