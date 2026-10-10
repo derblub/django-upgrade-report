@@ -10,7 +10,13 @@
    "counts": {
     "ready": 148,
     "check": 109,
-    "blocked": 43
+    "blocked": 43,
+    "signs": 7
+   },
+   "downloads": {
+    "ready": 0.525,
+    "check": 0.251,
+    "blocked": 0.224
    },
    "curve": [
     [
@@ -58,7 +64,13 @@
    "counts": {
     "ready": 104,
     "check": 153,
-    "blocked": 43
+    "blocked": 43,
+    "signs": 6
+   },
+   "downloads": {
+    "ready": 0.373,
+    "check": 0.401,
+    "blocked": 0.225
    },
    "curve": [
     [
@@ -106,7 +118,13 @@
    "counts": {
     "ready": 111,
     "check": 153,
-    "blocked": 36
+    "blocked": 36,
+    "signs": 2
+   },
+   "downloads": {
+    "ready": 0.441,
+    "check": 0.346,
+    "blocked": 0.213
    },
    "curve": [
     [
@@ -154,7 +172,13 @@
    "counts": {
     "ready": 168,
     "check": 131,
-    "blocked": 1
+    "blocked": 1,
+    "signs": 3
+   },
+   "downloads": {
+    "ready": 0.788,
+    "check": 0.212,
+    "blocked": 0.0
    },
    "curve": [
     [
@@ -198,7 +222,13 @@
    "counts": {
     "ready": 116,
     "check": 180,
-    "blocked": 4
+    "blocked": 4,
+    "signs": 3
+   },
+   "downloads": {
+    "ready": 0.615,
+    "check": 0.378,
+    "blocked": 0.006
    },
    "curve": [
     [
@@ -234,7 +264,13 @@
    "counts": {
     "ready": 42,
     "check": 251,
-    "blocked": 7
+    "blocked": 7,
+    "signs": 35
+   },
+   "downloads": {
+    "ready": 0.252,
+    "check": 0.715,
+    "blocked": 0.033
    },
    "curve": [
     [
@@ -258,7 +294,13 @@
    "counts": {
     "ready": 0,
     "check": 285,
-    "blocked": 15
+    "blocked": 15,
+    "signs": 0
+   },
+   "downloads": {
+    "ready": 0.0,
+    "check": 0.945,
+    "blocked": 0.055
    },
    "curve": []
   }
@@ -276,7 +318,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 1577756,
+   "released": "2025-01-06",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.0"
   },
   {
    "name": "channels",
@@ -296,7 +344,17 @@
     "5.1": "2024-11-15",
     "5.2": "2025-03-29",
     "6.0": "2025-11-20"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 5050375,
+   "released": "2025-11-20",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "dj-database-url",
@@ -315,7 +373,13 @@
     "5.0": "2024-05-28",
     "5.1": "2024-10-23",
     "5.2": "2025-06-02"
-   }
+   },
+   "signs": {},
+   "downloads": 7411459,
+   "released": "2026-02-19",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "dj-inmemorystorage",
@@ -329,7 +393,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 195986,
+   "released": "2020-03-30",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=1.11"
   },
   {
    "name": "dj-rest-auth",
@@ -348,7 +418,13 @@
     "5.0": "2026-01-09",
     "5.1": "2026-01-09",
     "5.2": "2026-01-09"
-   }
+   },
+   "signs": {},
+   "downloads": 918207,
+   "released": "2026-03-15",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "dj-stripe",
@@ -368,7 +444,17 @@
     "5.1": "2025-01-03",
     "5.2": "2026-06-26",
     "6.0": "2026-06-26"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 554536,
+   "released": "2026-06-26",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-ace",
@@ -382,7 +468,17 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "4.2": [
+     "README of 1.44.0 mentions Django 4.2"
+    ]
+   },
+   "downloads": 143743,
+   "released": "2026-05-14",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2"
   },
   {
    "name": "django-activity-stream",
@@ -396,7 +492,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 123809,
+   "released": "2023-10-04",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-add-default-value",
@@ -410,7 +512,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 426373,
+   "released": "2022-02-02",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=1.11"
   },
   {
    "name": "django-admin-autocomplete-filter",
@@ -424,7 +532,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 587082,
+   "released": "2021-09-11",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=2.0"
   },
   {
    "name": "django-admin-data-views",
@@ -442,7 +556,13 @@
     "5.2": "2026-10-09",
     "6.0": "2026-10-09",
     "6.1": "2026-10-09"
-   }
+   },
+   "signs": {},
+   "downloads": 182678,
+   "released": "2026-10-09",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2.17"
   },
   {
    "name": "django-admin-extra-buttons",
@@ -462,7 +582,13 @@
     "5.1": "2024-10-10",
     "5.2": "2025-04-04",
     "6.0": "2026-04-27"
-   }
+   },
+   "signs": {},
+   "downloads": 139384,
+   "released": "2026-05-19",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-admin-inline-paginator",
@@ -476,7 +602,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 1904903,
+   "released": "2023-04-26",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-admin-interface",
@@ -496,7 +628,13 @@
     "5.1": "2024-10-23",
     "5.2": "2025-04-03",
     "6.0": "2025-12-19"
-   }
+   },
+   "signs": {},
+   "downloads": 229253,
+   "released": "2025-12-19",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-admin-list-filter-dropdown",
@@ -510,7 +648,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 1969688,
+   "released": "2019-10-14",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-admin-logs",
@@ -524,7 +668,20 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "4.2": [
+     "README of 1.5.0 mentions Django 4.2"
+    ],
+    "5.2": [
+     "README of 1.5.0 mentions Django 5.2"
+    ]
+   },
+   "downloads": 247635,
+   "released": "2025-12-03",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-admin-rangefilter",
@@ -538,7 +695,17 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (build.yml)"
+    ]
+   },
+   "downloads": 1371009,
+   "released": "2026-08-28",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-admin-sortable2",
@@ -557,7 +724,13 @@
     "5.0": "2024-05-15",
     "5.1": "2024-09-09",
     "5.2": "2025-05-14"
-   }
+   },
+   "signs": {},
+   "downloads": 2164085,
+   "released": "2026-01-22",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-admin-tools",
@@ -571,7 +744,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 255425,
+   "released": "2023-08-10",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-adminplus",
@@ -585,7 +764,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 1566749,
+   "released": "2023-12-05",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-allauth",
@@ -606,7 +791,13 @@
     "5.2": "2025-04-03",
     "6.0": "2025-11-20",
     "6.1": "2026-08-06"
-   }
+   },
+   "signs": {},
+   "downloads": 5034587,
+   "released": "2026-10-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2.16"
   },
   {
    "name": "django-allow-cidr",
@@ -624,7 +815,13 @@
     "4.2": "2025-04-08",
     "5.1": "2025-04-08",
     "5.2": "2025-04-08"
-   }
+   },
+   "signs": {},
+   "downloads": 904199,
+   "released": "2025-04-08",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-annoying",
@@ -638,7 +835,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 541078,
+   "released": "2025-04-03",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=1.11"
   },
   {
    "name": "django-anymail",
@@ -658,7 +861,17 @@
     "5.1": "2024-09-09",
     "5.2": "2025-04-03",
     "6.0": "2025-12-18"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "README of 15.2 mentions Django 6.1"
+    ]
+   },
+   "downloads": 3113154,
+   "released": "2026-09-05",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.0"
   },
   {
    "name": "django-appconf",
@@ -678,7 +891,13 @@
     "5.1": "2025-02-13",
     "5.2": "2025-02-13",
     "6.0": "2025-11-08"
-   }
+   },
+   "signs": {},
+   "downloads": 4859409,
+   "released": "2025-11-08",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-apscheduler",
@@ -696,7 +915,13 @@
     "4.2": "2024-09-28",
     "5.0": "2024-09-28",
     "5.1": "2024-09-28"
-   }
+   },
+   "signs": {},
+   "downloads": 168768,
+   "released": "2024-09-28",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-auditlog",
@@ -715,7 +940,13 @@
     "5.0": "2024-04-12",
     "5.1": "2025-04-26",
     "5.2": "2025-07-03"
-   }
+   },
+   "signs": {},
+   "downloads": 1292777,
+   "released": "2025-12-18",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-auth-ldap",
@@ -735,7 +966,17 @@
     "5.1": "2024-10-08",
     "5.2": "2025-05-07",
     "6.0": "2025-12-26"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 485285,
+   "released": "2025-12-26",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-autocomplete-light",
@@ -755,7 +996,13 @@
     "5.1": "2025-02-26",
     "5.2": "2026-04-23",
     "6.0": "2026-04-23"
-   }
+   },
+   "signs": {},
+   "downloads": 690833,
+   "released": "2026-09-09",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-autoslug",
@@ -769,7 +1016,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 324695,
+   "released": "2023-04-03",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-axes",
@@ -789,7 +1042,20 @@
     "5.1": "2024-09-21",
     "5.2": "2025-04-29",
     "6.0": "2025-12-19"
-   }
+   },
+   "signs": {
+    "5.0": [
+     "README of 8.3.1 mentions Django 5.0"
+    ],
+    "5.1": [
+     "README of 8.3.1 mentions Django 5.1"
+    ]
+   },
+   "downloads": 3718962,
+   "released": "2026-02-11",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-better-admin-arrayfield",
@@ -803,7 +1069,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 365892,
+   "released": "2020-12-08",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-bitfield",
@@ -817,7 +1089,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 302398,
+   "released": "2026-08-02",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=1.11.29"
   },
   {
    "name": "django-bootstrap-form",
@@ -831,7 +1109,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 177620,
+   "released": "2018-03-15",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-bootstrap3",
@@ -852,7 +1136,13 @@
     "5.2": "2025-07-31",
     "6.0": "2025-11-14",
     "6.1": "2026-07-30"
-   }
+   },
+   "signs": {},
+   "downloads": 282537,
+   "released": "2026-07-30",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-bootstrap4",
@@ -873,7 +1163,13 @@
     "5.2": "2025-07-31",
     "6.0": "2025-11-14",
     "6.1": "2026-08-28"
-   }
+   },
+   "signs": {},
+   "downloads": 227017,
+   "released": "2026-08-28",
+   "stale": false,
+   "inactive": false,
+   "requires": "<7.0,>=5.2"
   },
   {
    "name": "django-bootstrap5",
@@ -894,7 +1190,13 @@
     "5.2": "2025-07-30",
     "6.0": "2025-11-14",
     "6.1": "2026-08-28"
-   }
+   },
+   "signs": {},
+   "downloads": 365293,
+   "released": "2026-08-28",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-braces",
@@ -910,7 +1212,13 @@
    },
    "declared_since": {
     "4.2": "2024-10-09"
-   }
+   },
+   "signs": {},
+   "downloads": 275383,
+   "released": "2025-03-18",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2.2"
   },
   {
    "name": "django-browser-reload",
@@ -930,7 +1238,17 @@
     "5.1": "2024-06-19",
     "5.2": "2025-02-06",
     "6.0": "2025-09-18"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 650878,
+   "released": "2025-09-22",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-bulk-update",
@@ -944,7 +1262,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 438557,
+   "released": "2017-08-12",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-cachalot",
@@ -965,7 +1289,13 @@
     "5.2": "2025-04-17",
     "6.0": "2026-01-28",
     "6.1": "2026-08-10"
-   }
+   },
+   "signs": {},
+   "downloads": 216741,
+   "released": "2026-08-10",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.2,>=4.2"
   },
   {
    "name": "django-cache-memoize",
@@ -979,7 +1309,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 256739,
+   "released": "2024-12-18",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-cache-url",
@@ -997,7 +1333,13 @@
     "4.2": "2023-12-04",
     "5.2": "2026-01-24",
     "6.0": "2026-01-24"
-   }
+   },
+   "signs": {},
+   "downloads": 203004,
+   "released": "2026-01-24",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-cacheops",
@@ -1016,7 +1358,13 @@
     "5.0": "2024-11-01",
     "5.1": "2025-04-20",
     "5.2": "2025-04-20"
-   }
+   },
+   "signs": {},
+   "downloads": 2032919,
+   "released": "2025-04-20",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-celery-beat",
@@ -1036,7 +1384,13 @@
     "5.1": "2024-08-22",
     "5.2": "2025-04-16",
     "6.0": "2026-02-28"
-   }
+   },
+   "signs": {},
+   "downloads": 6494675,
+   "released": "2026-02-28",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.1,>=2.2"
   },
   {
    "name": "django-celery-email",
@@ -1050,7 +1404,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 352335,
+   "released": "2019-12-11",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=2.2"
   },
   {
    "name": "django-celery-results",
@@ -1069,7 +1429,13 @@
     "5.0": "2025-04-10",
     "5.1": "2025-04-10",
     "5.2": "2025-04-10"
-   }
+   },
+   "signs": {},
+   "downloads": 3676706,
+   "released": "2025-04-10",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2.25"
   },
   {
    "name": "django-choices-field",
@@ -1089,7 +1455,13 @@
     "5.1": "2025-08-10",
     "5.2": "2025-08-10",
     "6.0": "2025-12-27"
-   }
+   },
+   "signs": {},
+   "downloads": 313915,
+   "released": "2025-12-27",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-chunkator",
@@ -1103,7 +1475,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 224816,
+   "released": "2020-06-22",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-ckeditor",
@@ -1122,7 +1500,13 @@
     "5.0": "2024-02-08",
     "5.1": "2025-06-06",
     "5.2": "2025-06-06"
-   }
+   },
+   "signs": {},
+   "downloads": 643423,
+   "released": "2025-06-06",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-ckeditor-5",
@@ -1140,7 +1524,13 @@
     "4.2": "2026-02-21",
     "5.2": "2026-02-21",
     "6.0": "2026-02-21"
-   }
+   },
+   "signs": {},
+   "downloads": 198456,
+   "released": "2026-02-21",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-classy-tags",
@@ -1156,7 +1546,13 @@
    },
    "declared_since": {
     "4.2": "2023-07-29"
-   }
+   },
+   "signs": {},
+   "downloads": 268435,
+   "released": "2023-07-29",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-cleanup",
@@ -1173,7 +1569,13 @@
    "declared_since": {
     "4.2": "2023-06-14",
     "5.0": "2024-01-29"
-   }
+   },
+   "signs": {},
+   "downloads": 496636,
+   "released": "2024-09-18",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-click",
@@ -1191,7 +1593,13 @@
     "4.2": "2026-01-10",
     "5.2": "2026-01-10",
     "6.0": "2026-01-10"
-   }
+   },
+   "signs": {},
+   "downloads": 139299,
+   "released": "2026-01-10",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-clickhouse-backend",
@@ -1212,7 +1620,13 @@
     "5.2": "2025-06-05",
     "6.0": "2026-01-12",
     "6.1": "2026-08-09"
-   }
+   },
+   "signs": {},
+   "downloads": 130355,
+   "released": "2026-08-09",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-clone",
@@ -1228,7 +1642,13 @@
    },
    "declared_since": {
     "4.2": "2023-06-12"
-   }
+   },
+   "signs": {},
+   "downloads": 238126,
+   "released": "2025-06-10",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-cloudinary-storage",
@@ -1242,7 +1662,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 128157,
+   "released": "2020-08-23",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-colorfield",
@@ -1261,7 +1687,13 @@
     "5.0": "2023-12-05",
     "5.1": "2025-01-27",
     "5.2": "2025-04-03"
-   }
+   },
+   "signs": {},
+   "downloads": 833315,
+   "released": "2025-04-30",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-compressor",
@@ -1281,7 +1713,13 @@
     "5.1": "2024-06-16",
     "5.2": "2025-11-10",
     "6.0": "2025-11-10"
-   }
+   },
+   "signs": {},
+   "downloads": 2629687,
+   "released": "2025-11-10",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-concurrency",
@@ -1300,7 +1738,13 @@
     "5.1": "2025-04-03",
     "5.2": "2026-04-04",
     "6.0": "2026-04-04"
-   }
+   },
+   "signs": {},
+   "downloads": 158527,
+   "released": "2026-04-08",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-configurations",
@@ -1317,7 +1761,13 @@
    "declared_since": {
     "4.2": "2023-04-04",
     "5.0": "2024-03-27"
-   }
+   },
+   "signs": {},
+   "downloads": 394227,
+   "released": "2024-03-27",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-constance",
@@ -1336,7 +1786,13 @@
     "5.0": "2024-08-23",
     "5.1": "2025-11-04",
     "5.2": "2025-11-04"
-   }
+   },
+   "signs": {},
+   "downloads": 1067347,
+   "released": "2026-03-15",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-contrib-comments",
@@ -1350,7 +1806,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 212225,
+   "released": "2022-01-31",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=2.2"
   },
   {
    "name": "django-cors-headers",
@@ -1370,7 +1832,17 @@
     "5.1": "2024-06-19",
     "5.2": "2025-02-06",
     "6.0": "2025-09-18"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 19141380,
+   "released": "2025-09-18",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-cotton",
@@ -1390,7 +1862,13 @@
     "5.1": "2024-09-11",
     "5.2": "2025-04-29",
     "6.0": "2025-12-08"
-   }
+   },
+   "signs": {},
+   "downloads": 270821,
+   "released": "2026-06-01",
+   "stale": false,
+   "inactive": false,
+   "requires": "<7.0,>=4.2"
   },
   {
    "name": "django-countries",
@@ -1411,7 +1889,13 @@
     "5.2": "2025-11-04",
     "6.0": "2026-06-10",
     "6.1": "2026-09-10"
-   }
+   },
+   "signs": {},
+   "downloads": 1856779,
+   "released": "2026-09-10",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-coverage-plugin",
@@ -1429,7 +1913,17 @@
     "4.2": "2023-07-10",
     "5.2": "2025-06-15",
     "6.0": "2026-04-04"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 709020,
+   "released": "2026-04-04",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-crispy-forms",
@@ -1450,7 +1944,13 @@
     "5.2": "2025-04-13",
     "6.0": "2025-11-06",
     "6.1": "2026-07-29"
-   }
+   },
+   "signs": {},
+   "downloads": 2260820,
+   "released": "2026-07-29",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-crontab",
@@ -1464,7 +1964,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 220939,
+   "released": "2016-03-07",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-crum",
@@ -1478,7 +1984,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 328020,
+   "released": "2020-11-10",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=1.8"
   },
   {
    "name": "django-cryptography-django5",
@@ -1494,7 +2006,13 @@
    },
    "declared_since": {
     "5.0": "2024-06-04"
-   }
+   },
+   "signs": {},
+   "downloads": 335094,
+   "released": "2024-06-04",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-csp",
@@ -1513,7 +2031,13 @@
     "5.0": "2024-03-01",
     "5.1": "2025-04-02",
     "5.2": "2025-04-02"
-   }
+   },
+   "signs": {},
+   "downloads": 4243950,
+   "released": "2025-04-02",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-cte",
@@ -1533,7 +2057,13 @@
     "5.2": "2025-06-16",
     "6.0": "2026-08-31",
     "6.1": "2026-08-31"
-   }
+   },
+   "signs": {},
+   "downloads": 740402,
+   "released": "2026-10-08",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-currentuser",
@@ -1553,7 +2083,13 @@
     "5.1": "2024-08-26",
     "5.2": "2025-04-08",
     "6.0": "2026-01-21"
-   }
+   },
+   "signs": {},
+   "downloads": 133566,
+   "released": "2026-01-21",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.1,>=4.2"
   },
   {
    "name": "django-custom-commands",
@@ -1569,7 +2105,13 @@
    },
    "declared_since": {
     "5.1": "2024-10-30"
-   }
+   },
+   "signs": {},
+   "downloads": 188572,
+   "released": "2024-10-30",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.1.0"
   },
   {
    "name": "django-datadog-logger",
@@ -1587,7 +2129,13 @@
     "4.2": "2026-03-17",
     "5.2": "2026-03-17",
     "6.0": "2026-03-17"
-   }
+   },
+   "signs": {},
+   "downloads": 231933,
+   "released": "2026-07-08",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-db-connection-pool",
@@ -1601,7 +2149,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 137906,
+   "released": "2025-05-05",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-dbbackup",
@@ -1621,7 +2175,13 @@
     "5.1": "2025-05-09",
     "5.2": "2025-05-09",
     "6.0": "2026-04-10"
-   }
+   },
+   "signs": {},
+   "downloads": 207069,
+   "released": "2026-09-10",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.0"
   },
   {
    "name": "django-debug-toolbar",
@@ -1642,7 +2202,13 @@
     "5.2": "2025-03-20",
     "6.0": "2026-01-20",
     "6.1": "2026-08-10"
-   }
+   },
+   "signs": {},
+   "downloads": 8612233,
+   "released": "2026-09-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-deprecate-fields",
@@ -1656,7 +2222,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 1604182,
+   "released": "2026-01-20",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2.1"
   },
   {
    "name": "django-dirtyfields",
@@ -1676,7 +2248,17 @@
     "5.1": "2024-11-13",
     "5.2": "2025-11-17",
     "6.0": "2026-01-22"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 636311,
+   "released": "2026-01-22",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-dotenv",
@@ -1690,7 +2272,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 187095,
+   "released": "2017-12-11",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-dramatiq",
@@ -1708,7 +2296,13 @@
     "4.2": "2023-07-05",
     "5.0": "2024-12-29",
     "5.1": "2024-12-29"
-   }
+   },
+   "signs": {},
+   "downloads": 245716,
+   "released": "2025-11-13",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-dynamic-fixture",
@@ -1722,7 +2316,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 129538,
+   "released": "2023-09-15",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-dynamic-preferences",
@@ -1736,7 +2336,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 147679,
+   "released": "2025-01-10",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-eagle",
@@ -1752,7 +2358,13 @@
    },
    "declared_since": {
     "5.2": "2026-06-17"
-   }
+   },
+   "signs": {},
+   "downloads": 187298,
+   "released": "2026-06-17",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-elasticsearch-dsl",
@@ -1771,7 +2383,13 @@
     "5.0": "2025-07-23",
     "5.1": "2025-07-23",
     "5.2": "2025-07-23"
-   }
+   },
+   "signs": {},
+   "downloads": 337511,
+   "released": "2025-07-23",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-encrypted-model-fields",
@@ -1785,7 +2403,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 548696,
+   "released": "2022-02-24",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=2.2"
   },
   {
    "name": "django-enum",
@@ -1806,7 +2430,13 @@
     "5.2": "2025-03-30",
     "6.0": "2025-09-27",
     "6.1": "2026-07-31"
-   }
+   },
+   "signs": {},
+   "downloads": 176458,
+   "released": "2026-07-31",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.2,>=4.2"
   },
   {
    "name": "django-environ",
@@ -1826,7 +2456,13 @@
     "5.1": "2025-01-13",
     "5.2": "2026-02-18",
     "6.0": "2026-02-18"
-   }
+   },
+   "signs": {},
+   "downloads": 6922655,
+   "released": "2026-06-18",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-esi",
@@ -1847,7 +2483,13 @@
     "5.2": "2025-07-05",
     "6.0": "2026-03-24",
     "6.1": "2026-08-18"
-   }
+   },
+   "signs": {},
+   "downloads": 154435,
+   "released": "2026-10-02",
+   "stale": false,
+   "inactive": false,
+   "requires": "<7,>=5.2"
   },
   {
    "name": "django-etc",
@@ -1861,7 +2503,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 169811,
+   "released": "2022-10-06",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-eveonline-sde",
@@ -1877,7 +2525,13 @@
    },
    "declared_since": {
     "4.2": "2026-07-31"
-   }
+   },
+   "signs": {},
+   "downloads": 131803,
+   "released": "2026-08-18",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-extensions",
@@ -1895,7 +2549,13 @@
     "4.2": "2023-06-05",
     "5.1": "2025-04-08",
     "5.2": "2025-04-08"
-   }
+   },
+   "signs": {},
+   "downloads": 13107538,
+   "released": "2025-04-11",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-extra-views",
@@ -1909,7 +2569,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 235084,
+   "released": "2025-04-22",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2.1"
   },
   {
    "name": "django-fast-update",
@@ -1926,7 +2592,13 @@
    "declared_since": {
     "4.2": "2023-04-13",
     "5.2": "2025-08-04"
-   }
+   },
+   "signs": {},
+   "downloads": 218545,
+   "released": "2025-08-04",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-fernet-encrypted-fields",
@@ -1940,7 +2612,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 410826,
+   "released": "2026-04-14",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-fernet-fields-v2",
@@ -1954,7 +2632,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 1633410,
+   "released": "2023-08-15",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-filter",
@@ -1975,7 +2659,13 @@
     "5.2": "2025-02-14",
     "6.0": "2025-10-05",
     "6.1": "2026-07-11"
-   }
+   },
+   "signs": {},
+   "downloads": 14086521,
+   "released": "2026-10-03",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-fixture-magic",
@@ -1989,7 +2679,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 245586,
+   "released": "2020-07-15",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-flags",
@@ -2008,7 +2704,13 @@
     "5.1": "2025-05-01",
     "5.2": "2025-05-01",
     "6.0": "2026-02-10"
-   }
+   },
+   "signs": {},
+   "downloads": 203438,
+   "released": "2026-02-10",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-formtools",
@@ -2028,7 +2730,13 @@
     "5.1": "2026-05-16",
     "5.2": "2026-05-16",
     "6.0": "2026-05-16"
-   }
+   },
+   "signs": {},
+   "downloads": 3420752,
+   "released": "2026-07-09",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-fsm",
@@ -2047,7 +2755,13 @@
     "5.0": "2024-04-09",
     "5.1": "2025-10-07",
     "5.2": "2025-10-07"
-   }
+   },
+   "signs": {},
+   "downloads": 509998,
+   "released": "2025-10-07",
+   "stale": false,
+   "inactive": true,
+   "requires": null
   },
   {
    "name": "django-fsm-2",
@@ -2067,7 +2781,17 @@
     "5.1": "2024-09-02",
     "5.2": "2025-11-03",
     "6.0": "2025-11-03"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 453193,
+   "released": "2026-03-16",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2.29"
   },
   {
    "name": "django-fsm-log",
@@ -2087,7 +2811,13 @@
     "5.1": "2026-01-27",
     "5.2": "2026-01-27",
     "6.0": "2026-01-27"
-   }
+   },
+   "signs": {},
+   "downloads": 125623,
+   "released": "2026-01-27",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-google-sso",
@@ -2107,7 +2837,13 @@
     "5.1": "2024-08-29",
     "5.2": "2025-09-09",
     "6.0": "2026-06-17"
-   }
+   },
+   "signs": {},
+   "downloads": 221288,
+   "released": "2026-06-17",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.0"
   },
   {
    "name": "django-graphql-jwt",
@@ -2123,7 +2859,13 @@
    },
    "declared_since": {
     "4.2": "2023-08-04"
-   }
+   },
+   "signs": {},
+   "downloads": 258590,
+   "released": "2023-08-04",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=2.0"
   },
   {
    "name": "django-grappelli",
@@ -2137,7 +2879,20 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "5.0": [
+     "README of 5.0.0 mentions Django 5.0"
+    ],
+    "6.0": [
+     "README of 5.0.0 mentions Django 6.0"
+    ]
+   },
+   "downloads": 280590,
+   "released": "2026-04-29",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-guardian",
@@ -2157,7 +2912,13 @@
     "5.1": "2025-05-07",
     "5.2": "2025-06-25",
     "6.0": "2026-08-28"
-   }
+   },
+   "signs": {},
+   "downloads": 904021,
+   "released": "2026-09-12",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-guid",
@@ -2176,7 +2937,13 @@
     "5.0": "2024-01-03",
     "5.1": "2025-02-07",
     "5.2": "2025-07-22"
-   }
+   },
+   "signs": {},
+   "downloads": 208124,
+   "released": "2026-05-05",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.0,>=4.2"
   },
   {
    "name": "django-hashid-field",
@@ -2193,7 +2960,13 @@
    "declared_since": {
     "4.2": "2024-01-09",
     "5.0": "2024-01-09"
-   }
+   },
+   "signs": {},
+   "downloads": 232053,
+   "released": "2024-05-03",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=1.11"
   },
   {
    "name": "django-haystack",
@@ -2212,7 +2985,17 @@
     "5.0": "2024-06-04",
     "5.1": "2026-06-04",
     "5.2": "2026-06-04"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (test.yml)"
+    ]
+   },
+   "downloads": 213693,
+   "released": "2026-06-04",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-health-check",
@@ -2232,7 +3015,13 @@
     "5.2": "2025-06-03",
     "6.0": "2025-12-19",
     "6.1": "2026-08-07"
-   }
+   },
+   "signs": {},
+   "downloads": 3466706,
+   "released": "2026-10-02",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-hijack",
@@ -2251,7 +3040,13 @@
     "5.0": "2023-12-13",
     "5.2": "2025-07-07",
     "6.0": "2026-01-06"
-   }
+   },
+   "signs": {},
+   "downloads": 2761568,
+   "released": "2026-10-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-hosts",
@@ -2269,7 +3064,13 @@
     "4.2": "2025-06-19",
     "5.1": "2025-06-19",
     "5.2": "2025-06-19"
-   }
+   },
+   "signs": {},
+   "downloads": 396235,
+   "released": "2025-06-19",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-htmlmin",
@@ -2283,7 +3084,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 981379,
+   "released": "2019-03-18",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-htmx",
@@ -2304,7 +3111,13 @@
     "5.2": "2025-02-06",
     "6.0": "2025-09-18",
     "6.1": "2026-07-12"
-   }
+   },
+   "signs": {},
+   "downloads": 1319306,
+   "released": "2026-08-05",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-ical",
@@ -2318,7 +3131,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 157789,
+   "released": "2023-06-12",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-imagekit",
@@ -2332,7 +3151,17 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 358463,
+   "released": "2026-09-15",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-impersonate",
@@ -2349,7 +3178,13 @@
    "declared_since": {
     "4.2": "2023-11-23",
     "5.0": "2023-11-23"
-   }
+   },
+   "signs": {},
+   "downloads": 167447,
+   "released": "2025-04-05",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-import-export",
@@ -2368,7 +3203,17 @@
     "5.0": "2023-12-09",
     "5.1": "2024-10-23",
     "5.2": "2025-02-21"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 2412832,
+   "released": "2026-05-05",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-ipware",
@@ -2386,7 +3231,13 @@
     "5.2": "2026-09-22",
     "6.0": "2026-09-22",
     "6.1": "2026-09-22"
-   }
+   },
+   "signs": {},
+   "downloads": 5284716,
+   "released": "2026-09-22",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-jazzmin",
@@ -2406,7 +3257,13 @@
     "5.1": "2026-02-08",
     "5.2": "2026-02-08",
     "6.0": "2026-02-08"
-   }
+   },
+   "signs": {},
+   "downloads": 399104,
+   "released": "2026-06-25",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-jinja",
@@ -2422,7 +3279,13 @@
    },
    "declared_since": {
     "4.2": "2023-09-03"
-   }
+   },
+   "signs": {},
+   "downloads": 308918,
+   "released": "2023-09-03",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-js-asset",
@@ -2436,7 +3299,26 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "4.2": [
+     "README of 4.2.0 mentions Django 4.2"
+    ],
+    "5.2": [
+     "README of 4.2.0 mentions Django 5.2"
+    ],
+    "6.0": [
+     "README of 4.2.0 mentions Django 6.0"
+    ],
+    "6.1": [
+     "README of 4.2.0 mentions Django 6.1"
+    ]
+   },
+   "downloads": 3244829,
+   "released": "2026-09-28",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-json-widget",
@@ -2454,7 +3336,13 @@
     "4.2": "2024-03-25",
     "5.0": "2024-03-25",
     "5.2": "2025-10-11"
-   }
+   },
+   "signs": {},
+   "downloads": 1110163,
+   "released": "2025-12-12",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-jsonform",
@@ -2468,7 +3356,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 500524,
+   "released": "2025-01-29",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2.0"
   },
   {
    "name": "django-libsass",
@@ -2482,7 +3376,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 1724343,
+   "released": "2021-07-08",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-lifecycle",
@@ -2501,7 +3401,13 @@
     "5.0": "2023-11-01",
     "5.2": "2026-01-25",
     "6.0": "2026-06-14"
-   }
+   },
+   "signs": {},
+   "downloads": 206780,
+   "released": "2026-06-14",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-linear-migrations",
@@ -2521,7 +3427,17 @@
     "5.1": "2024-06-19",
     "5.2": "2025-02-06",
     "6.0": "2025-09-18"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 2743549,
+   "released": "2025-09-18",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-localflavor",
@@ -2540,7 +3456,13 @@
     "5.0": "2025-05-21",
     "5.1": "2025-05-21",
     "5.2": "2025-05-21"
-   }
+   },
+   "signs": {},
+   "downloads": 938496,
+   "released": "2026-08-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-log-request-id",
@@ -2554,7 +3476,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 703791,
+   "released": "2026-03-12",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=1.8"
   },
   {
    "name": "django-loginas",
@@ -2574,7 +3502,13 @@
     "5.1": "2025-10-14",
     "5.2": "2025-10-14",
     "6.0": "2025-10-14"
-   }
+   },
+   "signs": {},
+   "downloads": 1783965,
+   "released": "2026-01-06",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-maintenance-mode",
@@ -2594,7 +3528,13 @@
     "5.1": "2025-04-03",
     "5.2": "2025-04-03",
     "6.0": "2026-07-14"
-   }
+   },
+   "signs": {},
+   "downloads": 198693,
+   "released": "2026-07-14",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-markdownx",
@@ -2613,7 +3553,13 @@
     "5.1": "2026-05-21",
     "5.2": "2026-05-21",
     "6.0": "2026-05-23"
-   }
+   },
+   "signs": {},
+   "downloads": 147454,
+   "released": "2026-05-23",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-mathfilters",
@@ -2627,7 +3573,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 488393,
+   "released": "2020-02-10",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-mcp-server",
@@ -2641,7 +3593,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 229283,
+   "released": "2025-10-10",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.0"
   },
   {
    "name": "django-memoize",
@@ -2655,7 +3613,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 138770,
+   "released": "2020-04-27",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-memoized-prefetch",
@@ -2669,7 +3633,17 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "4.2": [
+     "README of 0.1.2 mentions Django 4.2"
+    ]
+   },
+   "downloads": 187364,
+   "released": "2025-11-10",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-migration-linter",
@@ -2689,7 +3663,17 @@
     "5.1": "2025-03-30",
     "5.2": "2026-01-04",
     "6.0": "2026-01-04"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 3422509,
+   "released": "2026-01-04",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2.2"
   },
   {
    "name": "django-migrations-git-conflicts",
@@ -2703,7 +3687,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 249473,
+   "released": "2020-06-23",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=1.7"
   },
   {
    "name": "django-mock-queries",
@@ -2717,7 +3707,17 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 238857,
+   "released": "2026-09-30",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-model-utils",
@@ -2735,7 +3735,13 @@
     "4.2": "2024-02-11",
     "5.0": "2024-02-11",
     "5.1": "2024-09-04"
-   }
+   },
+   "signs": {},
+   "downloads": 4739634,
+   "released": "2024-09-04",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-modelcluster",
@@ -2749,7 +3755,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 566802,
+   "released": "2026-05-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-modeltranslation",
@@ -2763,7 +3775,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 778351,
+   "released": "2026-09-07",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.1"
   },
   {
    "name": "django-money",
@@ -2782,7 +3800,13 @@
     "5.0": "2024-08-01",
     "5.1": "2024-08-01",
     "5.2": "2025-04-17"
-   }
+   },
+   "signs": {},
+   "downloads": 712764,
+   "released": "2026-06-07",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-mptt",
@@ -2801,7 +3825,13 @@
     "5.0": "2025-04-04",
     "5.1": "2025-04-04",
     "5.2": "2025-04-04"
-   }
+   },
+   "signs": {},
+   "downloads": 1083200,
+   "released": "2026-06-02",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-multiselectfield",
@@ -2819,7 +3849,13 @@
     "4.2": "2025-06-12",
     "5.0": "2025-06-12",
     "5.1": "2025-06-12"
-   }
+   },
+   "signs": {},
+   "downloads": 699652,
+   "released": "2025-06-12",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-mysql",
@@ -2839,7 +3875,17 @@
     "5.1": "2024-06-19",
     "5.2": "2025-02-06",
     "6.0": "2025-09-18"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 624659,
+   "released": "2025-09-18",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-nested-admin",
@@ -2853,7 +3899,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 1151595,
+   "released": "2025-10-23",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-netfields",
@@ -2867,7 +3919,17 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 175690,
+   "released": "2026-10-08",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=1.11"
   },
   {
    "name": "django-ninja",
@@ -2888,7 +3950,13 @@
     "5.2": "2025-11-13",
     "6.0": "2025-12-04",
     "6.1": "2026-08-17"
-   }
+   },
+   "signs": {},
+   "downloads": 3606272,
+   "released": "2026-09-19",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.1"
   },
   {
    "name": "django-ninja-extra",
@@ -2906,7 +3974,13 @@
     "4.2": "2023-12-10",
     "5.0": "2023-12-10",
     "6.0": "2026-06-14"
-   }
+   },
+   "signs": {},
+   "downloads": 364804,
+   "released": "2026-08-17",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2.2"
   },
   {
    "name": "django-ninja-jwt",
@@ -2920,7 +3994,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 205620,
+   "released": "2026-07-21",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2.1"
   },
   {
    "name": "django-nonrelated-inlines",
@@ -2934,7 +4014,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 159612,
+   "released": "2022-06-06",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=2.0"
   },
   {
    "name": "django-nose",
@@ -2948,7 +4034,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 214855,
+   "released": "2020-08-20",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-oauth-toolkit",
@@ -2968,7 +4060,13 @@
     "5.1": "2024-09-06",
     "5.2": "2026-01-08",
     "6.0": "2026-05-29"
-   }
+   },
+   "signs": {},
+   "downloads": 4772111,
+   "released": "2026-08-21",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-object-actions",
@@ -2982,7 +4080,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 2228726,
+   "released": "2026-05-28",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-opensearch-dsl",
@@ -3001,7 +4105,13 @@
     "5.0": "2024-03-22",
     "5.1": "2025-04-11",
     "5.2": "2025-04-11"
-   }
+   },
+   "signs": {},
+   "downloads": 144414,
+   "released": "2025-11-24",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-ordered-model",
@@ -3015,7 +4125,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 447255,
+   "released": "2024-11-01",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-otp",
@@ -3033,7 +4149,13 @@
     "4.2": "2025-04-02",
     "5.1": "2025-04-02",
     "5.2": "2025-04-02"
-   }
+   },
+   "signs": {},
+   "downloads": 4514318,
+   "released": "2026-10-08",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-pandas",
@@ -3047,7 +4169,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 139589,
+   "released": "2024-04-03",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-parler",
@@ -3065,7 +4193,13 @@
     "5.1": "2026-05-14",
     "5.2": "2026-05-14",
     "6.0": "2026-05-14"
-   }
+   },
+   "signs": {},
+   "downloads": 157350,
+   "released": "2026-05-14",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.1"
   },
   {
    "name": "django-permissionedforms",
@@ -3079,7 +4213,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 497167,
+   "released": "2022-02-28",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-permissions-policy",
@@ -3100,7 +4240,13 @@
     "5.2": "2025-02-06",
     "6.0": "2025-09-18",
     "6.1": "2026-06-26"
-   }
+   },
+   "signs": {},
+   "downloads": 394024,
+   "released": "2026-09-16",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-pg-zero-downtime-migrations",
@@ -3121,7 +4267,13 @@
     "5.2": "2025-06-06",
     "6.0": "2026-08-26",
     "6.1": "2026-08-26"
-   }
+   },
+   "signs": {},
+   "downloads": 348122,
+   "released": "2026-08-26",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-pgactivity",
@@ -3141,7 +4293,13 @@
     "5.1": "2024-08-25",
     "5.2": "2025-11-30",
     "6.0": "2025-11-30"
-   }
+   },
+   "signs": {},
+   "downloads": 2046683,
+   "released": "2025-11-30",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-pghistory",
@@ -3161,7 +4319,13 @@
     "5.1": "2024-08-27",
     "5.2": "2025-04-21",
     "6.0": "2025-11-30"
-   }
+   },
+   "signs": {},
+   "downloads": 619527,
+   "released": "2026-02-17",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-pglock",
@@ -3181,7 +4345,13 @@
     "5.1": "2024-08-25",
     "5.2": "2025-11-30",
     "6.0": "2025-11-30"
-   }
+   },
+   "signs": {},
+   "downloads": 2021743,
+   "released": "2025-11-30",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-pglocks",
@@ -3200,7 +4370,13 @@
     "5.0": "2026-06-21",
     "5.1": "2026-06-21",
     "5.2": "2026-06-21"
-   }
+   },
+   "signs": {},
+   "downloads": 140201,
+   "released": "2026-06-21",
+   "stale": false,
+   "inactive": true,
+   "requires": ">=4.2"
   },
   {
    "name": "django-pgmigrate",
@@ -3220,7 +4396,13 @@
     "5.1": "2024-08-25",
     "5.2": "2025-11-30",
     "6.0": "2025-11-30"
-   }
+   },
+   "signs": {},
+   "downloads": 1626236,
+   "released": "2025-11-30",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-pgtransaction",
@@ -3240,7 +4422,13 @@
     "5.1": "2024-08-25",
     "5.2": "2025-11-30",
     "6.0": "2025-11-30"
-   }
+   },
+   "signs": {},
+   "downloads": 200597,
+   "released": "2025-11-30",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-pgtrigger",
@@ -3260,7 +4448,13 @@
     "5.1": "2024-08-26",
     "5.2": "2025-04-18",
     "6.0": "2025-11-30"
-   }
+   },
+   "signs": {},
+   "downloads": 1216954,
+   "released": "2025-12-04",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-pgviews-redux",
@@ -3280,7 +4474,13 @@
     "5.1": "2024-11-27",
     "5.2": "2025-11-10",
     "6.0": "2025-12-23"
-   }
+   },
+   "signs": {},
+   "downloads": 341971,
+   "released": "2026-03-11",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.1"
   },
   {
    "name": "django-phonenumber-field",
@@ -3300,7 +4500,17 @@
     "5.1": "2025-04-10",
     "5.2": "2025-04-10",
     "6.0": "2025-11-24"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 6527880,
+   "released": "2026-07-23",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-picklefield",
@@ -3320,7 +4530,13 @@
     "5.1": "2025-03-13",
     "5.2": "2025-03-13",
     "6.0": "2025-11-27"
-   }
+   },
+   "signs": {},
+   "downloads": 980753,
+   "released": "2025-11-27",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-pipeline",
@@ -3339,7 +4555,13 @@
     "5.0": "2023-12-27",
     "5.1": "2024-12-06",
     "5.2": "2025-09-13"
-   }
+   },
+   "signs": {},
+   "downloads": 205823,
+   "released": "2025-09-13",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-polymorphic",
@@ -3360,7 +4582,13 @@
     "5.2": "2025-12-04",
     "6.0": "2025-12-04",
     "6.1": "2026-08-01"
-   }
+   },
+   "signs": {},
+   "downloads": 2735638,
+   "released": "2026-08-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-postgres-copy",
@@ -3378,7 +4606,13 @@
     "4.2": "2023-12-30",
     "5.1": "2025-06-22",
     "5.2": "2025-06-22"
-   }
+   },
+   "signs": {},
+   "downloads": 1773914,
+   "released": "2025-06-22",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-postgres-extra",
@@ -3397,7 +4631,13 @@
     "5.0": "2025-07-11",
     "5.1": "2025-07-11",
     "5.2": "2025-07-11"
-   }
+   },
+   "signs": {},
+   "downloads": 400162,
+   "released": "2026-10-05",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.0,>=2.0"
   },
   {
    "name": "django-prettyjson",
@@ -3411,7 +4651,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 165533,
+   "released": "2018-08-07",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-prometheus",
@@ -3431,7 +4677,13 @@
     "5.1": "2025-06-18",
     "5.2": "2025-06-18",
     "6.0": "2026-05-26"
-   }
+   },
+   "signs": {},
+   "downloads": 3759597,
+   "released": "2026-09-19",
+   "stale": false,
+   "inactive": false,
+   "requires": "!=5.0.*,<6.1,>=4.2"
   },
   {
    "name": "django-push-notifications",
@@ -3445,7 +4697,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 232182,
+   "released": "2025-11-16",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2.2"
   },
   {
    "name": "django-pydantic-field",
@@ -3465,7 +4723,13 @@
     "5.1": "2024-12-20",
     "5.2": "2025-07-06",
     "6.0": "2025-12-13"
-   }
+   },
+   "signs": {},
+   "downloads": 2299161,
+   "released": "2026-02-22",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.1"
   },
   {
    "name": "django-q2",
@@ -3484,7 +4748,20 @@
     "5.0": "2024-03-05",
     "5.1": "2024-09-09",
     "5.2": "2025-04-25"
-   }
+   },
+   "signs": {
+    "5.2": [
+     "README of 1.11.1 mentions Django 5.2"
+    ],
+    "6.1": [
+     "main branch tests Django 6.1 (test.yml)"
+    ]
+   },
+   "downloads": 492967,
+   "released": "2026-08-26",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-querycount",
@@ -3498,7 +4775,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 218501,
+   "released": "2023-01-05",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-ratelimit",
@@ -3512,7 +4795,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 2249157,
+   "released": "2023-07-24",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-recaptcha",
@@ -3531,7 +4820,17 @@
     "5.0": "2025-03-28",
     "5.1": "2025-03-28",
     "5.2": "2025-03-28"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 483048,
+   "released": "2025-03-28",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-recurrence",
@@ -3549,7 +4848,13 @@
     "4.2": "2025-12-19",
     "5.2": "2025-12-19",
     "6.0": "2025-12-19"
-   }
+   },
+   "signs": {},
+   "downloads": 238548,
+   "released": "2025-12-19",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.0"
   },
   {
    "name": "django-redis",
@@ -3569,7 +4874,13 @@
     "5.1": "2025-06-17",
     "5.2": "2025-06-17",
     "6.0": "2026-06-02"
-   }
+   },
+   "signs": {},
+   "downloads": 10537415,
+   "released": "2026-06-02",
+   "stale": false,
+   "inactive": false,
+   "requires": "<7.0,>=5.2"
   },
   {
    "name": "django-registration",
@@ -3588,7 +4899,13 @@
     "5.0": "2024-11-08",
     "5.1": "2024-11-08",
     "5.2": "2025-04-07"
-   }
+   },
+   "signs": {},
+   "downloads": 218804,
+   "released": "2025-04-07",
+   "stale": false,
+   "inactive": false,
+   "requires": "!=5.0.*,>=4.2"
   },
   {
    "name": "django-render-block",
@@ -3606,7 +4923,17 @@
     "4.2": "2025-05-13",
     "5.1": "2025-05-13",
     "5.2": "2025-05-13"
-   }
+   },
+   "signs": {
+    "5.0": [
+     "README of 0.11 mentions Django 5.0"
+    ]
+   },
+   "downloads": 218124,
+   "released": "2025-05-13",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-request-logging",
@@ -3620,7 +4947,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 158185,
+   "released": "2022-02-23",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-rest-knox",
@@ -3639,7 +4972,13 @@
     "5.0": "2026-07-12",
     "5.2": "2026-07-12",
     "6.0": "2026-07-12"
-   }
+   },
+   "signs": {},
+   "downloads": 750367,
+   "released": "2026-07-12",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-rest-passwordreset",
@@ -3659,7 +4998,13 @@
     "5.1": "2024-11-05",
     "5.2": "2026-06-29",
     "6.0": "2026-06-29"
-   }
+   },
+   "signs": {},
+   "downloads": 464833,
+   "released": "2026-06-29",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-rest-polymorphic",
@@ -3673,7 +5018,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 1863785,
+   "released": "2022-07-17",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-rest-swagger",
@@ -3687,7 +5038,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 214737,
+   "released": "2018-04-30",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-reversion",
@@ -3705,7 +5062,13 @@
     "4.2": "2026-05-12",
     "5.2": "2026-05-12",
     "6.0": "2026-05-12"
-   }
+   },
+   "signs": {},
+   "downloads": 2277960,
+   "released": "2026-06-12",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-revproxy",
@@ -3721,7 +5084,13 @@
    },
    "declared_since": {
     "4.2": "2023-10-20"
-   }
+   },
+   "signs": {},
+   "downloads": 269136,
+   "released": "2024-11-06",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.0"
   },
   {
    "name": "django-rich",
@@ -3741,7 +5110,17 @@
     "5.1": "2024-06-19",
     "5.2": "2025-02-06",
     "6.0": "2025-09-18"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 159177,
+   "released": "2025-09-18",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-rosetta",
@@ -3758,7 +5137,13 @@
    "declared_since": {
     "4.2": "2023-12-04",
     "5.0": "2023-12-04"
-   }
+   },
+   "signs": {},
+   "downloads": 174267,
+   "released": "2025-12-07",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-rq",
@@ -3772,7 +5157,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 764660,
+   "released": "2026-08-30",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-safedelete",
@@ -3786,7 +5177,23 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "4.2": [
+     "README of 1.5.0 mentions Django 4.2"
+    ],
+    "5.0": [
+     "README of 1.5.0 mentions Django 5.0"
+    ],
+    "5.1": [
+     "README of 1.5.0 mentions Django 5.1"
+    ]
+   },
+   "downloads": 1940099,
+   "released": "2026-08-17",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-safemigrate",
@@ -3802,7 +5209,13 @@
    },
    "declared_since": {
     "4.2": "2023-09-13"
-   }
+   },
+   "signs": {},
+   "downloads": 155852,
+   "released": "2025-06-03",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-sass-processor",
@@ -3821,7 +5234,13 @@
     "5.0": "2023-12-12",
     "5.1": "2025-06-26",
     "5.2": "2025-06-26"
-   }
+   },
+   "signs": {},
+   "downloads": 326714,
+   "released": "2025-06-26",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-scim2",
@@ -3841,7 +5260,13 @@
     "5.1": "2026-08-06",
     "5.2": "2026-08-06",
     "6.0": "2026-08-12"
-   }
+   },
+   "signs": {},
+   "downloads": 1973385,
+   "released": "2026-08-12",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.1,>=5.2.8"
   },
   {
    "name": "django-seal",
@@ -3860,7 +5285,13 @@
     "5.0": "2024-08-13",
     "5.1": "2024-08-13",
     "5.2": "2025-07-08"
-   }
+   },
+   "signs": {},
+   "downloads": 265838,
+   "released": "2025-07-10",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-sekizai",
@@ -3876,7 +5307,13 @@
    },
    "declared_since": {
     "4.2": "2023-05-02"
-   }
+   },
+   "signs": {},
+   "downloads": 229951,
+   "released": "2023-05-02",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-select2",
@@ -3895,7 +5332,13 @@
     "5.1": "2025-02-09",
     "5.2": "2025-12-18",
     "6.0": "2025-12-18"
-   }
+   },
+   "signs": {},
+   "downloads": 443865,
+   "released": "2026-01-07",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-sendgrid-v5",
@@ -3909,7 +5352,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 423912,
+   "released": "2026-01-05",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-sequences",
@@ -3929,7 +5378,13 @@
     "5.2": "2026-10-02",
     "6.0": "2026-10-02",
     "6.1": "2026-10-02"
-   }
+   },
+   "signs": {},
+   "downloads": 246727,
+   "released": "2026-10-02",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-ses",
@@ -3950,7 +5405,13 @@
     "5.2": "2026-01-05",
     "6.0": "2026-01-05",
     "6.1": "2026-09-03"
-   }
+   },
+   "signs": {},
+   "downloads": 1682972,
+   "released": "2026-09-03",
+   "stale": false,
+   "inactive": false,
+   "requires": "<7,>=3.2"
   },
   {
    "name": "django-sesame",
@@ -3968,7 +5429,13 @@
     "5.2": "2025-05-02",
     "6.0": "2026-10-02",
     "6.1": "2026-10-02"
-   }
+   },
+   "signs": {},
+   "downloads": 265970,
+   "released": "2026-10-02",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-settings-holder",
@@ -3989,7 +5456,13 @@
     "5.2": "2025-04-27",
     "6.0": "2026-10-09",
     "6.1": "2026-10-09"
-   }
+   },
+   "signs": {},
+   "downloads": 193850,
+   "released": "2026-10-09",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2.17"
   },
   {
    "name": "django-signal-webhooks",
@@ -4007,7 +5480,13 @@
     "4.2": "2023-11-25",
     "5.0": "2024-10-31",
     "5.1": "2024-10-31"
-   }
+   },
+   "signs": {},
+   "downloads": 180304,
+   "released": "2024-10-31",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-silk",
@@ -4028,7 +5507,13 @@
     "5.2": "2025-06-01",
     "6.0": "2026-03-08",
     "6.1": "2026-09-12"
-   }
+   },
+   "signs": {},
+   "downloads": 2316921,
+   "released": "2026-09-12",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-simple-captcha",
@@ -4042,7 +5527,20 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "4.2": [
+     "README of 0.7.0 mentions Django 4.2"
+    ],
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 165177,
+   "released": "2026-07-30",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-simple-history",
@@ -4062,7 +5560,17 @@
     "5.1": "2025-01-23",
     "5.2": "2025-01-23",
     "6.0": "2025-12-11"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "README of 3.13.0 mentions Django 6.1"
+    ]
+   },
+   "downloads": 4888149,
+   "released": "2026-07-22",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-slowtests",
@@ -4076,7 +5584,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 130149,
+   "released": "2019-02-12",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-snowflake",
@@ -4097,7 +5611,13 @@
     "5.2": "2025-05-27",
     "6.0": "2025-12-06",
     "6.1": "2026-08-19"
-   }
+   },
+   "signs": {},
+   "downloads": 180773,
+   "released": "2026-08-19",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.2,>=6.1"
   },
   {
    "name": "django-softdelete",
@@ -4111,7 +5631,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 138241,
+   "released": "2025-04-10",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-solo",
@@ -4131,7 +5657,13 @@
     "5.1": "2024-10-19",
     "5.2": "2026-01-01",
     "6.0": "2026-01-01"
-   }
+   },
+   "signs": {},
+   "downloads": 375785,
+   "released": "2026-01-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-sortedm2m",
@@ -4149,7 +5681,13 @@
     "4.2": "2024-08-11",
     "5.0": "2024-08-11",
     "5.1": "2024-08-11"
-   }
+   },
+   "signs": {},
+   "downloads": 256451,
+   "released": "2024-08-11",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-split-settings",
@@ -4166,7 +5704,13 @@
    "declared_since": {
     "4.2": "2024-03-09",
     "5.0": "2024-03-09"
-   }
+   },
+   "signs": {},
+   "downloads": 428756,
+   "released": "2024-07-05",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-sql-explorer",
@@ -4183,7 +5727,13 @@
    "declared_since": {
     "4.2": "2023-02-25",
     "5.0": "2024-02-07"
-   }
+   },
+   "signs": {},
+   "downloads": 210730,
+   "released": "2026-09-24",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-sql-utils",
@@ -4197,7 +5747,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 135213,
+   "released": "2023-09-28",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-sslserver",
@@ -4211,7 +5767,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 491645,
+   "released": "2019-12-10",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=1.8"
   },
   {
    "name": "django-statici18n",
@@ -4232,7 +5794,13 @@
     "5.2": "2026-03-15",
     "6.0": "2026-03-15",
     "6.1": "2026-09-02"
-   }
+   },
+   "signs": {},
+   "downloads": 205836,
+   "released": "2026-09-02",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.2,>=4.2"
   },
   {
    "name": "django-storages",
@@ -4250,7 +5818,13 @@
     "4.2": "2023-09-04",
     "5.0": "2024-05-04",
     "5.1": "2025-02-15"
-   }
+   },
+   "signs": {},
+   "downloads": 12258617,
+   "released": "2025-04-02",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-structlog",
@@ -4269,7 +5843,13 @@
     "5.0": "2023-12-13",
     "5.1": "2024-11-27",
     "5.2": "2025-04-05"
-   }
+   },
+   "signs": {},
+   "downloads": 3507592,
+   "released": "2026-05-30",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-stubs",
@@ -4290,7 +5870,13 @@
     "5.2": "2025-04-26",
     "6.0": "2026-03-17",
     "6.1": "2026-08-12"
-   }
+   },
+   "signs": {},
+   "downloads": 10681757,
+   "released": "2026-10-05",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-stubs-ext",
@@ -4311,7 +5897,13 @@
     "5.2": "2025-04-26",
     "6.0": "2026-03-17",
     "6.1": "2026-08-12"
-   }
+   },
+   "signs": {},
+   "downloads": 11988691,
+   "released": "2026-10-05",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-tables2",
@@ -4331,7 +5923,17 @@
     "5.1": "2024-12-21",
     "5.2": "2025-11-21",
     "6.0": "2026-04-13"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (ci.yml)"
+    ]
+   },
+   "downloads": 841082,
+   "released": "2026-08-30",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-taggit",
@@ -4348,7 +5950,13 @@
    "declared_since": {
     "4.2": "2023-10-29",
     "5.0": "2024-07-29"
-   }
+   },
+   "signs": {},
+   "downloads": 1522173,
+   "released": "2024-09-29",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=4.1"
   },
   {
    "name": "django-tailwind",
@@ -4368,7 +5976,13 @@
     "5.1": "2025-07-08",
     "5.2": "2025-07-08",
     "6.0": "2026-06-12"
-   }
+   },
+   "signs": {},
+   "downloads": 413780,
+   "released": "2026-06-12",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2.20"
   },
   {
    "name": "django-tasks",
@@ -4388,7 +6002,13 @@
     "5.1": "2024-08-12",
     "5.2": "2025-04-27",
     "6.0": "2025-10-17"
-   }
+   },
+   "signs": {},
+   "downloads": 613009,
+   "released": "2026-02-06",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-tasks-db",
@@ -4408,7 +6028,17 @@
     "5.1": "2026-02-06",
     "5.2": "2026-02-06",
     "6.0": "2026-02-06"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (ci.yml)"
+    ]
+   },
+   "downloads": 155056,
+   "released": "2026-08-28",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-template-partials",
@@ -4428,7 +6058,13 @@
     "5.1": "2024-08-16",
     "5.2": "2025-09-17",
     "6.0": "2025-09-17"
-   }
+   },
+   "signs": {},
+   "downloads": 248035,
+   "released": "2025-11-14",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-templated-email",
@@ -4442,7 +6078,20 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "4.2": [
+     "README of 3.1.1 mentions Django 4.2"
+    ],
+    "5.0": [
+     "README of 3.1.1 mentions Django 5.0"
+    ]
+   },
+   "downloads": 126050,
+   "released": "2025-08-21",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-templated-mail",
@@ -4456,7 +6105,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 171056,
+   "released": "2018-02-01",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-tenants",
@@ -4477,7 +6132,13 @@
     "5.2": "2025-05-23",
     "6.0": "2026-02-04",
     "6.1": "2026-08-05"
-   }
+   },
+   "signs": {},
+   "downloads": 935639,
+   "released": "2026-10-09",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.2,>=5.2"
   },
   {
    "name": "django-tenants-smart-executor",
@@ -4491,7 +6152,17 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 193462,
+   "released": "2026-08-27",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-test-migrations",
@@ -4512,7 +6183,13 @@
     "5.2": "2025-04-18",
     "6.0": "2026-08-05",
     "6.1": "2026-08-05"
-   }
+   },
+   "signs": {},
+   "downloads": 561208,
+   "released": "2026-09-23",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-test-plus",
@@ -4533,7 +6210,13 @@
     "5.2": "2025-07-02",
     "6.0": "2025-12-19",
     "6.1": "2026-07-29"
-   }
+   },
+   "signs": {},
+   "downloads": 130963,
+   "released": "2026-08-02",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-timezone-field",
@@ -4554,7 +6237,13 @@
     "5.2": "2025-12-06",
     "6.0": "2025-12-06",
     "6.1": "2026-06-06"
-   }
+   },
+   "signs": {},
+   "downloads": 8183007,
+   "released": "2026-06-06",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.2,>=4.2"
   },
   {
    "name": "django-tinymce",
@@ -4573,7 +6262,13 @@
     "5.0": "2024-02-06",
     "5.1": "2025-10-21",
     "5.2": "2025-10-21"
-   }
+   },
+   "signs": {},
+   "downloads": 546057,
+   "released": "2025-10-21",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-tree-queries",
@@ -4587,7 +6282,17 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 183697,
+   "released": "2026-09-07",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-treebeard",
@@ -4608,7 +6313,13 @@
     "5.2": "2025-12-03",
     "6.0": "2026-02-11",
     "6.1": "2026-08-04"
-   }
+   },
+   "signs": {},
+   "downloads": 1153146,
+   "released": "2026-09-15",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-two-factor-auth",
@@ -4627,7 +6338,13 @@
     "5.0": "2024-02-03",
     "5.1": "2024-08-12",
     "5.2": "2025-09-16"
-   }
+   },
+   "signs": {},
+   "downloads": 2779723,
+   "released": "2025-09-27",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-typer",
@@ -4648,7 +6365,13 @@
     "5.2": "2025-04-02",
     "6.0": "2025-09-27",
     "6.1": "2026-07-31"
-   }
+   },
+   "signs": {},
+   "downloads": 143131,
+   "released": "2026-09-30",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.2,>=5.2"
   },
   {
    "name": "django-unfold",
@@ -4669,7 +6392,13 @@
     "5.2": "2026-01-02",
     "6.0": "2026-01-02",
     "6.1": "2026-08-10"
-   }
+   },
+   "signs": {},
+   "downloads": 1308131,
+   "released": "2026-09-24",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "django-upgrade",
@@ -4689,7 +6418,13 @@
     "5.1": "2025-03-27",
     "5.2": "2025-03-27",
     "6.0": "2026-02-24"
-   }
+   },
+   "signs": {},
+   "downloads": 461769,
+   "released": "2026-10-02",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-user-agents",
@@ -4703,7 +6438,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 566447,
+   "released": "2019-06-22",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-user-sessions",
@@ -4717,7 +6458,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 137457,
+   "released": "2022-12-13",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-viewflow",
@@ -4737,7 +6484,13 @@
     "5.1": "2025-03-27",
     "5.2": "2025-03-27",
     "6.0": "2025-11-24"
-   }
+   },
+   "signs": {},
+   "downloads": 212092,
+   "released": "2026-07-30",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-vite",
@@ -4753,7 +6506,13 @@
    },
    "declared_since": {
     "4.2": "2023-11-14"
-   }
+   },
+   "signs": {},
+   "downloads": 1260924,
+   "released": "2026-09-14",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-waffle",
@@ -4772,7 +6531,13 @@
     "5.0": "2024-11-15",
     "5.1": "2024-11-15",
     "5.2": "2025-06-12"
-   }
+   },
+   "signs": {},
+   "downloads": 1578156,
+   "released": "2025-06-12",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-watchfiles",
@@ -4792,7 +6557,17 @@
     "5.1": "2024-06-19",
     "5.2": "2025-02-06",
     "6.0": "2025-09-18"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 575947,
+   "released": "2025-09-22",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-watchman",
@@ -4810,7 +6585,13 @@
     "4.2": "2026-02-21",
     "5.1": "2026-02-21",
     "5.2": "2026-02-21"
-   }
+   },
+   "signs": {},
+   "downloads": 160865,
+   "released": "2026-03-08",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-weasyprint",
@@ -4831,7 +6612,13 @@
     "5.2": "2026-04-10",
     "6.0": "2026-04-10",
     "6.1": "2026-10-01"
-   }
+   },
+   "signs": {},
+   "downloads": 191126,
+   "released": "2026-10-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "django-webpack-loader",
@@ -4850,7 +6637,13 @@
     "5.0": "2024-01-16",
     "5.1": "2024-08-30",
     "5.2": "2025-06-16"
-   }
+   },
+   "signs": {},
+   "downloads": 826101,
+   "released": "2026-05-13",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-webtest",
@@ -4869,7 +6662,13 @@
     "5.0": "2024-08-30",
     "5.1": "2025-04-03",
     "5.2": "2025-04-03"
-   }
+   },
+   "signs": {},
+   "downloads": 171330,
+   "released": "2025-10-06",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "django-widget-tweaks",
@@ -4888,7 +6687,13 @@
     "5.0": "2026-01-02",
     "5.1": "2026-01-02",
     "5.2": "2026-01-02"
-   }
+   },
+   "signs": {},
+   "downloads": 1264502,
+   "released": "2026-01-02",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "django-zen-queries",
@@ -4902,7 +6707,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 308685,
+   "released": "2021-07-27",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=2.2"
   },
   {
    "name": "djangorestframework",
@@ -4923,7 +6734,13 @@
     "5.2": "2025-03-28",
     "6.0": "2026-03-18",
     "6.1": "2026-08-07"
-   }
+   },
+   "signs": {},
+   "downloads": 24473425,
+   "released": "2026-10-06",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "djangorestframework-api-key",
@@ -4940,7 +6757,17 @@
    "declared_since": {
     "4.2": "2023-10-19",
     "5.2": "2025-04-04"
-   }
+   },
+   "signs": {
+    "5.0": [
+     "README of 3.1.0 mentions Django 5.0"
+    ]
+   },
+   "downloads": 2700701,
+   "released": "2025-04-04",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "djangorestframework-csv",
@@ -4954,7 +6781,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 3803287,
+   "released": "2023-12-12",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "djangorestframework-dataclasses",
@@ -4970,7 +6803,13 @@
    },
    "declared_since": {
     "4.2": "2023-08-21"
-   }
+   },
+   "signs": {},
+   "downloads": 2492065,
+   "released": "2025-05-14",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2.0"
   },
   {
    "name": "djangorestframework-datatables",
@@ -4987,7 +6826,17 @@
    "declared_since": {
     "4.2": "2024-03-06",
     "5.0": "2024-06-14"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 224727,
+   "released": "2024-06-14",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "djangorestframework-filters",
@@ -5001,7 +6850,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 316195,
+   "released": "2020-08-09",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "djangorestframework-gis",
@@ -5015,7 +6870,20 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "6.0": [
+     "README of 1.3.0 mentions Django 6.0"
+    ],
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 338505,
+   "released": "2026-09-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "djangorestframework-jsonapi",
@@ -5029,7 +6897,17 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 253379,
+   "released": "2025-10-17",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "djangorestframework-recursive",
@@ -5043,7 +6921,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 175201,
+   "released": "2017-07-04",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "djangorestframework-role-filters",
@@ -5057,7 +6941,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 1544807,
+   "released": "2023-10-06",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "djangorestframework-simplejwt",
@@ -5076,7 +6966,13 @@
     "5.0": "2025-01-07",
     "5.1": "2025-01-07",
     "5.2": "2025-07-21"
-   }
+   },
+   "signs": {},
+   "downloads": 6474867,
+   "released": "2025-07-21",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "djangorestframework-stubs",
@@ -5090,7 +6986,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 5831441,
+   "released": "2026-08-25",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "djangorestframework-xml",
@@ -5104,7 +7006,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 410576,
+   "released": "2020-04-12",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "djangosaml2",
@@ -5123,7 +7031,13 @@
     "5.0": "2023-10-25",
     "5.1": "2025-03-20",
     "5.2": "2026-02-17"
-   }
+   },
+   "signs": {},
+   "downloads": 533624,
+   "released": "2026-02-17",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "drf-extensions",
@@ -5142,7 +7056,13 @@
     "5.0": "2025-04-10",
     "5.1": "2025-04-10",
     "5.2": "2025-04-10"
-   }
+   },
+   "signs": {},
+   "downloads": 2171226,
+   "released": "2025-04-10",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.0,>=2.2"
   },
   {
    "name": "drf-extra-fields",
@@ -5156,7 +7076,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 327629,
+   "released": "2023-08-08",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=2.2"
   },
   {
    "name": "drf-jwt",
@@ -5170,7 +7096,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 327794,
+   "released": "2022-01-09",
+   "stale": true,
+   "inactive": false,
+   "requires": ">=1.11"
   },
   {
    "name": "drf-nested-routers",
@@ -5189,7 +7121,13 @@
     "5.0": "2024-05-10",
     "5.1": "2026-07-31",
     "5.2": "2026-07-31"
-   }
+   },
+   "signs": {},
+   "downloads": 1746599,
+   "released": "2026-07-31",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "drf-orjson-renderer",
@@ -5203,7 +7141,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 345338,
+   "released": "2025-12-17",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "drf-spectacular",
@@ -5223,7 +7167,13 @@
     "5.1": "2024-11-30",
     "5.2": "2025-11-02",
     "6.0": "2026-07-06"
-   }
+   },
+   "signs": {},
+   "downloads": 13006705,
+   "released": "2026-07-06",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2.2"
   },
   {
    "name": "drf-spectacular-sidecar",
@@ -5237,7 +7187,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 1420962,
+   "released": "2026-10-01",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=2.2"
   },
   {
    "name": "drf-standardized-errors",
@@ -5251,7 +7207,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 496765,
+   "released": "2026-04-29",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "drf-writable-nested",
@@ -5270,7 +7232,17 @@
     "5.0": "2024-10-29",
     "5.1": "2025-03-10",
     "5.2": "2025-03-10"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 462256,
+   "released": "2025-03-10",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "drf-yasg",
@@ -5289,7 +7261,13 @@
     "5.0": "2025-09-26",
     "5.1": "2025-09-26",
     "5.2": "2025-09-26"
-   }
+   },
+   "signs": {},
+   "downloads": 2035201,
+   "released": "2026-10-09",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.0"
   },
   {
    "name": "fcm-django",
@@ -5307,7 +7285,13 @@
     "4.2": "2025-07-23",
     "5.1": "2025-07-23",
     "5.2": "2025-07-23"
-   }
+   },
+   "signs": {},
+   "downloads": 315575,
+   "released": "2026-04-07",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "graphene-django",
@@ -5323,7 +7307,13 @@
    },
    "declared_since": {
     "4.2": "2023-06-17"
-   }
+   },
+   "signs": {},
+   "downloads": 949091,
+   "released": "2025-03-13",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=3.2"
   },
   {
    "name": "graphene-django-optimizer",
@@ -5337,7 +7327,13 @@
     "6.1": "check",
     "6.2": "check"
    },
-   "declared_since": {}
+   "declared_since": {},
+   "signs": {},
+   "downloads": 124874,
+   "released": "2023-08-05",
+   "stale": true,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "inertia-django",
@@ -5355,7 +7351,13 @@
     "4.2": "2023-09-20",
     "5.2": "2026-08-16",
     "6.1": "2026-08-16"
-   }
+   },
+   "signs": {},
+   "downloads": 228360,
+   "released": "2026-08-16",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "mozilla-django-oidc",
@@ -5374,7 +7376,13 @@
     "5.0": "2025-12-18",
     "5.1": "2025-12-18",
     "5.2": "2025-12-18"
-   }
+   },
+   "signs": {},
+   "downloads": 1170908,
+   "released": "2025-12-19",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=4.2"
   },
   {
    "name": "mssql-django",
@@ -5395,7 +7403,13 @@
     "5.2": "2025-08-08",
     "6.0": "2026-03-06",
     "6.1": "2026-08-07"
-   }
+   },
+   "signs": {},
+   "downloads": 345503,
+   "released": "2026-09-18",
+   "stale": false,
+   "inactive": false,
+   "requires": "<6.2,>=5.2"
   },
   {
    "name": "pwned-passwords-django",
@@ -5414,7 +7428,13 @@
     "5.0": "2024-02-27",
     "5.1": "2024-08-12",
     "5.2": "2025-04-06"
-   }
+   },
+   "signs": {},
+   "downloads": 184289,
+   "released": "2025-04-06",
+   "stale": false,
+   "inactive": false,
+   "requires": "!=5.0.*,>=4.2"
   },
   {
    "name": "pylint-django",
@@ -5433,7 +7453,13 @@
     "5.0": "2024-10-10",
     "5.1": "2024-10-10",
     "5.2": "2026-01-01"
-   }
+   },
+   "signs": {},
+   "downloads": 2006882,
+   "released": "2026-07-11",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "pytest-django",
@@ -5453,7 +7479,17 @@
     "5.1": "2024-09-02",
     "5.2": "2025-04-01",
     "6.0": "2026-02-14"
-   }
+   },
+   "signs": {
+    "6.1": [
+     "main branch tests Django 6.1 (tox.ini)"
+    ]
+   },
+   "downloads": 21111730,
+   "released": "2026-08-10",
+   "stale": false,
+   "inactive": false,
+   "requires": null
   },
   {
    "name": "social-auth-app-django",
@@ -5471,7 +7507,13 @@
     "5.1": "2026-04-20",
     "5.2": "2026-04-20",
     "6.0": "2026-04-20"
-   }
+   },
+   "signs": {},
+   "downloads": 5297445,
+   "released": "2026-10-08",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "strawberry-graphql-django",
@@ -5491,7 +7533,13 @@
     "5.1": "2025-04-04",
     "5.2": "2025-04-04",
     "6.0": "2025-12-03"
-   }
+   },
+   "signs": {},
+   "downloads": 2004644,
+   "released": "2026-10-05",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   },
   {
    "name": "wagtail",
@@ -5512,7 +7560,13 @@
     "5.2": "2025-06-12",
     "6.0": "2026-02-03",
     "6.1": "2026-08-25"
-   }
+   },
+   "signs": {},
+   "downloads": 605647,
+   "released": "2026-08-25",
+   "stale": false,
+   "inactive": false,
+   "requires": ">=5.2"
   }
  ],
  "changes": {
