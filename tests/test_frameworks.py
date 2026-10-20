@@ -21,6 +21,13 @@ def wagtail_release(name, version, wagtail=None, majors=(), uploaded="2026-01-01
     return r
 
 
+def cms_release(name, version, minors=(), uploaded="2026-01-01", django=">=4.2", extra=()):
+    r = release(name, version, django, uploaded=uploaded)
+    r["classifiers"] = [f"Framework :: Django CMS :: {m}" for m in minors]
+    r["requires_dist"] = [*r["requires_dist"], *extra]
+    return r
+
+
 WAGTAIL_RELEASES = [
     release("wagtail", v, ">=4.2", uploaded=date)
     for v, date in [
@@ -156,6 +163,63 @@ def test_framework_details():
     assert WAGTAIL.next_feature(Version("7.0")) == Version("7.1")
     assert not DJANGO_CMS.is_lts(Version("4.1"))
     assert Status.UPGRADE.value == "upgrade"
+
+
+def test_django_cms_upgrade_that_needs_a_newer_helper_goes_with_the_framework():
+    """A plugin that needs a newer helper, and that helper no longer runs on django CMS 4.1:
+    the plugin goes together with django CMS, as it does for Django."""
+    from django_upgrade_report.analysis import analyse
+    from django_upgrade_report.sources import Dependency, DependencySet
+
+    index = FakePyPI(
+        {
+            "django": DJANGO,
+            "django-cms": [
+                release("django-cms", v, ">=4.2", uploaded=date)
+                for v, date in [
+                    ("4.1", "2024-01-15"),
+                    ("4.1.0", "2024-02-01"),
+                    ("5.1", "2025-01-15"),
+                ]
+            ],
+            # 2.0 declares 4.1 and 5.1: it still runs on the django CMS the project runs.
+            "djangocms-thing": [
+                cms_release("djangocms-thing", "1.0", minors=("4.1",)),
+                cms_release(
+                    "djangocms-thing",
+                    "2.0",
+                    minors=("4.1", "5.1"),
+                    uploaded="2025-02-01",
+                    extra=["django-cms-helper>=2.0"],
+                ),
+            ],
+            # 2.0 declares 5.1 only: it no longer runs on django CMS 4.1.
+            "django-cms-helper": [
+                release("django-cms-helper", "1.0", ">=4.2"),
+                cms_release("django-cms-helper", "2.0", minors=("5.1",), uploaded="2025-02-01"),
+            ],
+        }
+    )
+    deps = DependencySet(
+        "requirements.txt",
+        {
+            "django": Dependency("django", "4.2.7"),
+            "django-cms": Dependency("django-cms", "4.1.0"),
+            "djangocms-thing": Dependency("djangocms-thing", "1.0"),
+            "django-cms-helper": Dependency("django-cms-helper", "1.0"),
+        },
+    )
+    report = analyse(deps, index, "5.1", framework=DJANGO_CMS)
+    thing = next(p for p in report.packages if p.name == "djangocms-thing")
+    assert (thing.status, thing.phase, thing.target_version) == (
+        Status.UPGRADE,
+        Phase.WITH,
+        "2.0",
+    )
+    assert (
+        "needs django-cms-helper>=2.0, you have 1.0, and django-cms-helper 2.0 no longer runs on "
+        "django CMS 4.1" in thing.notes
+    )
 
 
 def test_commands_name_the_framework_package(wagtail_project, capsys):

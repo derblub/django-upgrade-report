@@ -25,6 +25,10 @@ All notable changes to this project are documented here. The format follows [Kee
 - Maintainers can show a badge in their README (a Shields.io endpoint per package, `badges/django-filter.json` for the newest release or `badges/django-filter/6.1.json` for one version), linked back to their row on the page.
 - The curve of how fast packages declared a Django version counts every package with a release that declared it, also when its newest release has dropped it since. It used to leave those out, so the curves of older versions were too low: 4.2 two years after its release was at 56 %, not 41 %.
 
+### Fixed
+
+- With `--framework wagtail` or `--framework django-cms`, a package that needs a newer release of another package, because that one no longer runs on the current version of the framework, now goes together with the framework, as it already did for Django.
+
 ## [1.1.0] - 2026-10-09
 
 ### Added

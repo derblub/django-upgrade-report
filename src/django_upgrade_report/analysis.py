@@ -1444,14 +1444,14 @@ _Found = tuple[Version, ReleaseInfo, Support]
 
 
 def _drops(info: ReleaseInfo, uploaded: datetime | None, current: Target) -> bool:
-    """True when ``info`` no longer runs on the current Django series, even its newest patch."""
+    """True when ``info`` no longer runs on the current framework series, even its newest patch."""
     series = Target(
         current.version, ga=current.ga, python=current.python, framework=current.framework
     )
     support = supports(info, series, uploaded)
     if support.verdict is Verdict.NO:
         return True
-    declared = declared_versions(info)
+    declared = declared_versions(info, current.framework)
     return support.verdict is not Verdict.YES and bool(declared) and min(declared) > current.version
 
 
