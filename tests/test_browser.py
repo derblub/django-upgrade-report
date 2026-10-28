@@ -20,8 +20,13 @@ pytestmark = pytest.mark.browser
 
 @pytest.fixture(scope="module")
 def browser():
+    # No network: the ecosystem page shows Shields.io badges, and a slow answer from there held
+    # up its load event past Playwright's timeout. The tests only need the page and its script.
     with sync_api.sync_playwright() as playwright:
-        browser = playwright.chromium.launch(executable_path=os.environ.get("CHROMIUM") or None)
+        browser = playwright.chromium.launch(
+            executable_path=os.environ.get("CHROMIUM") or None,
+            args=["--host-resolver-rules=MAP * ~NOTFOUND"],
+        )
         yield browser
         browser.close()
 
