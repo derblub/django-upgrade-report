@@ -325,3 +325,90 @@ def test_lag_counts_only_versions_the_package_could_have_declared(build):
     assert build._lag(package, "5.2", gas["5.2"]) == 30
     assert build._typical_lag(package, gas) == 15
     assert build._typical_lag({"declared_since": {}}, gas) is None
+
+
+def test_page_says_when_it_was_updated_and_when_next(build, index):
+    data = build.build(index, PACKAGES, today=date(2026, 1, 15))  # a Thursday
+    html = build.page(data)
+    header = html.split("<header>", 1)[1].split("</header>", 1)[0]
+    assert '<time class="updated" datetime="2026-01-15">15 Jan 2026</time>' in header
+    assert "Next update Monday 19 Jan 2026" in header
+    assert f'data-stale-after="{build.STALE_AFTER}"' in header
+    assert '<p class="stale-note" hidden>' in header  # the script shows it once it is old
+    monday = build._freshness({"generated": "2026-01-19"})
+    assert "Next update Monday 26 Jan 2026" in monday  # a week on, not the same day
+
+
+def _weeks(build, index):
+    """Three runs a week apart: 6.0 gains a package each week; one joins in the second."""
+    import copy
+
+    newest = build.build(index, PACKAGES, today=date(2026, 1, 15))
+    weeks = []
+    for i, day in enumerate(("2026-01-01", "2026-01-08", "2026-01-15")):
+        week = copy.deepcopy(newest)
+        week["generated"] = day
+        for v in week["versions"]:
+            if v["version"] == "6.0":
+                v["counts"] = dict(v["counts"], ready=v["counts"]["ready"] - 2 + i)
+        weeks.append(week)
+    weeks[1]["changes"] = {
+        "since": "2026-01-01",
+        "versions": {"6.0": {"ready": ["<django-new>"], "blocked": [], "dropped": []}},
+        "added": ["<django-new>"],
+        "removed": [],
+    }
+    weeks[2]["changes"] = {"since": "2026-01-08", "versions": {}, "added": [], "removed": []}
+    return weeks
+
+
+def test_history_shows_what_every_week_measured(build, index):
+    weeks = _weeks(build, index)
+    html = build.page(weeks[-1], weeks)
+    section = html.split('<section class="weekly" id="history">', 1)[1].split("</section>", 1)[0]
+    assert html.index('id="history"') < html.index('<section class="charts"')
+    assert "since 1 Jan 2026" in section
+    # The newest LTS and every release after it, newest first, in the colours of the charts.
+    heads = section.split("<thead>", 1)[1].split("</thead>", 1)[0]
+    assert heads.index("Django 6.0") < heads.index("Django 5.2 LTS")
+    assert "Django 4.2" not in heads
+    assert 'style="--c:var(--s1)"' in section
+    rows = section.split("<tbody>", 1)[1].split("</tr>")
+    assert rows[0].startswith("<tr><th")
+    assert "15 Jan 2026" in rows[0] and '<span class="delta up">+1</span>' in rows[0]
+    assert "first run" in rows[2]
+    # A package joining is no progress: the week says so, in the table and on the chart.
+    assert "1 package joined: &lt;django-new&gt;" in rows[1]
+    assert "<li><b>Django 6.0</b> now ready: &lt;django-new&gt;</li>" in rows[1]
+    assert section.count('class="set-change"') == 1
+    assert "<django-new>" not in section
+    assert "none" in rows[0]  # nothing moved in the last week
+    assert section.count('<circle class="dot"') == 3 * 2  # three weeks, two versions
+
+
+def test_history_keeps_one_run_a_day_and_waits_for_a_second(build, index):
+    weeks = _weeks(build, index)
+    again = dict(weeks[-1], packages_count=99)
+    assert build._weeks([weeks[-1], *weeks[:-1], again])[-1]["packages_count"] == 99
+    assert [w["generated"] for w in build._weeks(weeks[::-1])] == [
+        "2026-01-01",
+        "2026-01-08",
+        "2026-01-15",
+    ]
+    only = build.page(weeks[-1])
+    assert "The history starts with the next run." in only
+    assert 'class="set-change"' not in only
+
+
+def test_history_gives_a_coming_version_a_colour_of_its_own(build, index):
+    weeks = _weeks(build, index)
+    for week in weeks:
+        for v in week["versions"]:
+            if v["version"] == "6.1":  # not released yet, and one package declares it
+                v["counts"] = dict(v["counts"], ready=1)
+    series = build._history_versions(weeks[-1], weeks)
+    assert [s["name"] for s in series] == ["6.1", "6.0", "5.2 LTS"]
+    assert len({s["c"] for s in series}) == 3
+    section = build._history(weeks)
+    assert '<ul class="legend-row">' in section
+    assert section.index("legend-row") < section.index("<svg")
