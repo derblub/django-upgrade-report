@@ -329,3 +329,44 @@ def test_ecosystem_headers_sort_and_light_up_their_column(browser, index, tmp_pa
     page.hover("#django-ready td.s >> nth=0")
     assert "hot" in page.evaluate("document.querySelector('col[data-v]').className")
     assert not errors
+
+
+def test_ecosystem_page_warns_once_its_numbers_are_old(browser, index, tmp_path):
+    import importlib.util
+    from datetime import date, datetime, timedelta, timezone
+    from pathlib import Path
+
+    path = Path(__file__).parent.parent / "ecosystem" / "build.py"
+    spec = importlib.util.spec_from_file_location("ecosystem_build", path)
+    build = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(build)
+    names = ["django-ready", "django-before", "django-with", "django-blocked", "django-lagging"]
+    data = build.build(index, names, today=date(2026, 1, 15))
+    today = datetime.now(timezone.utc).date()  # the run's day, as the script counts it
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda error: errors.append(error))
+    for age, ago, stale in ((0, " · today", False), (3, " · 3 days ago", False), (21, "", True)):
+        data["generated"] = (today - timedelta(days=age)).isoformat()
+        target = tmp_path / f"{age}.html"
+        target.write_text(build.page(data))
+        page.goto(target.as_uri())
+        line = page.locator(".freshness")
+        if stale:
+            sync_api.expect(page.locator(".stale-note")).to_be_visible()
+            assert "21 days old" in page.locator(".stale-note").inner_text()
+            assert "stale" in line.get_attribute("class")
+            assert not line.locator(".next").is_visible()
+        else:
+            assert line.locator(".ago").inner_text() == ago
+            assert not page.locator(".stale-note").is_visible()
+            assert line.locator(".next").is_visible()
+    # Eight days on, the next Monday has passed: the line no longer promises it.
+    data["generated"] = (today - timedelta(days=8)).isoformat()
+    target = tmp_path / "8.html"
+    target.write_text(build.page(data))
+    page.goto(target.as_uri())
+    assert not page.locator(".freshness .next").is_visible()
+    assert not page.locator(".stale-note").is_visible()
+    page.close()
+    assert not errors

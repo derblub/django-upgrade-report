@@ -576,6 +576,34 @@ button:hover, .copy:hover { border-color: var(--accent); }
 .changes-list { margin: 8px 0 0; padding-left: 20px; }
 .changes-list li { margin: 4px 0; }
 
+/* When the numbers were taken, and a warning once they are older than a week's run. */
+.freshness { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px;
+  margin: 24px 0 0; color: var(--muted-hi); font-size: 15px; }
+.freshness b { color: var(--text); font-weight: 550; }
+.freshness > span:first-child::before { content: ""; display: inline-block; width: 8px; height: 8px;
+  margin-right: 8px; border-radius: 1px; background: var(--ready); vertical-align: 1px; }
+.freshness.stale > span:first-child::before { background: var(--blocked); }
+.freshness .next { color: var(--muted); }
+.freshness.stale .next { display: none; }
+.stale-note { margin: 12px 0 0; padding: 12px 16px; max-width: 65ch;
+  border: 1px solid var(--blocked); color: var(--text); }
+
+/* Week by week: what each run measured. */
+.weekly .chart { margin-bottom: 16px; }
+.weekly svg { min-width: 560px; }
+.weekly .dot { fill: var(--c); stroke: var(--surface); stroke-width: 2; }
+.weekly .set-change { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.history td, .history th { white-space: nowrap; }
+.history { max-height: 34rem; overflow: auto; }
+.history thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); }
+.history td.n { font-variant-numeric: tabular-nums; }
+.history td.n b { font-weight: 550; }
+.delta { margin-left: 6px; font-size: 13px; color: var(--muted); }
+.delta.up { color: var(--ready); } .delta.down { color: var(--blocked); }
+.history td.moves { white-space: normal; min-width: 220px; color: var(--muted-hi); }
+.history details summary { cursor: pointer; }
+.history details ul { margin: 6px 0 0; padding-left: 18px; font-size: 14px; }
+
 /* Charts. */
 .chart-controls { display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: center;
   margin: 8px 0 16px; }
@@ -651,6 +679,7 @@ details.version .table { margin: 0 0 16px; }
 .legend-row { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0 0 12px; padding: 0;
   list-style: none; color: var(--muted); font-size: 13px; }
 .legend-row li { display: flex; align-items: baseline; gap: 6px; }
+.weekly .legend-row li { align-items: center; color: var(--muted-hi); }
 .legend-row b { color: var(--muted-hi); font-weight: 550; }
 .legend-row .s { font-weight: 650; width: 1.1em; text-align: center; }
 .legend-row .s.ready { color: var(--ready); } .legend-row .s.check { color: var(--check); }
@@ -722,21 +751,24 @@ ol.table-note { padding-left: 18px; }
 _ICON = {"ready": "✓", "check": "?", "blocked": "✗"}
 
 
-def page(data: dict) -> str:
+def page(data: dict, snapshots: list[dict] | None = None) -> str:
     """A static page with the same look as the HTML report. Without JavaScript everything is
-    shown; the script adds search, filters, sorting and copying, kept in the address."""
+    shown; the script adds search, filters, sorting and copying, kept in the address.
+    ``snapshots`` are the weeks before, with this one: they make the history."""
     inner = f"""<header>
-<p class="label">Django ecosystem · updated {escape(data["generated"])}</p>
+<p class="label">Django ecosystem</p>
 <h1>How ready is the Django ecosystem?</h1>
 <p class="intro">The newest release of the {data["packages_count"]} most downloaded
 Django-related packages on PyPI, judged against every Django version by what its maintainers
 declare: the <code>Framework :: Django</code> classifiers and the Django requirement. Updated
 every week.</p>
+{_freshness(data)}
 </header>
 <div class="ecosystem">
 {_figures(data)}
 {_try()}
 {_changes(data)}
+{_history(snapshots or [data])}
 {_charts(data)}
 <h2>Every Django version</h2>
 {_overview(data)}
@@ -1139,6 +1171,23 @@ def _compact(number: int | None) -> str:
 # the address (#q=allauth&v=6.1&status=blocked), so a filtered view can be passed on; an
 # address without "=" is a plain anchor, which opens its version's section.
 _SCRIPT = r"""
+(() => {
+  // How old the numbers are, and a warning once the weekly run seems to have stopped.
+  const line = document.querySelector(".freshness");
+  const time = line && line.querySelector("time.updated");
+  if (!time) return;
+  const days = Math.floor((Date.now() - Date.parse(time.dateTime)) / 86400000);
+  line.querySelector(".ago").textContent =
+    days <= 0 ? " · today" : days === 1 ? " · yesterday" : " · " + days + " days ago";
+  const next = line.querySelector(".next");
+  if (Date.now() >= Date.parse(next.dataset.date) + 86400000) next.hidden = true;  // passed
+  if (days > +line.dataset.staleAfter) {
+    line.classList.add("stale");
+    const note = line.nextElementSibling;
+    note.querySelector(".days").textContent = days;
+    note.hidden = false;
+  }
+})();
 (() => {
   const $ = (id) => document.getElementById(id);
   const bar = $("toolbar"), body = $("rows");
@@ -1627,6 +1676,239 @@ def _changes(data: dict) -> str:
     )
 
 
+def _day(iso: str, year: bool = True) -> str:
+    """``2026-11-23`` as ``23 Nov 2026``, or ``23 Nov``."""
+    d = date.fromisoformat(iso)
+    return f"{d.day} {_MONTHS[d.month - 1]}" + (f" {d.year}" if year else "")
+
+
+STALE_AFTER = 9
+"""Days after which the page says its numbers may be old: a week, and the hours GitHub's
+scheduled runs start late, and a day to spare."""
+
+
+def _freshness(data: dict) -> str:
+    """When the numbers were taken and when the next ones come, without JavaScript. The script
+    adds how long ago that was, and a warning once the weekly run seems to have stopped."""
+    taken = date.fromisoformat(data["generated"])
+    upcoming = taken + timedelta(days=7 - taken.weekday())  # the next Monday
+    return (
+        f'<p class="freshness" data-stale-after="{STALE_AFTER}">'
+        f'<span>Last updated <b><time class="updated" datetime="{taken.isoformat()}">'
+        f'{_day(taken.isoformat())}</time></b><span class="ago"></span></span>'
+        f'<span class="next" data-date="{upcoming.isoformat()}">'
+        f"Next update Monday {_day(upcoming.isoformat())}</span>"
+        '<a href="#history">History</a></p>'
+        '<p class="stale-note" hidden>These numbers are <span class="days"></span> days old, '
+        "though the page updates every Monday: the weekly run may have stopped.</p>"
+    )
+
+
+def _weeks(snapshots: list[dict]) -> list[dict]:
+    """One snapshot per day, oldest first; a later one of the same day wins."""
+    by_day = {snap["generated"]: snap for snap in snapshots}
+    return [by_day[day] for day in sorted(by_day)]
+
+
+def _history_versions(newest: dict, weeks: list[dict]) -> list[dict]:
+    """The versions the history follows, newest first: the newest LTS and every release after
+    it, and a coming version once a package declares it. Colours as in the charts below."""
+    colours = {s["v"]: s["c"] for s in _chart_series(newest)}
+    released = [v for v in newest["versions"] if v["released"]]
+    lts = [i for i, v in enumerate(released) if DJANGO.is_lts(Version(v["version"]))]
+    chosen = released[lts[-1] :] if lts else released[-3:]
+    for v in newest["versions"]:
+        if not v["released"] and any(_ready(week, v["version"]) for week in weeks):
+            chosen.append(v)
+    taken = {colours[v["version"]] for v in chosen if v["version"] in colours}
+    free = [c for c in (f"var(--{slot})" for slot in _SLOTS) if c not in taken]
+    found = []
+    for v in reversed(chosen):
+        lts_ = DJANGO.is_lts(Version(v["version"]))
+        colour = colours.get(v["version"]) or (free.pop(0) if free else "var(--s-old)")
+        found.append(
+            {"v": v["version"], "name": f"{v['version']}{' LTS' if lts_ else ''}", "c": colour}
+        )
+    return found
+
+
+def _counts(week: dict, version: str) -> dict | None:
+    for v in week.get("versions", []):
+        if v["version"] == version:
+            return v["counts"]
+    return None
+
+
+def _ready(week: dict, version: str) -> int | None:
+    counts = _counts(week, version)
+    return counts["ready"] if counts else None
+
+
+def _set_changed(week: dict, before: dict | None) -> list[str]:
+    """Why a jump in this week may not be progress: other packages, or other rules."""
+    notes = []
+    changed = week.get("changes") or {}
+    for key, verb in (("added", "joined"), ("removed", "left")):
+        if names := changed.get(key):
+            noun = "package" if len(names) == 1 else "packages"
+            notes.append(f"{len(names)} {noun} {verb}: {', '.join(names)}")
+    if before and before.get("tool") != week.get("tool"):
+        notes.append(f"judged by {week.get('tool')} instead of {before.get('tool')}")
+    return notes
+
+
+def _history(snapshots: list[dict]) -> str:
+    """What every weekly run measured: a chart of the packages that are ready for each
+    version, week by week, and a table with the counts and what changed. Unlike the charts
+    below, which rebuild the past from release dates, these are the numbers the page showed."""
+    weeks = _weeks(snapshots)
+    newest = weeks[-1]
+    series = _history_versions(newest, weeks)
+    total = newest["packages_count"]
+    since = _day(weeks[0]["generated"])
+    source = f"{REPO_URL}/tree/ecosystem-history/data"
+    head = (
+        '<section class="weekly" id="history"><h2>Week by week</h2>'
+        f'<p class="hint">What every run measured since {since}: how many of the '
+        f"{total} packages have a newest release that declares each version. Every week's "
+        f'<a href="{source}">data.json</a> is kept.</p>'
+    )
+    if len(weeks) < 2:
+        return head + '<p class="hint">The history starts with the next run.</p></section>'
+    key = "".join(
+        f'<li><i class="key" style="--c:{s["c"]}"></i>Django {escape(s["name"])}</li>'
+        for s in series
+    )
+    return (
+        f'{head}<ul class="legend-row">{key}</ul>{_history_chart(weeks, series)}'
+        f"{_history_table(weeks, series)}</section>"
+    )
+
+
+def _history_chart(weeks: list[dict], series: list[dict]) -> str:
+    w, h = _CHART["width"], 300
+    left, right, top, bottom = _CHART["left"], _CHART["right"], _CHART["top"], _CHART["bottom"]
+    plot_w, plot_h = w - left - right, h - top - bottom
+    days = [date.fromisoformat(week["generated"]).toordinal() for week in weeks]
+    x0, x1 = days[0], days[-1]
+    highest = max((_ready(week, s["v"]) or 0 for week in weeks for s in series), default=0)
+    ceiling = max(50, -(-highest // 50) * 50)  # up to the next 50
+
+    def x(day: int) -> float:
+        return left + (day - x0) / ((x1 - x0) or 1) * plot_w
+
+    def y(count: int) -> float:
+        return top + plot_h - count / ceiling * plot_h
+
+    parts = []
+    for count in range(0, ceiling + 1, 50):
+        parts.append(
+            f'<line class="grid" x1="{left}" x2="{left + plot_w}" y1="{y(count):.1f}" '
+            f'y2="{y(count):.1f}"/><text class="tick" x="{left - 8}" y="{y(count) + 4:.1f}" '
+            f'text-anchor="end">{count}</text>'
+        )
+    step = -(-len(weeks) // 8)  # at most about eight dates under the axis
+    for i in range(len(weeks) - 1, -1, -step):  # always the newest
+        label = _day(weeks[i]["generated"], year=i == 0 or days[i] == days[-1])
+        parts.append(
+            f'<text class="tick" x="{x(days[i]):.1f}" y="{top + plot_h + 22}" '
+            f'text-anchor="middle">{escape(label)}</text>'
+        )
+    for i in range(1, len(weeks)):
+        if _set_changed(weeks[i], weeks[i - 1]):
+            parts.append(
+                f'<line class="set-change" x1="{x(days[i]):.1f}" x2="{x(days[i]):.1f}" '
+                f'y1="{top}" y2="{top + plot_h}"><title>The packages or rules changed on '
+                f"{escape(_day(weeks[i]['generated']))}</title></line>"
+            )
+    ends = []
+    for s in reversed(series):  # the newest drawn last, on top
+        points = [
+            (day, n, week["generated"])
+            for day, week in zip(days, weeks, strict=True)
+            if (n := _ready(week, s["v"])) is not None
+        ]
+        if not points:
+            continue
+        line = " ".join(f"{x(d):.1f},{y(n):.1f}" for d, n, _ in points)
+        dots = "".join(
+            f'<circle class="dot" cx="{x(d):.1f}" cy="{y(n):.1f}" r="3.5"><title>Django '
+            f"{escape(s['name'])}: {n} ready on {escape(_day(when))}</title></circle>"
+            for d, n, when in points
+        )
+        parts.append(
+            f'<g class="series" style="--c:{s["c"]}"><polyline points="{line}"/>{dots}</g>'
+        )
+        last_day, last_n, _ = points[-1]
+        ends.append([y(last_n), x(last_day), y(last_n), s, last_n])
+    ends.sort(key=lambda e: e[0])
+    for i in range(1, len(ends)):
+        ends[i][0] = max(ends[i][0], ends[i - 1][0] + 15)
+    for label_y, end_x, end_y, s, n in ends:
+        lx = end_x + 10
+        if abs(label_y - end_y) > 1:
+            parts.append(
+                f'<line class="leader" x1="{end_x + 5:.1f}" y1="{end_y:.1f}" '
+                f'x2="{lx - 2:.1f}" y2="{label_y - 4:.1f}"/>'
+            )
+        parts.append(
+            f'<text class="end-label" x="{lx:.1f}" y="{label_y:.1f}">{escape(s["name"])} '
+            f'<tspan class="value">{n}</tspan></text>'
+        )
+    label = "Packages ready for each Django version, week by week"
+    return (
+        f'<figure class="chart panel"><svg viewBox="0 0 {w} {h}" role="img" '
+        f'aria-label="{label}">{"".join(parts)}</svg></figure>'
+    )
+
+
+def _history_table(weeks: list[dict], series: list[dict]) -> str:
+    heads = "".join(
+        f'<th scope="col"><i class="key" style="--c:{s["c"]}"></i> Django {escape(s["name"])}</th>'
+        for s in series
+    )
+    rows = []
+    for i in range(len(weeks) - 1, -1, -1):
+        week, before = weeks[i], weeks[i - 1] if i else None
+        cells = []
+        for s in series:
+            counts = _counts(week, s["v"])
+            if counts is None:
+                cells.append('<td class="n">–</td>')
+                continue
+            was = _ready(before, s["v"]) if before else None
+            delta = ""
+            if was is not None and counts["ready"] != was:
+                diff = counts["ready"] - was
+                delta = f'<span class="delta {"up" if diff > 0 else "down"}">{diff:+d}</span>'
+            blocked = counts.get("blocked") or 0
+            sub = f'<span class="sub">{blocked} blocked</span>' if blocked else ""
+            cells.append(f'<td class="n"><b>{counts["ready"]}</b>{delta}{sub}</td>')
+        changed = week.get("changes")
+        notes = [f"<li>{escape(n)}</li>" for n in _set_changed(week, before)]
+        if changed is None and before is None:
+            moves = "first run"
+        else:
+            lines = _change_lines(changed) if changed else []
+            notes += [f"<li><b>{escape(v)}</b> {escape(t)}</li>" for v, t in lines]
+            moves = (
+                f"<details><summary>{len(notes)} change{'s' if len(notes) != 1 else ''}"
+                f"</summary><ul>{''.join(notes)}</ul></details>"
+                if notes
+                else "none"
+            )
+        rows.append(
+            f'<tr><th scope="row">{escape(_day(week["generated"]))}</th>{"".join(cells)}'
+            f'<td class="moves">{moves}</td></tr>'
+        )
+    return (
+        '<div class="table history"><table><thead><tr><th scope="col">Week</th>'
+        f'{heads}<th scope="col">Changes</th></tr></thead><tbody>{"".join(rows)}</tbody>'
+        '</table></div><p class="table-note">Packages that are ready, the change against the '
+        "run before, and how many block the version.</p>"
+    )
+
+
 def feed(snapshots: list[dict]) -> str:
     """An Atom feed with one entry per week that changed something, newest first."""
     entries = []
@@ -1793,7 +2075,7 @@ def main(argv: list[str] | None = None, pypi: PyPI | None = None) -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "feed.xml").write_text(feed(snapshots or [data]))
     (args.out / "data.json").write_text(json.dumps(data, indent=1) + "\n")
-    (args.out / "index.html").write_text(page(data))
+    (args.out / "index.html").write_text(page(data, snapshots))
     shutil.copytree(HERE / "fonts", args.out / "fonts", dirs_exist_ok=True)
     write_badges(data, args.out / "badges")
     if render_card(card(data), args.out / "og.png"):
